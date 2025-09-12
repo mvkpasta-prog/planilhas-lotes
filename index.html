@@ -382,9 +382,9 @@
                 containers[name].innerHTML = html || '<p class="no-data">Nenhuma programação para hoje ou futura.</p>';
 
             } else if (name === 'lotesEntrega') {
-                // ✅ CORREÇÃO CRÍTICA: Nome REAL da coluna é 'SALDO ENT. (KG)'
+                // ✅ CORREÇÃO FINAL: NOME EXATO DA COLUNA NA PLANILHA
                 filteredData = data.filter(row => {
-                    const saldoStr = row['SALDO ENT. (KG)']?.trim(); // ← NOME EXATO DA COLUNA
+                    const saldoStr = row['SALDO ENTREGA (KG)']?.trim(); // ← SEM PONTO! É "ENTREGA", NÃO "ENT."
                     if (!saldoStr) return false;
 
                     // Remove TODOS os espaços e substitui vírgula por ponto
@@ -475,9 +475,9 @@
                         value = `<span class="status ${statusClass}">${value}</span>`;
                     }
 
-                    // Destacar SALDO ENT. (KG) como ABERTO
-                    if (header === 'SALDO ENT. (KG)' && row['SALDO ENT. (KG)']) {
-                        const saldoStr = row['SALDO ENT. (KG)'].replace(/\s/g, '').replace(',', '.');
+                    // Destacar SALDO ENTREGA (KG) como ABERTO
+                    if (header === 'SALDO ENTREGA (KG)' && row['SALDO ENTREGA (KG)']) {
+                        const saldoStr = row['SALDO ENTREGA (KG)'].replace(/\s/g, '').replace(',', '.');
                         const saldo = parseFloat(saldoStr);
                         if (!isNaN(saldo) && saldo > 0) {
                             value = `<span class="status status-aberto">${value} kg</span>`;
@@ -505,7 +505,7 @@
             return text.replace(/[&<>"'\/]/g, char => map[char]);
         }
 
-        // ✅ SOLUÇÃO DEFINITIVA PARA BOTÕES DE EXPANDIR/RECOLHER (FUNCIONA EM PC E MOBILE)
+        // ✅ Botões expandir/recolher — compatível com todos os navegadores
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.group-header').forEach(header => {
                 header.addEventListener('click', function() {
