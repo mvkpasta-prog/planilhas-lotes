@@ -1,542 +1,434 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 Controle de Lotes e Programação</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <style>
-        :root {
-            --primary: #2563eb;
-            --secondary: #0ea5e9;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --light: #f9fafb;
-            --dark: #1f2937;
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            --border-radius: 12px;
-        }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>📊 Controle de Lotes e Programação</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root{
+      --primary:#2563eb;
+      --secondary:#0ea5e9;
+      --success:#10b981;
+      --warning:#f59e0b;
+      --danger:#ef4444;
+      --light:#f8fafc;
+      --dark:#0f172a;
+      --glass: rgba(255,255,255,0.65);
+      --card-shadow: 0 10px 30px rgba(16,24,40,0.08);
+      --rounded:14px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI", Tahoma, Geneva, Verdana, sans-serif}
+    html,body{height:100%}
+    body{
+      background: radial-gradient(1200px 600px at 10% 10%, rgba(37,99,235,0.08), transparent 8%),
+                  radial-gradient(1000px 500px at 90% 90%, rgba(14,165,233,0.06), transparent 10%),
+                  linear-gradient(180deg,#f8fcff,#eaf8ff 40%, #ffffff 100%);
+      color:var(--dark);
+      padding:26px;
+      -webkit-font-smoothing:antialiased;
+    }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+    .container{max-width:1260px;margin:0 auto}
 
-        body {
-            background: linear-gradient(135deg, #e0f2fe, #dbeafe);
-            color: var(--dark);
-            line-height: 1.6;
-            padding: 15px;
-            min-height: 100vh;
-        }
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:20px;
+    }
 
-        h1 {
-            text-align: center;
-            color: var(--primary);
-            margin-bottom: 20px;
-            font-size: 2.2rem;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
-        }
+    h1{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      font-size:1.9rem;
+      color:var(--primary);
+      letter-spacing:0.2px;
+    }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+    .brand-icon{
+      background:linear-gradient(135deg,var(--primary),var(--secondary));
+      color:white;padding:12px;border-radius:12px;box-shadow:var(--card-shadow);
+      display:inline-flex;align-items:center;justify-content:center;font-size:1.1rem;
+    }
 
-        .btn-refresh {
-            display: block;
-            width: 100%;
-            max-width: 220px;
-            margin: 20px auto;
-            padding: 14px 20px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            border: none;
-            border-radius: var(--border-radius);
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: var(--shadow);
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
+    .controls{
+      display:flex;gap:12px;align-items:center;
+    }
 
-        .btn-refresh:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
-        }
+    .btn-refresh{
+      background:linear-gradient(90deg,var(--primary),var(--secondary));
+      color:white;border:none;padding:12px 16px;border-radius:12px;
+      box-shadow:var(--card-shadow);cursor:pointer;font-weight:700;display:inline-flex;gap:10px;
+      align-items:center;transition:transform .15s ease, box-shadow .15s ease;
+    }
+    .btn-refresh:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(37,99,235,0.14)}
 
-        .section {
-            background-color: white;
-            margin: 20px 0;
-            padding: 25px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            transition: transform 0.2s;
-        }
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:20px;
+      align-items:start;
+    }
 
-        .section:hover {
-            transform: translateY(-3px);
-        }
+    @media (max-width:1000px){ .grid{ grid-template-columns: repeat(2, 1fr) } }
+    @media (max-width:640px){ .grid{ grid-template-columns: 1fr } }
 
-        h2 {
-            color: var(--primary);
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid var(--light);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+    .section{
+      background:var(--glass);
+      backdrop-filter: blur(6px);
+      border-radius:var(--rounded);
+      padding:18px;
+      box-shadow:var(--card-shadow);
+      border:1px solid rgba(15,23,42,0.04);
+      transition:transform .18s ease, box-shadow .18s ease;
+    }
+    .section:hover{transform:translateY(-6px);box-shadow:0 22px 48px rgba(16,24,40,0.10)}
 
-        h2 i {
-            color: var(--secondary);
-        }
+    .section h2{font-size:1.05rem;color:var(--primary);display:flex;gap:10px;align-items:center;margin-bottom:12px}
 
-        .group-container {
-            margin-bottom: 25px;
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
+    .group-container{margin-bottom:14px;border-radius:12px;overflow:hidden}
+    .group-header{
+      display:flex;align-items:center;justify-content:space-between;padding:14px 16px;
+      background:linear-gradient(90deg, rgba(255,255,255,0.9), rgba(250,250,255,0.85));
+      border-left:6px solid rgba(37,99,235,0.12);
+      cursor:pointer;user-select:none;gap:12px;
+    }
+    .group-header .left{display:flex;align-items:center;gap:12px;font-weight:700}
+    .group-header i.fa-chevron-down{transition:transform .28s ease}
+    .group-header.expanded i.fa-chevron-down{transform:rotate(180deg)}
 
-        .group-header {
-            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
-            padding: 16px 20px;
-            border-left: 5px solid var(--primary);
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: var(--dark);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-            user-select: none;
-            transition: background-color 0.2s;
-        }
+    .group-content{
+      max-height:0;overflow:hidden;transition:max-height .45s ease,padding .25s ease;background:white;border-top:1px solid rgba(15,23,42,0.03);
+    }
+    .group-content.open{padding:12px 16px;max-height:1100px}
 
-        .group-header:hover {
-            background-color: #e6f7ff;
-        }
+    table{width:100%;border-collapse:collapse;margin-top:6px;font-size:0.92rem}
+    thead th{background:linear-gradient(90deg,var(--primary),var(--secondary));color:white;padding:10px 12px;font-weight:700;text-align:left;border:0}
+    td, th{padding:10px 12px;border-bottom:1px solid rgba(15,23,42,0.04)}
+    tbody tr:nth-child(even){background:linear-gradient(90deg, rgba(237,246,255,0.6), transparent)}
+    tbody tr:hover{background:linear-gradient(90deg, rgba(235,248,255,0.9), rgba(230,244,255,0.8))}
 
-        .group-header i {
-            color: var(--secondary);
-            transition: transform 0.3s ease;
-        }
+    .status{display:inline-block;padding:6px 10px;border-radius:20px;font-weight:700;font-size:0.82rem;color:white}
+    .status-aberto{background:linear-gradient(90deg,var(--success), #0fb06d);box-shadow:0 6px 18px rgba(16,185,129,0.12)}
+    .status-pendente{background:linear-gradient(90deg,var(--warning), #d78a05)}
+    .status-cancelado{background:linear-gradient(90deg,var(--danger), #d33)}
+    .status-concluido{background:linear-gradient(90deg,#06b6d4,#0284c7)}
 
-        .group-header.expanded i.fa-chevron-down {
-            transform: rotate(180deg);
-        }
+    .no-data, .loading, .error{padding:18px;text-align:center;color:#475569;font-style:italic}
+    .error{color:var(--danger);font-weight:800}
 
-        .group-content {
-            padding: 0;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease-out, padding 0.3s ease;
-            background-color: #f8fafc;
-            border-top: 1px solid #e0e7ff;
-        }
+    /* small helpers */
+    .muted{color:#6b7280;font-size:0.92rem}
+    .mini{font-size:0.85rem;color:#475569}
 
-        .group-content.open {
-            max-height: 1000px;
-            padding: 15px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 0.95rem;
-        }
-
-        th, td {
-            border: 1px solid #e0e7ff;
-            padding: 12px;
-            text-align: left;
-            word-wrap: break-word;
-        }
-
-        th {
-            background-color: var(--primary);
-            color: white;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 0.9rem;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f3f4f6;
-        }
-
-        tr:hover {
-            background-color: #e0f2fe;
-            transition: background-color 0.2s;
-        }
-
-        .status {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: white;
-            display: inline-block;
-            min-width: 80px;
-            text-align: center;
-        }
-
-        .status-aberto { background-color: var(--success); }
-        .status-finalizado { background-color: var(--danger); }
-        .status-concluido { background-color: var(--success); }
-        .status-pendente { background-color: var(--warning); }
-        .status-cancelado { background-color: var(--danger); }
-
-        .loading {
-            text-align: center;
-            color: #6b7280;
-            font-style: italic;
-            padding: 20px;
-        }
-
-        .error {
-            color: var(--danger);
-            text-align: center;
-            padding: 20px;
-            font-weight: 600;
-        }
-
-        .no-data {
-            text-align: center;
-            color: #6b7280;
-            padding: 20px;
-            font-style: italic;
-        }
-
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 1.8rem;
-            }
-            h2 {
-                font-size: 1.4rem;
-            }
-            .group-header {
-                font-size: 1.1rem;
-                padding: 14px 16px;
-            }
-            th, td {
-                padding: 8px;
-                font-size: 0.85rem;
-            }
-        }
-    </style>
+    /* accessibility focus */
+    .group-header:focus{outline:3px solid rgba(37,99,235,0.12)}
+  </style>
 </head>
 <body>
-
-    <div class="container">
-        <h1><i class="fas fa-truck"></i> Controle de Lotes e Programação</h1>
-
-        <button id="refreshBtn" class="btn-refresh">
-            <i class="fas fa-sync-alt"></i> Atualizar Dados
+  <div class="container">
+    <header>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="brand-icon"><i class="fas fa-truck-fast"></i></div>
+        <h1><span>Controle de Lotes</span><small class="mini muted">• Programação & Logística</small></h1>
+      </div>
+      <div class="controls">
+        <button id="refreshBtn" class="btn-refresh" title="Atualizar dados">
+          <i class="fas fa-sync-alt"></i> Atualizar
         </button>
+      </div>
+    </header>
 
-        <!-- SEÇÃO: Programação -->
-        <div class="section">
-            <h2><i class="fas fa-calendar-check"></i> Programação</h2>
-            <div id="programacao"></div>
-        </div>
+    <main class="grid" aria-live="polite">
+      <section class="section" aria-label="Programação">
+        <h2><i class="fas fa-calendar-check"></i> Programação</h2>
+        <div id="programacao"></div>
+      </section>
 
-        <!-- SEÇÃO: Lotes Entrega -->
-        <div class="section">
-            <h2><i class="fas fa-truck-loading"></i> Lotes de Entrega</h2>
-            <div id="lotesEntrega"></div>
-        </div>
+      <section class="section" aria-label="Lotes de Entrega">
+        <h2><i class="fas fa-truck-loading"></i> Lotes de Entrega</h2>
+        <div id="lotesEntrega"></div>
+      </section>
 
-        <!-- SEÇÃO: Lotes Retirada -->
-        <div class="section">
-            <h2><i class="fas fa-warehouse"></i> Lotes de Retirada</h2>
-            <div id="lotesRetirada"></div>
-        </div>
-    </div>
+      <section class="section" aria-label="Lotes de Retirada">
+        <h2><i class="fas fa-warehouse"></i> Lotes de Retirada</h2>
+        <div id="lotesRetirada"></div>
+      </section>
+    </main>
+  </div>
 
-    <script>
-        const SHEET_ID = '1CZZgYJiZic9pyFFTdyldm_gVwn2K-zSGY9uhFJ5Nz6Q';
+  <script>
+    // CONFIGURAÇÕES
+    const SHEET_ID = '1CZZgYJiZic9pyFFTdyldm_gVwn2K-zSGY9uhFJ5Nz6Q';
+    const GIDS = {
+      lotesRetirada: 585404986,
+      lotesEntrega: 271702555,
+      programacao: 1183141602
+    };
+    const sections = ['lotesRetirada','lotesEntrega','programacao'];
+    const containers = {
+      lotesRetirada: document.getElementById('lotesRetirada'),
+      lotesEntrega: document.getElementById('lotesEntrega'),
+      programacao: document.getElementById('programacao')
+    };
 
-        const GIDS = {
-            'lotesRetirada': 585404986,
-            'lotesEntrega': 271702555,
-            'programacao': 1183141602
-        };
+    // UTIL: escape HTML seguro
+    function escapeHtml(str){
+      if(!str && str !== 0) return '';
+      const s = String(str);
+      return s.replace(/[&<>"'\/]/g, function (c) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x27;','/':'&#x2F;'}[c];
+      });
+    }
 
-        const sections = ['lotesRetirada', 'lotesEntrega', 'programacao'];
-        const containers = {
-            lotesRetirada: document.getElementById('lotesRetirada'),
-            lotesEntrega: document.getElementById('lotesEntrega'),
-            programacao: document.getElementById('programacao')
-        };
+    // UTIL: parse de data (dd/mm/yyyy ou yyyy-mm-dd)
+    function parseDate(dateStr){
+      if(!dateStr) return new Date(0);
+      const s = String(dateStr).trim();
+      if(s.includes('/')){
+        const [d,m,y] = s.split('/').map(Number);
+        return new Date(y, (m||1)-1, d||1);
+      } else if(s.includes('-')){
+        const [y,m,d] = s.split('-').map(Number);
+        return new Date(y||0, (m||1)-1, d||1);
+      }
+      return new Date(0);
+    }
 
-        let dataCache = {};
+    // CARREGA a aba do sheet (CSV export)
+    async function loadSheet(name, gid){
+      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
+      const container = containers[name];
+      container.innerHTML = '<div class="loading">Carregando dados...</div>';
+      try{
+        const res = await fetch(url);
+        if(!res.ok) throw new Error(`Erro ${res.status}`);
+        const text = await res.text();
 
-        async function loadSheet(name, gid) {
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
-            const container = containers[name];
-            container.innerHTML = '<p class="loading">Carregando dados...</p>';
-
-            try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error(`Erro ${response.status}: Não foi possível acessar a aba "${name}"`);
-
-                const csvText = await response.text();
-                const rows = csvText.split('\n');
-                if (rows.length < 2) throw new Error("Planilha vazia ou inválida");
-
-                const headers = rows[0].split(',').map(h => h.replace(/"/g, '').trim());
-                const data = [];
-
-                for (let i = 1; i < rows.length; i++) {
-                    if (!rows[i].trim()) continue;
-                    const values = rows[i].split(',');
-                    const row = {};
-                    headers.forEach((header, index) => {
-                        row[header] = values[index]?.replace(/"/g, '') || '';
-                    });
-                    data.push(row);
-                }
-
-                dataCache[name] = data;
-                renderGroupedTable(name, data);
-
-            } catch (error) {
-                container.innerHTML = `<p class="error">❌ Erro ao carregar "${name}": ${error.message}</p>`;
-                console.error(error);
-            }
+        // parsing simples CSV - assumindo linhas e colunas sem quebras complexas
+        const rows = text.split(/\r?\n/).filter(r => r.trim() !== '');
+        if(rows.length < 1){
+          container.innerHTML = '<div class="no-data">Planilha vazia.</div>';
+          return;
         }
 
-        function renderGroupedTable(name, data) {
-            if (data.length === 0) {
-                containers[name].innerHTML = '<p class="no-data">Nenhum dado encontrado.</p>';
-                return;
-            }
-
-            let filteredData = [...data];
-
-            if (name === 'programacao') {
-                // Filtrar apenas datas de HOJE e FUTURAS
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-
-                filteredData = data.filter(row => {
-                    const dateStr = row['DATA']?.trim();
-                    if (!dateStr) return false;
-
-                    let dateObj;
-                    if (dateStr.includes('/')) {
-                        const [day, month, year] = dateStr.split('/').map(Number);
-                        dateObj = new Date(year, month - 1, day);
-                    } else if (dateStr.includes('-')) {
-                        const [year, month, day] = dateStr.split('-').map(Number);
-                        dateObj = new Date(year, month - 1, day);
-                    } else {
-                        return false;
-                    }
-
-                    return !isNaN(dateObj.getTime()) && dateObj >= today;
-                });
-
-                // Agrupar por DATA
-                const grouped = {};
-                filteredData.forEach(row => {
-                    const key = row['DATA']?.trim() || 'Sem data';
-                    if (!grouped[key]) grouped[key] = [];
-                    grouped[key].push(row);
-                });
-
-                const sortedKeys = Object.keys(grouped).sort((a, b) => {
-                    const dateA = parseDate(a);
-                    const dateB = parseDate(b);
-                    return dateA - dateB;
-                });
-
-                const html = sortedKeys.map(key => {
-                    const rows = grouped[key];
-                    const groupId = `prog-${key.replace(/\//g, '-')}`;
-                    return `
-                        <div class="group-container">
-                            <div class="group-header" data-group="${groupId}">
-                                <i class="fas fa-calendar-day"></i>
-                                ${key} (${rows.length})
-                                <i class="fas fa-chevron-down"></i>
-                            </div>
-                            <div id="${groupId}" class="group-content">
-                                ${renderDataTable(rows)}
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-
-                containers[name].innerHTML = html || '<p class="no-data">Nenhuma programação para hoje ou futura.</p>';
-
-            } else if (name === 'lotesEntrega') {
-                // ✅ CORREÇÃO FINAL: NOME EXATO DA COLUNA NA PLANILHA
-                filteredData = data.filter(row => {
-                    const saldoStr = row['SALDO ENTREGA (KG)']?.trim(); // ← SEM PONTO! É "ENTREGA", NÃO "ENT."
-                    if (!saldoStr) return false;
-
-                    // Remove TODOS os espaços e substitui vírgula por ponto
-                    const clean = saldoStr.replace(/\s/g, '').replace(',', '.');
-                    const saldo = parseFloat(clean);
-
-                    return !isNaN(saldo) && saldo > 0;
-                });
-
-                if (filteredData.length === 0) {
-                    containers[name].innerHTML = '<p class="no-data">Nenhum lote de entrega aberto.</p>';
-                    return;
-                }
-
-                const groupId = 'entrega-aberto';
-                containers[name].innerHTML = `
-                    <div class="group-container">
-                        <div class="group-header" data-group="${groupId}">
-                            <i class="fas fa-check-circle"></i>
-                            ABERTO (${filteredData.length})
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div id="${groupId}" class="group-content">
-                            ${renderDataTable(filteredData)}
-                        </div>
-                    </div>
-                `;
-
-            } else if (name === 'lotesRetirada') {
-                // Filtrar APENAS "Pendente"
-                filteredData = data.filter(row => {
-                    return row['SITUAÇÃO']?.trim() === 'Pendente';
-                });
-
-                if (filteredData.length === 0) {
-                    containers[name].innerHTML = '<p class="no-data">Nenhum lote de retirada em aberto.</p>';
-                    return;
-                }
-
-                const groupId = 'retirada-pendente';
-                containers[name].innerHTML = `
-                    <div class="group-container">
-                        <div class="group-header" data-group="${groupId}">
-                            <i class="fas fa-clock"></i>
-                            PENDENTE (${filteredData.length})
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div id="${groupId}" class="group-content">
-                            ${renderDataTable(filteredData)}
-                        </div>
-                    </div>
-                `;
-            }
+        const headers = rows[0].split(',').map(h => h.replace(/^"|"$/g,'').trim());
+        const data = [];
+        for(let i=1;i<rows.length;i++){
+          const cols = rows[i].split(',');
+          const row = {};
+          headers.forEach((h, idx) => {
+            row[h] = (cols[idx] || '').replace(/^"|"$/g,'').trim();
+          });
+          // se todas colunas vazias, pula
+          if(Object.values(row).every(v => v === '')) continue;
+          data.push(row);
         }
 
-        function parseDate(dateStr) {
-            if (!dateStr) return new Date(0);
-            if (dateStr.includes('/')) {
-                const [day, month, year] = dateStr.split('/').map(Number);
-                return new Date(year, month - 1, day);
-            } else if (dateStr.includes('-')) {
-                const [year, month, day] = dateStr.split('-').map(Number);
-                return new Date(year, month - 1, day);
-            }
-            return new Date(0);
-        }
+        renderGroupedTable(name, data);
+      } catch(err){
+        container.innerHTML = `<div class="error">❌ Erro ao carregar: ${escapeHtml(err.message)}</div>`;
+        console.error(err);
+      }
+    }
 
-        function renderDataTable(data) {
-            if (data.length === 0) return '<p class="no-data">Sem dados nesta categoria.</p>';
+    // RENDERIZAÇÕES por seção
+    function renderGroupedTable(name, data){
+      if(!data || data.length === 0){
+        containers[name].innerHTML = '<div class="no-data">Nenhum dado encontrado.</div>';
+        return;
+      }
 
-            const headers = Object.keys(data[0]);
-            let tableHtml = '<table><thead><tr>';
-            headers.forEach(header => {
-                tableHtml += `<th>${escapeHtml(header)}</th>`;
-            });
-            tableHtml += '</tr></thead><tbody>';
-
-            data.forEach(row => {
-                tableHtml += '<tr>';
-                headers.forEach(header => {
-                    let value = escapeHtml(row[header] || '');
-
-                    // Destacar status em Lotes Retirada
-                    if (header === 'SITUAÇÃO' && row['SITUAÇÃO']) {
-                        const statusClass = row['SITUAÇÃO'].includes('Concluído') ? 'status-concluido' :
-                                           row['SITUAÇÃO'].includes('Pendente') ? 'status-pendente' :
-                                           row['SITUAÇÃO'].includes('Cancelado') ? 'status-cancelado' : '';
-                        value = `<span class="status ${statusClass}">${value}</span>`;
-                    }
-
-                    // Destacar SALDO ENTREGA (KG) como ABERTO
-                    if (header === 'SALDO ENTREGA (KG)' && row['SALDO ENTREGA (KG)']) {
-                        const saldoStr = row['SALDO ENTREGA (KG)'].replace(/\s/g, '').replace(',', '.');
-                        const saldo = parseFloat(saldoStr);
-                        if (!isNaN(saldo) && saldo > 0) {
-                            value = `<span class="status status-aberto">${value} kg</span>`;
-                        }
-                    }
-
-                    tableHtml += `<td>${value}</td>`;
-                });
-                tableHtml += '</tr>';
-            });
-
-            tableHtml += '</tbody></table>';
-            return tableHtml;
-        }
-
-        function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '<',
-                '>': '>',
-                '"': '&quot;',
-                "'": '&#x27;',
-                '/': '&#x2F;'
-            };
-            return text.replace(/[&<>"'\/]/g, char => map[char]);
-        }
-
-        // ✅ Botões expandir/recolher — compatível com todos os navegadores
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.group-header').forEach(header => {
-                header.addEventListener('click', function() {
-                    const groupId = this.getAttribute('data-group');
-                    const content = document.getElementById(groupId);
-                    if (content) {
-                        content.classList.toggle('open');
-                        this.classList.toggle('expanded');
-                    }
-                });
-            });
+      if(name === 'programacao'){
+        // filtrar hoje e futuras
+        const today = new Date(); today.setHours(0,0,0,0);
+        const filtered = data.filter(row => {
+          const d = row['DATA']?.trim();
+          if(!d) return false;
+          const dt = parseDate(d);
+          return !isNaN(dt.getTime()) && dt >= today;
         });
 
-        document.getElementById('refreshBtn').addEventListener('click', () => {
-            sections.forEach(section => {
-                const gid = GIDS[section];
-                if (gid !== undefined) {
-                    loadSheet(section, gid);
-                }
-            });
+        if(filtered.length === 0){
+          containers[name].innerHTML = '<div class="no-data">Nenhuma programação para hoje ou futuras.</div>';
+          return;
+        }
+
+        // agrupar por DATA
+        const grouped = {};
+        filtered.forEach(r => {
+          const key = r['DATA']?.trim() || 'Sem data';
+          if(!grouped[key]) grouped[key] = [];
+          grouped[key].push(r);
         });
 
-        window.addEventListener('load', () => {
-            sections.forEach(section => {
-                const gid = GIDS[section];
-                if (gid !== undefined) {
-                    loadSheet(section, gid);
-                }
-            });
-        });
-    </script>
+        const sortedKeys = Object.keys(grouped).sort((a,b)=> parseDate(a)-parseDate(b));
+        const html = sortedKeys.map(key => {
+          const rows = grouped[key];
+          const gid = 'prog-'+key.replace(/\//g,'-').replace(/\s+/g,'_');
+          return `
+            <div class="group-container">
+              <div class="group-header" data-group="${gid}" tabindex="0">
+                <div class="left"><i class="fas fa-calendar-day"></i> ${escapeHtml(key)} <span class="mini muted">(${rows.length})</span></div>
+                <i class="fas fa-chevron-down"></i>
+              </div>
+              <div id="${gid}" class="group-content">
+                ${renderDataTable(rows)}
+              </div>
+            </div>
+          `;
+        }).join('');
+        containers[name].innerHTML = html;
+      }
 
+      else if(name === 'lotesEntrega'){
+        const filtered = data.filter(row => {
+          const s = row['SALDO ENTREGA (KG)']?.trim();
+          if(!s) return false;
+          const clean = s.replace(/\s/g,'').replace(',', '.');
+          const n = parseFloat(clean);
+          return !isNaN(n) && n > 0;
+        });
+
+        if(filtered.length === 0){
+          containers[name].innerHTML = '<div class="no-data">Nenhum lote de entrega aberto.</div>';
+          return;
+        }
+
+        const gid = 'entrega-aberto';
+        containers[name].innerHTML = `
+          <div class="group-container">
+            <div class="group-header" data-group="${gid}" tabindex="0">
+              <div class="left"><i class="fas fa-check-circle"></i> ABERTO <span class="mini muted">(${filtered.length})</span></div>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div id="${gid}" class="group-content">
+              ${renderDataTable(filtered, 'SALDO ENTREGA (KG)')}
+            </div>
+          </div>
+        `;
+      }
+
+      else if(name === 'lotesRetirada'){
+        // NOVA LÓGICA: considerar SALDO RET. (KG) > 0 e marcar como ABERTO
+        const filtered = data.filter(row => {
+          const s = row['SALDO RET. (KG)']?.trim();
+          if(!s) return false;
+          const clean = s.replace(/\s/g,'').replace(',', '.');
+          const n = parseFloat(clean);
+          return !isNaN(n) && n > 0;
+        });
+
+        if(filtered.length === 0){
+          containers[name].innerHTML = '<div class="no-data">Nenhum lote de retirada aberto.</div>';
+          return;
+        }
+
+        const gid = 'retirada-aberto';
+        containers[name].innerHTML = `
+          <div class="group-container">
+            <div class="group-header" data-group="${gid}" tabindex="0">
+              <div class="left"><i class="fas fa-box-open"></i> ABERTO <span class="mini muted">(${filtered.length})</span></div>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div id="${gid}" class="group-content">
+              ${renderDataTable(filtered, 'SALDO RET. (KG)')}
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // monta tabela; highlightCol é usada pra mostrar badge ABERTO quando >0
+    function renderDataTable(data, highlightCol){
+      if(!data || data.length === 0) return '<div class="no-data">Sem dados nesta categoria.</div>';
+      const headers = Object.keys(data[0]);
+      let html = '<table role="table"><thead><tr>';
+      headers.forEach(h => html += `<th>${escapeHtml(h)}</th>`);
+      html += '</tr></thead><tbody>';
+
+      data.forEach(row => {
+        html += '<tr>';
+        headers.forEach(h => {
+          let cell = row[h] ?? '';
+          let displayed = escapeHtml(cell);
+
+          // badge para SALDO ENTREGA (KG)
+          if(h === 'SALDO ENTREGA (KG)' && cell){
+            const clean = String(cell).replace(/\s/g,'').replace(',', '.');
+            const n = parseFloat(clean);
+            if(!isNaN(n) && n > 0){
+              displayed = `<span class="status status-aberto">${escapeHtml(cell)} kg</span>`;
+            }
+          }
+
+          // badge para SALDO RET. (KG) (nova regra)
+          if(h === 'SALDO RET. (KG)' && cell){
+            const clean = String(cell).replace(/\s/g,'').replace(',', '.');
+            const n = parseFloat(clean);
+            if(!isNaN(n) && n > 0){
+              displayed = `<span class="status status-aberto">${escapeHtml(cell)} kg</span>`;
+            }
+          }
+
+          // status por SITUAÇÃO (caso exista) - mantém compatibilidade, mas não é usado para filtrar retirada
+          if(h === 'SITUAÇÃO' && cell){
+            const s = String(cell);
+            const cls = s.includes('Concluído') ? 'status-concluido' :
+                        s.includes('Pendente') ? 'status-pendente' :
+                        s.includes('Cancel') || s.includes('Cancelado') ? 'status-cancelado' : '';
+            if(cls) displayed = `<span class="status ${cls}">${escapeHtml(cell)}</span>`;
+          }
+
+          html += `<td>${displayed}</td>`;
+        });
+        html += '</tr>';
+      });
+
+      html += '</tbody></table>';
+      return html;
+    }
+
+    // evento: expandir/recolher (delegation)
+    document.addEventListener('click', (e) => {
+      const header = e.target.closest('.group-header');
+      if(!header) return;
+      const groupId = header.getAttribute('data-group');
+      const content = document.getElementById(groupId);
+      if(!content) return;
+      content.classList.toggle('open');
+      header.classList.toggle('expanded');
+    });
+
+    // atalho teclado: Enter / Space abre grupo quando focado
+    document.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter' || e.key === ' '){
+        const el = document.activeElement;
+        if(el && el.classList && el.classList.contains('group-header')){
+          el.click();
+          e.preventDefault();
+        }
+      }
+    });
+
+    // botões
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+      sections.forEach(s => {
+        const gid = GIDS[s];
+        if(gid !== undefined) loadSheet(s, gid);
+      });
+    });
+
+    // carregar ao abrir
+    window.addEventListener('load', () => {
+      sections.forEach(s => {
+        const gid = GIDS[s];
+        if(gid !== undefined) loadSheet(s, gid);
+      });
+    });
+  </script>
 </body>
 </html>
