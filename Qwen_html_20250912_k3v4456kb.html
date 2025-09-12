@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Controle de Lotes e Programação</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        h1, h2 {
+            color: #333;
+            border-bottom: 2px solid #007BFF;
+            padding-bottom: 5px;
+        }
+        .section {
+            background-color: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+            font-size: 14px;
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .contract-group {
+            margin-bottom: 30px;
+        }
+        .contract-header {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-left: 4px solid #007BFF;
+            font-weight: bold;
+            margin: 15px 0 10px 0;
+            cursor: pointer;
+        }
+        .contract-header:hover {
+            background-color: #dee2e6;
+        }
+        .contract-content {
+            display: block;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📊 Controle de Lotes e Programação</h1>
+    <button id="refreshBtn">🔄 Atualizar Dados</button>
+
+    <!-- SEÇÃO: Lotes Retirada -->
+    <div class="section">
+        <h2>📦 Lotes de Retirada</h2>
+        <div id="lotesRetirada"></div>
+    </div>
+
+    <!-- SEÇÃO: Lotes Entrega -->
+    <div class="section">
+        <h2>🚚 Lotes de Entrega</h2>
+        <div id="lotesEntrega"></div>
+    </div>
+
+    <!-- SEÇÃO: Programação -->
+    <div class="section">
+        <h2>📅 Programação</h2>
+        <div id="programacao"></div>
+    </div>
+
+    <script>
+        // ID da planilha (extraído do link)
+        const SHEET_ID = '1CZZgYJiZic9pyFFTdyldm_gVwn2K-zSGY9uhFJ5Nz6Q';
+
+        // GIDs reais das abas (fornecidos por você)
+        const GIDS = {
+            'lotesRetirada': 585404986,
+            'lotesEntrega': 271702555,
+            'programacao': 1183141602
+        };
+
+        const sections = ['lotesRetirada', 'lotesEntrega', 'programacao'];
+        const containers = {
+            lotesRetirada: document.getElementById('lotesRetirada'),
+            lotesEntrega: document.getElementById('lotesEntrega'),
+            programacao: document.getElementById('programacao')
+        };
+
+        let dataCache = {};
+
+        // Função para carregar uma aba por GID
+        async function loadSheet(name, gid) {
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
+            const container = containers[name];
+            container.innerHTML = '<p class="loading">Carregando...</p>';
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`Erro ${response.status}: Não foi possível acessar a aba "${name}"`);
+
+                const csvText = await response.text();
+                const rows = csvText.split('\n');
+                if (rows.length < 2) throw new Error("Planilha vazia ou inválida");
+
+                // Primeira linha é o cabeçalho
+                const headers = rows[0].split(',').map(h => h.replace(/"/g, '').trim());
+                const data = [];
+
+                for (let i = 1; i < rows.length; i++) {
+                    if (!rows[i].trim()) continue;
+                    const values = rows[i].split(',');
+                    const row = {};
+                    headers.forEach((header, index) => {
+                        row[header] = values[index]?.replace(/"/g, '') || '';
+                    });
+                    data.push(row);
+                }
+
+                dataCache[name] = data;
+                renderTable(name, data);
+
+            } catch (error) {
+                container.innerHTML = `<p class="error">❌ Erro ao carregar "${name}": ${error.message}</p>`;
+                console.error(error);
+            }
+        }
+
+        // Função para renderizar tabela agrupada por contrato
+        function renderTable(name, data) {
+            if (data.length === 0) {
+                containers[name].innerHTML = '<p>Nenhum dado encontrado.</p>';
+                return;
+            }
+
+            // Verifica se há coluna "Contrato"
+            const hasContract = data.some(row => row.Contrato !== undefined && row.Contrato !== '');
+            if (!hasContract) {
+                containers[name].innerHTML = `
+                    <p><strong>Atenção:</strong> Nenhuma coluna "Contrato" encontrada. Todos os dados serão exibidos juntos.</p>
+                    ${renderDataTable(data)}
+                `;
+                return;
+            }
+
+            // Agrupar por Contrato
+            const grouped = {};
+            data.forEach(row => {
+                const contract = row.Contrato.trim() || 'Sem Contrato';
+                if (!grouped[contract]) grouped[contract] = [];
+                grouped[contract].push(row);
+            });
+
+            const html = Object.keys(grouped).sort().map(contract => {
+                const rows = grouped[contract];
+                return `
+                    <div class="contract-group">
+                        <div class="contract-header">${contract}</div>
+                        <div class="contract-content">
+                            ${renderDataTable(rows)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            containers[name].innerHTML = html;
+        }
+
+        // Função auxiliar para gerar tabela HTML
+        function renderDataTable(data) {
+            if (data.length === 0) return '<p>Sem dados</p>';
+
+            const headers = Object.keys(data[0]);
+            let tableHtml = '<table><thead><tr>';
+            headers.forEach(header => {
+                tableHtml += `<th>${escapeHtml(header)}</th>`;
+            });
+            tableHtml += '</tr></thead><tbody>';
+
+            data.forEach(row => {
+                tableHtml += '<tr>';
+                headers.forEach(header => {
+                    const value = escapeHtml(row[header] || '');
+                    tableHtml += `<td>${value}</td>`;
+                });
+                tableHtml += '</tr>';
+            });
+
+            tableHtml += '</tbody></table>';
+            return tableHtml;
+        }
+
+        // Função para escapar HTML (evitar XSS)
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '<',
+                '>': '>',
+                '"': '&quot;',
+                "'": '&#x27;',
+                '/': '&#x2F;'
+            };
+            return text.replace(/[&<>"'\/]/g, char => map[char]);
+        }
+
+        // Botão de atualização
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            sections.forEach(section => {
+                const gid = GIDS[section];
+                if (gid !== undefined) {
+                    loadSheet(section, gid);
+                }
+            });
+        });
+
+        // Carregar tudo ao iniciar
+        window.addEventListener('load', () => {
+            sections.forEach(section => {
+                const gid = GIDS[section];
+                loadSheet(section, gid);
+            });
+        });
+    </script>
+
+</body>
+</html>
