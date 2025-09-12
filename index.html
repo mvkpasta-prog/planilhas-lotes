@@ -249,7 +249,6 @@
     <script>
         const SHEET_ID = '1CZZgYJiZic9pyFFTdyldm_gVwn2K-zSGY9uhFJ5Nz6Q';
 
-        // GIDs corrigidos
         const GIDS = {
             'lotesRetirada': 585404986,
             'lotesEntrega': 271702555,
@@ -309,14 +308,15 @@
             let filteredData = [...data];
 
             if (name === 'programacao') {
-                // Filtrar apenas datas de HOJE e FUTURAS usando coluna REAL: 'DATA'
+                // Coluna REAL: 'DATA'
                 const today = new Date();
-                today.setHours(0, 0, 0, 0);
+                today.setHours(0, 0, 0, 0); // Zera horas/minutos/segundos
 
                 filteredData = data.filter(row => {
-                    const dateStr = row['DATA']?.trim(); // ← NOME REAL DA COLUNA
+                    const dateStr = row['DATA']?.trim(); // ← NOME EXATO
                     if (!dateStr) return false;
 
+                    // Suporte a formatos DD/MM/YYYY ou YYYY-MM-DD
                     let dateObj;
                     if (dateStr.includes('/')) {
                         const [day, month, year] = dateStr.split('/').map(Number);
@@ -325,10 +325,13 @@
                         const [year, month, day] = dateStr.split('-').map(Number);
                         dateObj = new Date(year, month - 1, day);
                     } else {
-                        return false;
+                        return false; // Formato inválido
                     }
 
-                    return dateObj >= today;
+                    // Garantir que a data é válida
+                    if (isNaN(dateObj.getTime())) return false;
+
+                    return dateObj >= today; // Hoje ou futuro
                 });
 
                 // Agrupar por DATA
@@ -363,15 +366,20 @@
                 containers[name].innerHTML = html || '<p class="no-data">Nenhuma programação para hoje ou futura.</p>';
 
             } else if (name === 'lotesEntrega') {
-                // Filtrar apenas SALDO ENTREGA (KG) > 0 → ABERTO (coluna REAL: 'SALDO ENTREGA (KG)')
+                // Coluna REAL: 'SALDO ENTREGA (KG)'
                 filteredData = data.filter(row => {
-                    const saldoStr = row['SALDO ENTREGA (KG)']?.trim(); // ← NOME REAL DA COLUNA
+                    const saldoStr = row['SALDO ENTREGA (KG)']?.trim(); // ← NOME EXATO
                     if (!saldoStr) return false;
-                    const saldo = parseFloat(saldoStr.replace(',', '.'));
+
+                    // Remove espaços, substitui vírgula por ponto, converte para número
+                    const clean = saldoStr.replace(/,/g, '.').replace(/\s/g, '');
+                    const saldo = parseFloat(clean);
+
+                    // Só aceita se for número > 0
                     return !isNaN(saldo) && saldo > 0;
                 });
 
-                // Mostrar APENAS como "ABERTO"
+                // Mostrar APENAS como ABERTO
                 const html = `
                     <div class="group-container">
                         <div class="group-header">
@@ -445,7 +453,7 @@
                 tableHtml += '<tr>';
                 headers.forEach(header => {
                     let value = escapeHtml(row[header] || '');
-                    
+
                     // Destacar status em Lotes Retirada
                     if (header === 'SITUAÇÃO' && row['SITUAÇÃO']) {
                         const statusClass = row['SITUAÇÃO'].includes('Concluído') ? 'status-concluido' :
@@ -453,10 +461,11 @@
                                            row['SITUAÇÃO'].includes('Cancelado') ? 'status-cancelado' : '';
                         value = `<span class="status ${statusClass}">${value}</span>`;
                     }
-                    
+
                     // Destacar SALDO ENTREGA (KG) como ABERTO
                     if (header === 'SALDO ENTREGA (KG)' && row['SALDO ENTREGA (KG)']) {
-                        const saldo = parseFloat(row['SALDO ENTREGA (KG)'].replace(',', '.'));
+                        const saldoStr = row['SALDO ENTREGA (KG)'].replace(/,/g, '.').replace(/\s/g, '');
+                        const saldo = parseFloat(saldoStr);
                         if (!isNaN(saldo) && saldo > 0) {
                             value = `<span class="status status-aberto">${value} kg</span>`;
                         }
