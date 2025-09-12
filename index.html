@@ -174,10 +174,8 @@
             text-align: center;
         }
 
-        .status-pendente { background-color: var(--warning); }
-        .status-concluido { background-color: var(--success); }
-        .status-cancelado { background-color: var(--danger); }
-        .status-em-transito { background-color: var(--secondary); }
+        .status-aberto { background-color: var(--success); }
+        .status-finalizado { background-color: var(--danger); }
 
         .loading {
             text-align: center;
@@ -191,6 +189,13 @@
             text-align: center;
             padding: 20px;
             font-weight: 600;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #6b7280;
+            padding: 20px;
+            font-style: italic;
         }
 
         @media (max-width: 768px) {
@@ -207,13 +212,6 @@
                 padding: 8px;
                 font-size: 0.85rem;
             }
-        }
-
-        .no-data {
-            text-align: center;
-            color: #6b7280;
-            padding: 20px;
-            font-style: italic;
         }
     </style>
 </head>
@@ -305,82 +303,134 @@
                 return;
             }
 
-            const groupByField = getGroupingKey(name);
-            if (!groupByField) {
-                containers[name].innerHTML = '<p class="error">Coluna de agrupamento não encontrada.</p>';
-                return;
-            }
+            let filteredData = [...data];
 
-            const grouped = {};
-            data.forEach(row => {
-                const key = row[groupByField]?.trim() || 'Sem categoria';
-                if (!grouped[key]) grouped[key] = [];
-                grouped[key].push(row);
-            });
+            // FILTRO ESPECÍFICO POR ABA
 
-            const sortedKeys = Object.keys(grouped).sort();
+            if (name === 'programacao') {
+                // Filtrar apenas datas de HOJE e FUTURAS
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Zerar horas para comparação
 
-            const html = sortedKeys.map(key => {
-                const rows = grouped[key];
-                const icon = getIconForGroup(name, key);
-                const statusClass = getStatusClass(name, key);
+                filteredData = data.filter(row => {
+                    const dateStr = row['Data']?.trim();
+                    if (!dateStr) return false;
 
-                return `
+                    // Formato esperado: DD/MM/YYYY ou YYYY-MM-DD
+                    let dateObj;
+                    if (dateStr.includes('/')) {
+                        const [day, month, year] = dateStr.split('/').map(Number);
+                        dateObj = new Date(year, month - 1, day);
+                    } else if (dateStr.includes('-')) {
+                        const [year, month, day] = dateStr.split('-').map(Number);
+                        dateObj = new Date(year, month - 1, day);
+                    } else {
+                        return false; // Formato inválido
+                    }
+
+                    return dateObj >= today;
+                });
+
+                // Agrupar por Data
+                const grouped = {};
+                filteredData.forEach(row => {
+                    const key = row['Data']?.trim() || 'Sem data';
+                    if (!grouped[key]) grouped[key] = [];
+                    grouped[key].push(row);
+                });
+
+                const sortedKeys = Object.keys(grouped).sort((a, b) => {
+                    const dateA = parseDate(a);
+                    const dateB = parseDate(b);
+                    return dateA - dateB;
+                });
+
+                const html = sortedKeys.map(key => {
+                    const rows = grouped[key];
+                    const icon = 'fas fa-calendar-day';
+                    return `
+                        <div class="group-container">
+                            <div class="group-header">
+                                <i class="${icon}"></i>
+                                ${key} (${rows.length})
+                            </div>
+                            <div class="group-content">
+                                ${renderDataTable(rows)}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                containers[name].innerHTML = html || '<p class="no-data">Nenhuma programação para hoje ou futura.</p>';
+
+            } else if (name === 'lotesEntrega') {
+                // Filtrar apenas SALDO ENT. (KG) > 0 (ABERTO)
+                filteredData = data.filter(row => {
+                    const saldoStr = row['SALDO ENT. (KG)']?.trim();
+                    if (!saldoStr) return false;
+                    const saldo = parseFloat(saldoStr.replace(',', '.'));
+                    return !isNaN(saldo) && saldo > 0;
+                });
+
+                // Agrupar por status (só temos "ABERTO")
+                const grouped = { 'ABERTO': filteredData };
+                const html = `
                     <div class="group-container">
                         <div class="group-header">
-                            <i class="${icon}"></i>
-                            ${key} (${rows.length})
+                            <i class="fas fa-check-circle"></i>
+                            ABERTO (${filteredData.length})
                         </div>
                         <div class="group-content">
-                            ${renderDataTable(rows)}
+                            ${renderDataTable(filteredData)}
                         </div>
                     </div>
                 `;
-            }).join('');
 
-            containers[name].innerHTML = html;
-        }
+                containers[name].innerHTML = filteredData.length > 0 ? html : '<p class="no-data">Nenhum lote de entrega aberto.</p>';
 
-        function getGroupingKey(name) {
-            switch (name) {
-                case 'programacao': return 'Data';
-                case 'lotesEntrega': return 'SITUAÇÃO ENT.';
-                case 'lotesRetirada': return 'SITUAÇÃO';
-                default: return null;
+            } else if (name === 'lotesRetirada') {
+                // Agrupar por SITUAÇÃO
+                const grouped = {};
+                filteredData.forEach(row => {
+                    const key = row['SITUAÇÃO']?.trim() || 'Sem situação';
+                    if (!grouped[key]) grouped[key] = [];
+                    grouped[key].push(row);
+                });
+
+                const sortedKeys = Object.keys(grouped).sort();
+
+                const html = sortedKeys.map(key => {
+                    const rows = grouped[key];
+                    const icon = key.includes('Concluído') ? 'fas fa-check-circle' :
+                                 key.includes('Pendente') ? 'fas fa-clock' :
+                                 key.includes('Cancelado') ? 'fas fa-ban' : 'fas fa-warehouse';
+                    return `
+                        <div class="group-container">
+                            <div class="group-header">
+                                <i class="${icon}"></i>
+                                ${key} (${rows.length})
+                            </div>
+                            <div class="group-content">
+                                ${renderDataTable(rows)}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                containers[name].innerHTML = html;
             }
         }
 
-        function getIconForGroup(name, key) {
-            switch (name) {
-                case 'programacao': return 'fas fa-calendar-day';
-                case 'lotesEntrega':
-                    if (key.includes('Concluído')) return 'fas fa-check-circle';
-                    if (key.includes('Pendente')) return 'fas fa-clock';
-                    if (key.includes('Cancelado')) return 'fas fa-ban';
-                    return 'fas fa-truck';
-                case 'lotesRetirada':
-                    if (key.includes('Concluído')) return 'fas fa-check-circle';
-                    if (key.includes('Pendente')) return 'fas fa-clock';
-                    if (key.includes('Cancelado')) return 'fas fa-ban';
-                    return 'fas fa-warehouse';
-                default: return 'fas fa-list';
+        function parseDate(dateStr) {
+            if (!dateStr) return new Date(0);
+            if (dateStr.includes('/')) {
+                const [day, month, year] = dateStr.split('/').map(Number);
+                return new Date(year, month - 1, day);
+            } else if (dateStr.includes('-')) {
+                const [year, month, day] = dateStr.split('-').map(Number);
+                return new Date(year, month - 1, day);
             }
-        }
-
-        function getStatusClass(name, key) {
-            if (name === 'lotesEntrega') {
-                if (key.includes('Concluído')) return 'status-concluido';
-                if (key.includes('Pendente')) return 'status-pendente';
-                if (key.includes('Cancelado')) return 'status-cancelado';
-                return 'status-em-transito';
-            }
-            if (name === 'lotesRetirada') {
-                if (key.includes('Concluído')) return 'status-concluido';
-                if (key.includes('Pendente')) return 'status-pendente';
-                if (key.includes('Cancelado')) return 'status-cancelado';
-                return 'status-em-transito';
-            }
-            return '';
+            return new Date(0);
         }
 
         function renderDataTable(data) {
@@ -398,11 +448,17 @@
                 headers.forEach(header => {
                     let value = escapeHtml(row[header] || '');
                     // Aplicar estilo de status nas colunas específicas
-                    if ((header === 'SITUAÇÃO ENT.' && row['SITUAÇÃO ENT.']) ||
-                        (header === 'SITUAÇÃO' && row['SITUAÇÃO'])) {
-                        const statusClass = getStatusClass('lotesEntrega', row['SITUAÇÃO ENT.']) || 
-                                           getStatusClass('lotesRetirada', row['SITUAÇÃO']);
+                    if (header === 'SITUAÇÃO' && row['SITUAÇÃO']) {
+                        const statusClass = row['SITUAÇÃO'].includes('Concluído') ? 'status-concluido' :
+                                           row['SITUAÇÃO'].includes('Pendente') ? 'status-pendente' :
+                                           row['SITUAÇÃO'].includes('Cancelado') ? 'status-cancelado' : '';
                         value = `<span class="status ${statusClass}">${value}</span>`;
+                    }
+                    if (header === 'SALDO ENT. (KG)' && row['SALDO ENT. (KG)']) {
+                        const saldo = parseFloat(row['SALDO ENT. (KG)'].replace(',', '.'));
+                        if (!isNaN(saldo) && saldo > 0) {
+                            value = `<span class="status status-aberto">${value} kg</span>`;
+                        }
                     }
                     tableHtml += `<td>${value}</td>`;
                 });
