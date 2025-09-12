@@ -367,7 +367,7 @@
                     const groupId = `prog-${key.replace(/\//g, '-')}`;
                     return `
                         <div class="group-container">
-                            <div class="group-header" onclick="toggleGroup('${groupId}')">
+                            <div class="group-header" data-group="${groupId}">
                                 <i class="fas fa-calendar-day"></i>
                                 ${key} (${rows.length})
                                 <i class="fas fa-chevron-down"></i>
@@ -382,9 +382,9 @@
                 containers[name].innerHTML = html || '<p class="no-data">Nenhuma programação para hoje ou futura.</p>';
 
             } else if (name === 'lotesEntrega') {
-                // Filtrar apenas SALDO ENTREGA (KG) > 0
+                // ✅ CORREÇÃO CRÍTICA: Nome REAL da coluna é 'SALDO ENT. (KG)'
                 filteredData = data.filter(row => {
-                    const saldoStr = row['SALDO ENTREGA (KG)']?.trim();
+                    const saldoStr = row['SALDO ENT. (KG)']?.trim(); // ← NOME EXATO DA COLUNA
                     if (!saldoStr) return false;
 
                     // Remove TODOS os espaços e substitui vírgula por ponto
@@ -394,7 +394,6 @@
                     return !isNaN(saldo) && saldo > 0;
                 });
 
-                // Mostrar APENAS como ABERTO (um único grupo)
                 if (filteredData.length === 0) {
                     containers[name].innerHTML = '<p class="no-data">Nenhum lote de entrega aberto.</p>';
                     return;
@@ -403,7 +402,7 @@
                 const groupId = 'entrega-aberto';
                 containers[name].innerHTML = `
                     <div class="group-container">
-                        <div class="group-header" onclick="toggleGroup('${groupId}')">
+                        <div class="group-header" data-group="${groupId}">
                             <i class="fas fa-check-circle"></i>
                             ABERTO (${filteredData.length})
                             <i class="fas fa-chevron-down"></i>
@@ -415,7 +414,7 @@
                 `;
 
             } else if (name === 'lotesRetirada') {
-                // FILTRAR APENAS "Pendente" (abertos)
+                // Filtrar APENAS "Pendente"
                 filteredData = data.filter(row => {
                     return row['SITUAÇÃO']?.trim() === 'Pendente';
                 });
@@ -428,7 +427,7 @@
                 const groupId = 'retirada-pendente';
                 containers[name].innerHTML = `
                     <div class="group-container">
-                        <div class="group-header" onclick="toggleGroup('${groupId}')">
+                        <div class="group-header" data-group="${groupId}">
                             <i class="fas fa-clock"></i>
                             PENDENTE (${filteredData.length})
                             <i class="fas fa-chevron-down"></i>
@@ -476,9 +475,9 @@
                         value = `<span class="status ${statusClass}">${value}</span>`;
                     }
 
-                    // Destacar SALDO ENTREGA (KG) como ABERTO
-                    if (header === 'SALDO ENTREGA (KG)' && row['SALDO ENTREGA (KG)']) {
-                        const saldoStr = row['SALDO ENTREGA (KG)'].replace(/\s/g, '').replace(',', '.');
+                    // Destacar SALDO ENT. (KG) como ABERTO
+                    if (header === 'SALDO ENT. (KG)' && row['SALDO ENT. (KG)']) {
+                        const saldoStr = row['SALDO ENT. (KG)'].replace(/\s/g, '').replace(',', '.');
                         const saldo = parseFloat(saldoStr);
                         if (!isNaN(saldo) && saldo > 0) {
                             value = `<span class="status status-aberto">${value} kg</span>`;
@@ -506,13 +505,19 @@
             return text.replace(/[&<>"'\/]/g, char => map[char]);
         }
 
-        // Função para expandir/recolher grupos
-        window.toggleGroup = function(groupId) {
-            const content = document.getElementById(groupId);
-            const header = content.parentElement.querySelector('.group-header');
-            content.classList.toggle('open');
-            header.classList.toggle('expanded');
-        };
+        // ✅ SOLUÇÃO DEFINITIVA PARA BOTÕES DE EXPANDIR/RECOLHER (FUNCIONA EM PC E MOBILE)
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.group-header').forEach(header => {
+                header.addEventListener('click', function() {
+                    const groupId = this.getAttribute('data-group');
+                    const content = document.getElementById(groupId);
+                    if (content) {
+                        content.classList.toggle('open');
+                        this.classList.toggle('expanded');
+                    }
+                });
+            });
+        });
 
         document.getElementById('refreshBtn').addEventListener('click', () => {
             sections.forEach(section => {
