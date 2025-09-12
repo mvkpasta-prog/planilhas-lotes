@@ -4,111 +4,251 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📊 Controle de Lotes e Programação</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #0ea5e9;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --light: #f9fafb;
+            --dark: #1f2937;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f9f9f9;
+            background: linear-gradient(135deg, #e0f2fe, #dbeafe);
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 15px;
+            min-height: 100vh;
         }
-        h1, h2 {
-            color: #333;
-            border-bottom: 2px solid #007BFF;
-            padding-bottom: 5px;
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 2.2rem;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
         }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .btn-refresh {
+            display: block;
+            width: 100%;
+            max-width: 220px;
+            margin: 20px auto;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-refresh:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+        }
+
         .section {
             background-color: white;
             margin: 20px 0;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            transition: transform 0.2s;
         }
+
+        .section:hover {
+            transform: translateY(-3px);
+        }
+
+        h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h2 i {
+            color: var(--secondary);
+        }
+
+        .group-container {
+            margin-bottom: 25px;
+        }
+
+        .group-header {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            padding: 14px 20px;
+            border-left: 5px solid var(--primary);
+            border-radius: 8px 0 0 8px;
+            margin: 15px 0;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .group-header i {
+            color: var(--secondary);
+        }
+
+        .group-content {
+            padding: 15px;
+            border: 1px solid #e0e7ff;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            margin-top: -5px;
+            background-color: #f8fafc;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
+            margin-top: 10px;
+            font-size: 0.95rem;
         }
+
         th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
+            border: 1px solid #e0e7ff;
+            padding: 12px;
             text-align: left;
-            font-size: 14px;
+            word-wrap: break-word;
         }
+
         th {
-            background-color: #007BFF;
+            background-color: var(--primary);
             color: white;
-            font-weight: bold;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
         }
+
         tr:nth-child(even) {
-            background-color: #f2f2f2;
+            background-color: #f3f4f6;
         }
-        .contract-group {
-            margin-bottom: 30px;
+
+        tr:hover {
+            background-color: #e0f2fe;
+            transition: background-color 0.2s;
         }
-        .contract-header {
-            background-color: #e9ecef;
-            padding: 10px;
-            border-left: 4px solid #007BFF;
-            font-weight: bold;
-            margin: 15px 0 10px 0;
-            cursor: pointer;
-        }
-        .contract-header:hover {
-            background-color: #dee2e6;
-        }
-        .contract-content {
-            display: block;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #007BFF;
+
+        .status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
             color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-bottom: 20px;
+            display: inline-block;
+            min-width: 80px;
+            text-align: center;
         }
-        button:hover {
-            background-color: #0056b3;
-        }
+
+        .status-pendente { background-color: var(--warning); }
+        .status-concluido { background-color: var(--success); }
+        .status-cancelado { background-color: var(--danger); }
+        .status-em-transito { background-color: var(--secondary); }
+
         .loading {
-            color: #666;
+            text-align: center;
+            color: #6b7280;
             font-style: italic;
+            padding: 20px;
         }
+
         .error {
-            color: red;
-            font-weight: bold;
+            color: var(--danger);
+            text-align: center;
+            padding: 20px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            h2 {
+                font-size: 1.4rem;
+            }
+            .group-header {
+                font-size: 1.1rem;
+            }
+            th, td {
+                padding: 8px;
+                font-size: 0.85rem;
+            }
+        }
+
+        .no-data {
+            text-align: center;
+            color: #6b7280;
+            padding: 20px;
+            font-style: italic;
         }
     </style>
 </head>
 <body>
 
-    <h1>📊 Controle de Lotes e Programação</h1>
-    <button id="refreshBtn">🔄 Atualizar Dados</button>
+    <div class="container">
+        <h1><i class="fas fa-truck"></i> Controle de Lotes e Programação</h1>
 
-    <!-- SEÇÃO: Lotes Retirada -->
-    <div class="section">
-        <h2>📦 Lotes de Retirada</h2>
-        <div id="lotesRetirada"></div>
-    </div>
+        <button id="refreshBtn" class="btn-refresh">
+            <i class="fas fa-sync-alt"></i> Atualizar Dados
+        </button>
 
-    <!-- SEÇÃO: Lotes Entrega -->
-    <div class="section">
-        <h2>🚚 Lotes de Entrega</h2>
-        <div id="lotesEntrega"></div>
-    </div>
+        <!-- SEÇÃO: Programação -->
+        <div class="section">
+            <h2><i class="fas fa-calendar-check"></i> Programação</h2>
+            <div id="programacao"></div>
+        </div>
 
-    <!-- SEÇÃO: Programação -->
-    <div class="section">
-        <h2>📅 Programação</h2>
-        <div id="programacao"></div>
+        <!-- SEÇÃO: Lotes Entrega -->
+        <div class="section">
+            <h2><i class="fas fa-truck-loading"></i> Lotes de Entrega</h2>
+            <div id="lotesEntrega"></div>
+        </div>
+
+        <!-- SEÇÃO: Lotes Retirada -->
+        <div class="section">
+            <h2><i class="fas fa-warehouse"></i> Lotes de Retirada</h2>
+            <div id="lotesRetirada"></div>
+        </div>
     </div>
 
     <script>
-        // ID da planilha (extraído do link)
         const SHEET_ID = '1CZZgYJiZic9pyFFTdyldm_gVwn2K-zSGY9uhFJ5Nz6Q';
 
-        // GIDs reais das abas (fornecidos por você)
+        // GIDs corrigidos
         const GIDS = {
             'lotesRetirada': 585404986,
             'lotesEntrega': 271702555,
@@ -124,11 +264,10 @@
 
         let dataCache = {};
 
-        // Função para carregar uma aba por GID
         async function loadSheet(name, gid) {
             const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
             const container = containers[name];
-            container.innerHTML = '<p class="loading">Carregando...</p>';
+            container.innerHTML = '<p class="loading">Carregando dados...</p>';
 
             try {
                 const response = await fetch(url);
@@ -138,7 +277,6 @@
                 const rows = csvText.split('\n');
                 if (rows.length < 2) throw new Error("Planilha vazia ou inválida");
 
-                // Primeira linha é o cabeçalho
                 const headers = rows[0].split(',').map(h => h.replace(/"/g, '').trim());
                 const data = [];
 
@@ -153,7 +291,7 @@
                 }
 
                 dataCache[name] = data;
-                renderTable(name, data);
+                renderGroupedTable(name, data);
 
             } catch (error) {
                 container.innerHTML = `<p class="error">❌ Erro ao carregar "${name}": ${error.message}</p>`;
@@ -161,37 +299,39 @@
             }
         }
 
-        // Função para renderizar tabela agrupada por contrato
-        function renderTable(name, data) {
+        function renderGroupedTable(name, data) {
             if (data.length === 0) {
-                containers[name].innerHTML = '<p>Nenhum dado encontrado.</p>';
+                containers[name].innerHTML = '<p class="no-data">Nenhum dado encontrado.</p>';
                 return;
             }
 
-            // Verifica se há coluna "Contrato"
-            const hasContract = data.some(row => row.Contrato !== undefined && row.Contrato !== '');
-            if (!hasContract) {
-                containers[name].innerHTML = `
-                    <p><strong>Atenção:</strong> Nenhuma coluna "Contrato" encontrada. Todos os dados serão exibidos juntos.</p>
-                    ${renderDataTable(data)}
-                `;
+            const groupByField = getGroupingKey(name);
+            if (!groupByField) {
+                containers[name].innerHTML = '<p class="error">Coluna de agrupamento não encontrada.</p>';
                 return;
             }
 
-            // Agrupar por Contrato
             const grouped = {};
             data.forEach(row => {
-                const contract = row.Contrato.trim() || 'Sem Contrato';
-                if (!grouped[contract]) grouped[contract] = [];
-                grouped[contract].push(row);
+                const key = row[groupByField]?.trim() || 'Sem categoria';
+                if (!grouped[key]) grouped[key] = [];
+                grouped[key].push(row);
             });
 
-            const html = Object.keys(grouped).sort().map(contract => {
-                const rows = grouped[contract];
+            const sortedKeys = Object.keys(grouped).sort();
+
+            const html = sortedKeys.map(key => {
+                const rows = grouped[key];
+                const icon = getIconForGroup(name, key);
+                const statusClass = getStatusClass(name, key);
+
                 return `
-                    <div class="contract-group">
-                        <div class="contract-header">${contract}</div>
-                        <div class="contract-content">
+                    <div class="group-container">
+                        <div class="group-header">
+                            <i class="${icon}"></i>
+                            ${key} (${rows.length})
+                        </div>
+                        <div class="group-content">
                             ${renderDataTable(rows)}
                         </div>
                     </div>
@@ -201,9 +341,50 @@
             containers[name].innerHTML = html;
         }
 
-        // Função auxiliar para gerar tabela HTML
+        function getGroupingKey(name) {
+            switch (name) {
+                case 'programacao': return 'Data';
+                case 'lotesEntrega': return 'SITUAÇÃO ENT.';
+                case 'lotesRetirada': return 'SITUAÇÃO';
+                default: return null;
+            }
+        }
+
+        function getIconForGroup(name, key) {
+            switch (name) {
+                case 'programacao': return 'fas fa-calendar-day';
+                case 'lotesEntrega':
+                    if (key.includes('Concluído')) return 'fas fa-check-circle';
+                    if (key.includes('Pendente')) return 'fas fa-clock';
+                    if (key.includes('Cancelado')) return 'fas fa-ban';
+                    return 'fas fa-truck';
+                case 'lotesRetirada':
+                    if (key.includes('Concluído')) return 'fas fa-check-circle';
+                    if (key.includes('Pendente')) return 'fas fa-clock';
+                    if (key.includes('Cancelado')) return 'fas fa-ban';
+                    return 'fas fa-warehouse';
+                default: return 'fas fa-list';
+            }
+        }
+
+        function getStatusClass(name, key) {
+            if (name === 'lotesEntrega') {
+                if (key.includes('Concluído')) return 'status-concluido';
+                if (key.includes('Pendente')) return 'status-pendente';
+                if (key.includes('Cancelado')) return 'status-cancelado';
+                return 'status-em-transito';
+            }
+            if (name === 'lotesRetirada') {
+                if (key.includes('Concluído')) return 'status-concluido';
+                if (key.includes('Pendente')) return 'status-pendente';
+                if (key.includes('Cancelado')) return 'status-cancelado';
+                return 'status-em-transito';
+            }
+            return '';
+        }
+
         function renderDataTable(data) {
-            if (data.length === 0) return '<p>Sem dados</p>';
+            if (data.length === 0) return '<p class="no-data">Sem dados nesta categoria.</p>';
 
             const headers = Object.keys(data[0]);
             let tableHtml = '<table><thead><tr>';
@@ -215,7 +396,14 @@
             data.forEach(row => {
                 tableHtml += '<tr>';
                 headers.forEach(header => {
-                    const value = escapeHtml(row[header] || '');
+                    let value = escapeHtml(row[header] || '');
+                    // Aplicar estilo de status nas colunas específicas
+                    if ((header === 'SITUAÇÃO ENT.' && row['SITUAÇÃO ENT.']) ||
+                        (header === 'SITUAÇÃO' && row['SITUAÇÃO'])) {
+                        const statusClass = getStatusClass('lotesEntrega', row['SITUAÇÃO ENT.']) || 
+                                           getStatusClass('lotesRetirada', row['SITUAÇÃO']);
+                        value = `<span class="status ${statusClass}">${value}</span>`;
+                    }
                     tableHtml += `<td>${value}</td>`;
                 });
                 tableHtml += '</tr>';
@@ -225,7 +413,6 @@
             return tableHtml;
         }
 
-        // Função para escapar HTML (evitar XSS)
         function escapeHtml(text) {
             const map = {
                 '&': '&amp;',
@@ -238,7 +425,6 @@
             return text.replace(/[&<>"'\/]/g, char => map[char]);
         }
 
-        // Botão de atualização
         document.getElementById('refreshBtn').addEventListener('click', () => {
             sections.forEach(section => {
                 const gid = GIDS[section];
@@ -248,11 +434,12 @@
             });
         });
 
-        // Carregar tudo ao iniciar
         window.addEventListener('load', () => {
             sections.forEach(section => {
                 const gid = GIDS[section];
-                loadSheet(section, gid);
+                if (gid !== undefined) {
+                    loadSheet(section, gid);
+                }
             });
         });
     </script>
