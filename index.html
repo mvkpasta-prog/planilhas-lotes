@@ -101,34 +101,51 @@
 
         .group-container {
             margin-bottom: 25px;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
         .group-header {
             background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
-            padding: 14px 20px;
+            padding: 16px 20px;
             border-left: 5px solid var(--primary);
-            border-radius: 8px 0 0 8px;
-            margin: 15px 0;
             font-size: 1.3rem;
             font-weight: 600;
             color: var(--dark);
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: space-between;
             cursor: pointer;
             user-select: none;
+            transition: background-color 0.2s;
+        }
+
+        .group-header:hover {
+            background-color: #e6f7ff;
         }
 
         .group-header i {
             color: var(--secondary);
+            transition: transform 0.3s ease;
+        }
+
+        .group-header.expanded i.fa-chevron-down {
+            transform: rotate(180deg);
         }
 
         .group-content {
-            padding: 15px;
-            border: 1px solid #e0e7ff;
-            border-radius: 0 0 var(--border-radius) var(--border-radius);
-            margin-top: -5px;
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, padding 0.3s ease;
             background-color: #f8fafc;
+            border-top: 1px solid #e0e7ff;
+        }
+
+        .group-content.open {
+            max-height: 1000px;
+            padding: 15px;
         }
 
         table {
@@ -210,6 +227,7 @@
             }
             .group-header {
                 font-size: 1.1rem;
+                padding: 14px 16px;
             }
             th, td {
                 padding: 8px;
@@ -308,15 +326,14 @@
             let filteredData = [...data];
 
             if (name === 'programacao') {
-                // Coluna REAL: 'DATA'
+                // Filtrar apenas datas de HOJE e FUTURAS
                 const today = new Date();
-                today.setHours(0, 0, 0, 0); // Zera horas/minutos/segundos
+                today.setHours(0, 0, 0, 0);
 
                 filteredData = data.filter(row => {
-                    const dateStr = row['DATA']?.trim(); // ← NOME EXATO
+                    const dateStr = row['DATA']?.trim();
                     if (!dateStr) return false;
 
-                    // Suporte a formatos DD/MM/YYYY ou YYYY-MM-DD
                     let dateObj;
                     if (dateStr.includes('/')) {
                         const [day, month, year] = dateStr.split('/').map(Number);
@@ -325,13 +342,10 @@
                         const [year, month, day] = dateStr.split('-').map(Number);
                         dateObj = new Date(year, month - 1, day);
                     } else {
-                        return false; // Formato inválido
+                        return false;
                     }
 
-                    // Garantir que a data é válida
-                    if (isNaN(dateObj.getTime())) return false;
-
-                    return dateObj >= today; // Hoje ou futuro
+                    return !isNaN(dateObj.getTime()) && dateObj >= today;
                 });
 
                 // Agrupar por DATA
@@ -350,13 +364,15 @@
 
                 const html = sortedKeys.map(key => {
                     const rows = grouped[key];
+                    const groupId = `prog-${key.replace(/\//g, '-')}`;
                     return `
                         <div class="group-container">
-                            <div class="group-header">
+                            <div class="group-header" onclick="toggleGroup('${groupId}')">
                                 <i class="fas fa-calendar-day"></i>
                                 ${key} (${rows.length})
+                                <i class="fas fa-chevron-down"></i>
                             </div>
-                            <div class="group-content">
+                            <div id="${groupId}" class="group-content">
                                 ${renderDataTable(rows)}
                             </div>
                         </div>
@@ -366,64 +382,62 @@
                 containers[name].innerHTML = html || '<p class="no-data">Nenhuma programação para hoje ou futura.</p>';
 
             } else if (name === 'lotesEntrega') {
-                // Coluna REAL: 'SALDO ENTREGA (KG)'
+                // Filtrar apenas SALDO ENTREGA (KG) > 0
                 filteredData = data.filter(row => {
-                    const saldoStr = row['SALDO ENTREGA (KG)']?.trim(); // ← NOME EXATO
+                    const saldoStr = row['SALDO ENTREGA (KG)']?.trim();
                     if (!saldoStr) return false;
 
-                    // Remove espaços, substitui vírgula por ponto, converte para número
-                    const clean = saldoStr.replace(/,/g, '.').replace(/\s/g, '');
+                    // Remove TODOS os espaços e substitui vírgula por ponto
+                    const clean = saldoStr.replace(/\s/g, '').replace(',', '.');
                     const saldo = parseFloat(clean);
 
-                    // Só aceita se for número > 0
                     return !isNaN(saldo) && saldo > 0;
                 });
 
-                // Mostrar APENAS como ABERTO
-                const html = `
+                // Mostrar APENAS como ABERTO (um único grupo)
+                if (filteredData.length === 0) {
+                    containers[name].innerHTML = '<p class="no-data">Nenhum lote de entrega aberto.</p>';
+                    return;
+                }
+
+                const groupId = 'entrega-aberto';
+                containers[name].innerHTML = `
                     <div class="group-container">
-                        <div class="group-header">
+                        <div class="group-header" onclick="toggleGroup('${groupId}')">
                             <i class="fas fa-check-circle"></i>
                             ABERTO (${filteredData.length})
+                            <i class="fas fa-chevron-down"></i>
                         </div>
-                        <div class="group-content">
+                        <div id="${groupId}" class="group-content">
                             ${renderDataTable(filteredData)}
                         </div>
                     </div>
                 `;
 
-                containers[name].innerHTML = filteredData.length > 0 ? html : '<p class="no-data">Nenhum lote de entrega aberto.</p>';
-
             } else if (name === 'lotesRetirada') {
-                // Agrupar por SITUAÇÃO (já está correto)
-                const grouped = {};
-                filteredData.forEach(row => {
-                    const key = row['SITUAÇÃO']?.trim() || 'Sem situação';
-                    if (!grouped[key]) grouped[key] = [];
-                    grouped[key].push(row);
+                // FILTRAR APENAS "Pendente" (abertos)
+                filteredData = data.filter(row => {
+                    return row['SITUAÇÃO']?.trim() === 'Pendente';
                 });
 
-                const sortedKeys = Object.keys(grouped).sort();
+                if (filteredData.length === 0) {
+                    containers[name].innerHTML = '<p class="no-data">Nenhum lote de retirada em aberto.</p>';
+                    return;
+                }
 
-                const html = sortedKeys.map(key => {
-                    const rows = grouped[key];
-                    const icon = key.includes('Concluído') ? 'fas fa-check-circle' :
-                                 key.includes('Pendente') ? 'fas fa-clock' :
-                                 key.includes('Cancelado') ? 'fas fa-ban' : 'fas fa-warehouse';
-                    return `
-                        <div class="group-container">
-                            <div class="group-header">
-                                <i class="${icon}"></i>
-                                ${key} (${rows.length})
-                            </div>
-                            <div class="group-content">
-                                ${renderDataTable(rows)}
-                            </div>
+                const groupId = 'retirada-pendente';
+                containers[name].innerHTML = `
+                    <div class="group-container">
+                        <div class="group-header" onclick="toggleGroup('${groupId}')">
+                            <i class="fas fa-clock"></i>
+                            PENDENTE (${filteredData.length})
+                            <i class="fas fa-chevron-down"></i>
                         </div>
-                    `;
-                }).join('');
-
-                containers[name].innerHTML = html;
+                        <div id="${groupId}" class="group-content">
+                            ${renderDataTable(filteredData)}
+                        </div>
+                    </div>
+                `;
             }
         }
 
@@ -464,7 +478,7 @@
 
                     // Destacar SALDO ENTREGA (KG) como ABERTO
                     if (header === 'SALDO ENTREGA (KG)' && row['SALDO ENTREGA (KG)']) {
-                        const saldoStr = row['SALDO ENTREGA (KG)'].replace(/,/g, '.').replace(/\s/g, '');
+                        const saldoStr = row['SALDO ENTREGA (KG)'].replace(/\s/g, '').replace(',', '.');
                         const saldo = parseFloat(saldoStr);
                         if (!isNaN(saldo) && saldo > 0) {
                             value = `<span class="status status-aberto">${value} kg</span>`;
@@ -491,6 +505,14 @@
             };
             return text.replace(/[&<>"'\/]/g, char => map[char]);
         }
+
+        // Função para expandir/recolher grupos
+        window.toggleGroup = function(groupId) {
+            const content = document.getElementById(groupId);
+            const header = content.parentElement.querySelector('.group-header');
+            content.classList.toggle('open');
+            header.classList.toggle('expanded');
+        };
 
         document.getElementById('refreshBtn').addEventListener('click', () => {
             sections.forEach(section => {
