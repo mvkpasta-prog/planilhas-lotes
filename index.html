@@ -114,6 +114,25 @@
     button.refresh:hover {
       background: var(--secondary);
     }
+    .details {
+      background: #F3F4F6;
+      padding: .5rem;
+      margin-top: .3rem;
+      border-radius: 6px;
+      font-size: .85rem;
+      display: none;
+    }
+    .details.visible {
+      display: block;
+    }
+    .btn-details {
+      background: transparent;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      font-size: .85rem;
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -195,21 +214,49 @@
       });
     }
 
-    function renderTable(data, numericField, statusLabel) {
+    function renderTable(data, numericField, statusLabel, mode="normal") {
       if (!data.length) return "";
       const headers = Object.keys(data[0]);
+
+      // Para retirada → esconder algumas colunas
+      const hiddenCols = ["nfp","royalties","safra"];
+      const removedCols = ["localizacao","idorigemymvk1"];
+
+      let visibleHeaders = headers.filter(h => !removedCols.includes(h));
+      
       let html = "<table><thead><tr>";
-      headers.forEach(h=> html += `<th>${h}</th>`);
-      html += "<th>Status</th></tr></thead><tbody>";
-      data.forEach(row=>{
-        html += "<tr>";
-        headers.forEach(h=> html += `<td>${row[h]}</td>`);
-        const val = formatNumber(row[numericField] || "0");
-        html += `<td><span class="status ${val>0?"status-aberto":"status-concluido"}">${val>0?statusLabel:"Concluído"}</span></td>`;
-        html += "</tr>";
+      visibleHeaders.forEach(h=>{
+        if (!hiddenCols.includes(h)) html += `<th>${h}</th>`;
       });
+      html += "<th>Status</th><th>Ações</th></tr></thead><tbody>";
+
+      data.forEach((row, idx)=>{
+        const val = formatNumber(row[numericField] || "0");
+        html += "<tr>";
+        visibleHeaders.forEach(h=>{
+          if (!hiddenCols.includes(h)) html += `<td>${row[h]}</td>`;
+        });
+        html += `<td><span class="status ${val>0?"status-aberto":"status-concluido"}">${val>0?statusLabel:"Concluído"}</span></td>`;
+        html += `<td><button class="btn-details" onclick="toggleDetails('${mode}-${idx}')">Ver Detalhes</button></td>`;
+        html += "</tr>";
+
+        // bloco de detalhes
+        let details = "";
+        hiddenCols.forEach(h=>{
+          if(row[h]) details += `<div><b>${h}:</b> ${row[h]}</div>`;
+        });
+        if(details){
+          html += `<tr id="details-${mode}-${idx}" class="details"><td colspan="${visibleHeaders.length+2}">${details}</td></tr>`;
+        }
+      });
+
       html += "</tbody></table>";
       return html;
+    }
+
+    function toggleDetails(id){
+      const el = document.getElementById("details-"+id);
+      if(el) el.classList.toggle("visible");
     }
 
     async function loadAllData() {
@@ -227,7 +274,7 @@
       const retirada = await fetchCSV(GIDS.retirada);
       const saldoRetKey = Object.keys(retirada[0]||{}).find(k=>k.includes("saldoret"));
       const retiradaFiltrado = retirada.filter(r=> formatNumber(r[saldoRetKey]||"0")>0);
-      renderAccordion("retiradaContent", retiradaFiltrado.length?[{title:"Abertos", content:renderTable(retiradaFiltrado,saldoRetKey,"Aberto")}] : [], "Nenhum lote de retirada em aberto.");
+      renderAccordion("retiradaContent", retiradaFiltrado.length?[{title:"Abertos", content:renderTable(retiradaFiltrado,saldoRetKey,"Aberto","retirada")}] : [], "Nenhum lote de retirada em aberto.");
     }
 
     loadAllData();
