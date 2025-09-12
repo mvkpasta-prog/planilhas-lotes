@@ -176,6 +176,9 @@
 
         .status-aberto { background-color: var(--success); }
         .status-finalizado { background-color: var(--danger); }
+        .status-concluido { background-color: var(--success); }
+        .status-pendente { background-color: var(--warning); }
+        .status-cancelado { background-color: var(--danger); }
 
         .loading {
             text-align: center;
@@ -305,18 +308,15 @@
 
             let filteredData = [...data];
 
-            // FILTRO ESPECÍFICO POR ABA
-
             if (name === 'programacao') {
-                // Filtrar apenas datas de HOJE e FUTURAS
+                // Filtrar apenas datas de HOJE e FUTURAS usando coluna REAL: 'DATA'
                 const today = new Date();
-                today.setHours(0, 0, 0, 0); // Zerar horas para comparação
+                today.setHours(0, 0, 0, 0);
 
                 filteredData = data.filter(row => {
-                    const dateStr = row['Data']?.trim();
+                    const dateStr = row['DATA']?.trim(); // ← NOME REAL DA COLUNA
                     if (!dateStr) return false;
 
-                    // Formato esperado: DD/MM/YYYY ou YYYY-MM-DD
                     let dateObj;
                     if (dateStr.includes('/')) {
                         const [day, month, year] = dateStr.split('/').map(Number);
@@ -325,16 +325,16 @@
                         const [year, month, day] = dateStr.split('-').map(Number);
                         dateObj = new Date(year, month - 1, day);
                     } else {
-                        return false; // Formato inválido
+                        return false;
                     }
 
                     return dateObj >= today;
                 });
 
-                // Agrupar por Data
+                // Agrupar por DATA
                 const grouped = {};
                 filteredData.forEach(row => {
-                    const key = row['Data']?.trim() || 'Sem data';
+                    const key = row['DATA']?.trim() || 'Sem data';
                     if (!grouped[key]) grouped[key] = [];
                     grouped[key].push(row);
                 });
@@ -347,11 +347,10 @@
 
                 const html = sortedKeys.map(key => {
                     const rows = grouped[key];
-                    const icon = 'fas fa-calendar-day';
                     return `
                         <div class="group-container">
                             <div class="group-header">
-                                <i class="${icon}"></i>
+                                <i class="fas fa-calendar-day"></i>
                                 ${key} (${rows.length})
                             </div>
                             <div class="group-content">
@@ -364,16 +363,15 @@
                 containers[name].innerHTML = html || '<p class="no-data">Nenhuma programação para hoje ou futura.</p>';
 
             } else if (name === 'lotesEntrega') {
-                // Filtrar apenas SALDO ENT. (KG) > 0 (ABERTO)
+                // Filtrar apenas SALDO ENTREGA (KG) > 0 → ABERTO (coluna REAL: 'SALDO ENTREGA (KG)')
                 filteredData = data.filter(row => {
-                    const saldoStr = row['SALDO ENT. (KG)']?.trim();
+                    const saldoStr = row['SALDO ENTREGA (KG)']?.trim(); // ← NOME REAL DA COLUNA
                     if (!saldoStr) return false;
                     const saldo = parseFloat(saldoStr.replace(',', '.'));
                     return !isNaN(saldo) && saldo > 0;
                 });
 
-                // Agrupar por status (só temos "ABERTO")
-                const grouped = { 'ABERTO': filteredData };
+                // Mostrar APENAS como "ABERTO"
                 const html = `
                     <div class="group-container">
                         <div class="group-header">
@@ -389,7 +387,7 @@
                 containers[name].innerHTML = filteredData.length > 0 ? html : '<p class="no-data">Nenhum lote de entrega aberto.</p>';
 
             } else if (name === 'lotesRetirada') {
-                // Agrupar por SITUAÇÃO
+                // Agrupar por SITUAÇÃO (já está correto)
                 const grouped = {};
                 filteredData.forEach(row => {
                     const key = row['SITUAÇÃO']?.trim() || 'Sem situação';
@@ -447,19 +445,23 @@
                 tableHtml += '<tr>';
                 headers.forEach(header => {
                     let value = escapeHtml(row[header] || '');
-                    // Aplicar estilo de status nas colunas específicas
+                    
+                    // Destacar status em Lotes Retirada
                     if (header === 'SITUAÇÃO' && row['SITUAÇÃO']) {
                         const statusClass = row['SITUAÇÃO'].includes('Concluído') ? 'status-concluido' :
                                            row['SITUAÇÃO'].includes('Pendente') ? 'status-pendente' :
                                            row['SITUAÇÃO'].includes('Cancelado') ? 'status-cancelado' : '';
                         value = `<span class="status ${statusClass}">${value}</span>`;
                     }
-                    if (header === 'SALDO ENT. (KG)' && row['SALDO ENT. (KG)']) {
-                        const saldo = parseFloat(row['SALDO ENT. (KG)'].replace(',', '.'));
+                    
+                    // Destacar SALDO ENTREGA (KG) como ABERTO
+                    if (header === 'SALDO ENTREGA (KG)' && row['SALDO ENTREGA (KG)']) {
+                        const saldo = parseFloat(row['SALDO ENTREGA (KG)'].replace(',', '.'));
                         if (!isNaN(saldo) && saldo > 0) {
                             value = `<span class="status status-aberto">${value} kg</span>`;
                         }
                     }
+
                     tableHtml += `<td>${value}</td>`;
                 });
                 tableHtml += '</tr>';
