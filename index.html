@@ -20,7 +20,7 @@
   h2{color:var(--primary);margin:6px 0 12px 0}
   .card{background:var(--card);border-radius:10px;padding:12px;margin-bottom:18px;box-shadow:0 6px 18px rgba(16,24,40,0.06)}
   .table-wrap{overflow-x:auto}
-  table{width:100%;border-collapse:collapse;margin:0;font-size:13px;min-width:800px}
+  table{width:100%;border-collapse:collapse;margin:0;font-size:13px;min-width:760px}
   th,td{border:1px solid #e6eefc;padding:10px;text-align:left;vertical-align:top}
   th{background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff;font-weight:700;white-space:nowrap}
   tr:nth-child(even){background:#fbfdff}
@@ -30,7 +30,6 @@
   .empty{color:var(--muted);font-style:italic;padding:12px}
   .btn-details{background:transparent;border:0;color:var(--primary);cursor:pointer;text-decoration:underline;padding:0}
   .details-row{display:none;background:#f3f7ff}
-  .details-row.visible{display:table-row}
   @media (max-width:900px){
     table{min-width:700px}
     th, td{padding:8px;font-size:12px}
@@ -62,56 +61,49 @@
   </div>
 
 <script>
-/* ====== CONFIG - coloque aqui seu SHEET_ID se mudar ====== */
+/* ========== Config ========== */
 const SHEET_ID = '1CZZgYJiZic9pyFFTdyldm_gVwn2K-zSGY9uhFJ5Nz6Q';
 const GIDS = {
-  entrega: '271702555',    // aba LOTES DE ENTREGA
-  retirada: '585404986',   // aba LOTES RETIRADA
-  programacao: '1183141602'// aba PROGRAMAÇÃO
+  entrega: '271702555',
+  retirada: '585404986',
+  programacao: '1183141602'
 };
 
-/* colunas que ficam ocultas em exibição (aparecem em detalhes) - normalizadas */
+/* hidden columns in details */
 const HIDDEN_COLS = ['nfp','royalties','safra'];
-
-/* colunas removidas (normalizadas) de todas as tabelas */
+/* common removed columns */
 const REMOVED_COMMON = ['localizacao','idorigemymvk1'];
-
-/* colunas removidas especificamente da Programação (normalizadas) */
+/* programacao removed extras (inclui os novos pedidos) */
 const REMOVED_PROGRAMACAO = [
   'observacoes','ordem','notafiscal','dacte','mdfe','conftipocam','agendamento',
-  'descarga','comprovantededescarga','horarioprev','classificacaodestino','chaveid'
+  'descarga','comprovantededescarga','horarioprev','classificacaodestino','chaveid',
+  'frete','statusagendamento','datadedescarga'
 ];
 
-/* Normaliza cabeçalho: remove acento, espaços e pontuação */
+/* normalize header */
 function normalizeHeader(h){
   if(h === undefined || h === null) return '';
   return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
 }
 
-/* Parse CSV tolerante (trata vírgulas dentro de aspas)
-   Retorna { arrays: [ [col1,col2,...], ... ], headersOrig: [], headersNorm: [], objects: [ {normKey: value}, ... ] }
-*/
+/* parse CSV robust (handles commas inside quotes) */
 function parseCSV(text){
   if(!text) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
   const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
   if(lines.length === 0) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
 
   const parsed = lines.map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g,'').trim()));
-  const headersOrig = parsed.shift().map(h => h||'');
+  const headersOrig = parsed.shift().map(h => h || '');
   const headersNorm = headersOrig.map(h => normalizeHeader(h));
-
   const objects = parsed.map(cells => {
     const obj = {};
-    headersNorm.forEach((key, idx) => {
-      obj[key] = cells[idx] !== undefined ? cells[idx] : '';
-    });
+    headersNorm.forEach((k, idx) => obj[k] = cells[idx] !== undefined ? cells[idx] : '');
     return obj;
   });
-
   return {arrays: parsed, headersOrig, headersNorm, objects};
 }
 
-/* fetch CSV via gviz - retorna parseCSV result */
+/* fetch sheet via gviz csv */
 async function fetchSheetByGid(gid){
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`;
   const r = await fetch(url);
@@ -120,304 +112,273 @@ async function fetchSheetByGid(gid){
   return parseCSV(text);
 }
 
-/* util: parse number tolerant */
-function parseNumber(val){
-  if(val === undefined || val === null) return NaN;
-  const s = String(val).replace(/\s/g,'').replace(/\./g,'').replace(/,/g,'.');
+/* parse number robust */
+function parseNumber(v){
+  if(v === undefined || v === null) return NaN;
+  const s = String(v).replace(/\s/g,'').replace(/\./g,'').replace(/,/g,'.');
   const n = parseFloat(s.replace(/[^\d\.\-]/g,''));
   return isNaN(n) ? NaN : n;
 }
 
-/* util: parse date only (dd/mm/yyyy ou yyyy-mm-dd) -> Date (00:00:00) or null */
+/* parse date only */
 function parseDateOnly(s){
   if(!s) return null;
   const str = String(s).trim();
-  // dd/mm/yyyy
-  if(str.includes('/')){
-    const parts = str.split('/');
-    if(parts.length >= 3){
-      const d = parseInt(parts[0],10), m = parseInt(parts[1],10), y = parseInt(parts[2],10);
-      if(!isNaN(d) && !isNaN(m) && !isNaN(y)) return new Date(y, m-1, d);
-    }
-  }
-  // yyyy-mm-dd or yyyy/mm/dd
-  if(str.includes('-') || (str.includes('/') && str.indexOf('/') === 4)){
-    const sep = str.includes('-')? '-' : '/';
-    const parts = str.split(sep);
-    if(parts.length >= 3){
-      const y = parseInt(parts[0],10), m = parseInt(parts[1],10), d = parseInt(parts[2],10);
-      if(!isNaN(d) && !isNaN(m) && !isNaN(y)) return new Date(y, m-1, d);
-    }
-  }
+  if(str.includes('/')){ const p = str.split('/'); if(p.length>=3){ const d=parseInt(p[0],10), m=parseInt(p[1],10), y=parseInt(p[2],10); if(!isNaN(d)&&!isNaN(m)&&!isNaN(y)) return new Date(y,m-1,d); } }
+  if(str.includes('-')){ const p=str.split('-'); if(p.length>=3){ const y=parseInt(p[0],10), m=parseInt(p[1],10), d=parseInt(p[2],10); if(!isNaN(d)&&!isNaN(m)&&!isNaN(y)) return new Date(y,m-1,d); } }
   const dt = new Date(str);
-  if(!isNaN(dt.getTime())) return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
-  return null;
+  return isNaN(dt.getTime()) ? null : new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
 }
 
-/* encontra header normalizado que contenha um dos padrões */
-function findHeaderKey(headersNorm, patterns){
-  for(const p of patterns){
-    const f = headersNorm.find(h => h.includes(p));
-    if(f) return f;
-  }
-  // fallbacks inteligentes
-  if(patterns.includes('saldoent')){
-    const f = headersNorm.find(h => h.includes('saldo') && (h.includes('ent') || h.includes('entrega') || h.includes('entkg')));
-    if(f) return f;
-  }
-  if(patterns.includes('saldoret')){
-    const f = headersNorm.find(h => h.includes('saldo') && (h.includes('ret') || h.includes('retirada') || h.includes('retkg')));
-    if(f) return f;
-  }
-  if(patterns.some(x => x.includes('contrato'))){
-    const f = headersNorm.find(h => h.includes('contrato'));
-    if(f) return f;
-  }
-  // any saldo
-  const f = headersNorm.find(h => h.includes('saldo'));
-  if(f) return f;
-  return null;
-}
+function escapeHtml(s){ if(s === undefined || s === null) return ''; return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#x27;','/':'&#x2F;'}[c])); }
 
-/* build table HTML: rowsArrays = array of arrays; rowsObjects = array of objects keyed by normalized headers */
-function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts){
-  // opts: {hiddenNorm:[], removedNorm:[], numericKey: 'somenorm', forceColsNorm:[]}
+/* build generic table. opts:
+   - hiddenNorm: []
+   - removedNorm: []
+   - numericKeyNorm: normalized header string (if available) OR null
+   - numericIndex: fallback index for numeric column (0-based) if numericKeyNorm not present
+   - forceCols: [{key:'contrato_forcado', title:'Nº CONTRATO', values:[..]}]
+   - prefix: string prefix for details IDs: 'ent','ret','prog'
+*/
+function buildTableHTML(rowsArr, rowsObj, headersOrig, headersNorm, opts){
   const hiddenNorm = opts.hiddenNorm || [];
   const removedNorm = opts.removedNorm || [];
-  const numericKey = opts.numericKey || '';
-  const forceInclude = opts.forceInclude || [];
+  const numericKeyNorm = opts.numericKeyNorm || null;
+  const numericIndex = (opts.numericIndex !== undefined) ? opts.numericIndex : -1;
+  const forceCols = opts.forceCols || [];
+  const prefix = opts.prefix || 'tbl';
 
-  // visible columns: headersNorm minus removed
-  const visible = headersNorm.filter(h => !removedNorm.includes(h));
-  // display columns exclude hidden
-  let displayCols = visible.filter(h => !hiddenNorm.includes(h));
-
-  // ensure forced columns appear first
-  forceInclude.forEach(fc => {
-    if(visible.includes(fc) && !displayCols.includes(fc)) displayCols.unshift(fc);
-    else if(visible.includes(fc)) displayCols = [fc, ...displayCols.filter(x => x !== fc)];
+  // columns to display: start with forceCols keys
+  let displayCols = forceCols.map(fc => fc.key);
+  // then append headersNorm that aren't removed or hidden or already included
+  headersNorm.forEach(h => {
+    if(removedNorm.includes(h)) return;
+    if(hiddenNorm.includes(h)) return;
+    if(displayCols.includes(h)) return;
+    displayCols.push(h);
   });
 
-  if(displayCols.length === 0){
-    return '<div class="empty">Sem colunas para exibir.</div>';
-  }
+  if(displayCols.length === 0) return '<div class="empty">Sem colunas para exibir.</div>';
 
-  // construct header titles using originals
+  // header titles: if force column, use title; else use headersOrig at same index
   let html = '<table><thead><tr>';
-  displayCols.forEach(h => {
-    const idx = headersNorm.indexOf(h);
-    const title = (idx>=0 ? headersOrig[idx] : h) || h;
-    html += `<th>${escapeHtml(title)}</th>`;
-  });
-  if(numericKey) html += '<th>Status</th>';
-  html += '<th>Ações</th></tr></thead><tbody>';
-
-  rowsObjects.forEach((obj, i) => {
-    const arr = rowsArrays[i] || [];
-    const n = numericKey ? parseNumber( obj[numericKey] || arr[numericKeyIndex(headersNorm, numericKey)] || '0' ) : NaN;
-    html += '<tr>';
-    displayCols.forEach(h => {
-      // prefer object value, fallback to array by index if available
-      const idx = headersNorm.indexOf(h);
-      const value = (obj[h] !== undefined && obj[h] !== '') ? obj[h] : (arr[idx] !== undefined ? arr[idx] : '');
-      html += `<td>${escapeHtml(value)}</td>`;
-    });
-    if(numericKey) html += `<td>${n>0?'<span class="status status-aberto">ABERTO</span>':'<span class="status status-fechado">FECHADO</span>'}</td>`;
-    html += `<td><button class="btn-details" data-row="${i}">Ver Detalhes</button></td>`;
-    html += '</tr>';
-
-    // details: show hiddenNorm columns (with original titles)
-    let details = '';
-    hiddenNorm.forEach(h => {
-      const idx = headersNorm.indexOf(h);
-      if(idx >= 0){
-        const title = headersOrig[idx] || h;
-        const val = (obj[h] !== undefined && obj[h] !== '') ? obj[h] : (arr[idx] !== undefined ? arr[idx] : '');
-        if(val) details += `<div><strong>${escapeHtml(title)}:</strong> ${escapeHtml(val)}</div>`;
-      }
-    });
-    if(details){
-      const colspan = displayCols.length + (numericKey?2:1);
-      html += `<tr class="details-row" id="details-${i}" style="display:none"><td colspan="${colspan}">${details}</td></tr>`;
+  displayCols.forEach(c => {
+    const force = forceCols.find(f => f.key === c);
+    if(force){
+      html += `<th>${escapeHtml(force.title)}</th>`;
+    } else {
+      const idx = headersNorm.indexOf(c);
+      const title = (idx >= 0) ? headersOrig[idx] : c;
+      html += `<th>${escapeHtml(title || c)}</th>`;
     }
   });
+  if(numericKeyNorm || numericIndex >= 0) html += '<th>Status</th>';
+  html += '<th>Ações</th></tr></thead><tbody>';
+
+  for(let i=0;i<rowsArr.length;i++){
+    const arr = rowsArr[i] || [];
+    const obj = rowsObj[i] || {};
+    // compute numeric value
+    let numValRaw = '';
+    if(numericKeyNorm && obj[numericKeyNorm] !== undefined && obj[numericKeyNorm] !== '') numValRaw = obj[numericKeyNorm];
+    else if(numericIndex >= 0 && arr[numericIndex] !== undefined) numValRaw = arr[numericIndex];
+    const n = parseNumber(numValRaw || '0');
+
+    html += '<tr>';
+    displayCols.forEach(c => {
+      const force = forceCols.find(f => f.key === c);
+      let val = '';
+      if(force){
+        val = (force.values && force.values[i] !== undefined) ? force.values[i] : '';
+      } else {
+        const idx = headersNorm.indexOf(c);
+        if(obj[c] !== undefined && obj[c] !== '') val = obj[c];
+        else if(idx >= 0 && arr[idx] !== undefined) val = arr[idx];
+        else val = '';
+      }
+      html += `<td>${escapeHtml(val)}</td>`;
+    });
+
+    if(numericKeyNorm || numericIndex >= 0){
+      html += `<td>${n>0?'<span class="status status-aberto">ABERTO</span>':'<span class="status status-fechado">FECHADO</span>'}</td>`;
+    }
+    html += `<td><button class="btn-details" data-prefix="${prefix}" data-row="${i}">Ver Detalhes</button></td></tr>`;
+
+    // details content: show hiddenNorm columns (with originals)
+    let detailsHtml = '';
+    hiddenNorm.forEach(h => {
+      const idx = headersNorm.indexOf(h);
+      let value = '';
+      if(obj[h] !== undefined && obj[h] !== '') value = obj[h];
+      else if(idx >= 0 && arr[idx] !== undefined) value = arr[idx];
+      if(value) detailsHtml += `<div><strong>${escapeHtml(headersOrig[idx]||h)}:</strong> ${escapeHtml(value)}</div>`;
+    });
+    if(detailsHtml){
+      const colspan = displayCols.length + ((numericKeyNorm || numericIndex >= 0) ? 2 : 1);
+      html += `<tr class="details-row" id="details-${prefix}-${i}" style="display:none"><td colspan="${colspan}">${detailsHtml}</td></tr>`;
+    }
+  }
 
   html += '</tbody></table>';
   return html;
 }
 
-// helper: get index of normalized key (or -1)
-function numericKeyIndex(headersNorm, key){ return headersNorm.indexOf(key); }
-
-function escapeHtml(s){
-  if(s === undefined || s === null) return '';
-  return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x27;','/':'&#x2F;'}[c]));
+/* attach toggles to buttons after rendering */
+function attachDetailToggles(){
+  document.querySelectorAll('.btn-details').forEach(btn=>{
+    btn.onclick = () => {
+      const prefix = btn.dataset.prefix;
+      const row = btn.dataset.row;
+      const el = document.getElementById(`details-${prefix}-${row}`);
+      if(!el) return;
+      el.style.display = (el.style.display === 'table-row') ? 'none' : 'table-row';
+    };
+  });
 }
 
-/* --- Main load function --- */
+/* main loader */
 async function loadAll(){
   try{
-    // ===== LOTES DE ENTREGA =====
+    // ----- LOTES DE ENTREGA -----
     const ent = await fetchSheetByGid(GIDS.entrega);
-    const rowsArrEnt = ent.arrays;      // array of arrays
-    const headersOrigEnt = ent.headersOrig;
-    const headersNormEnt = ent.headersNorm;
-    const objsEnt = ent.objects;
+    const rowsArrEntAll = ent.arrays || [];
+    const headersOrigEnt = ent.headersOrig || [];
+    const headersNormEnt = ent.headersNorm || [];
+    const objsEntAll = ent.objects || [];
 
-    // Force: Nº CONTRATO deve vir da coluna B (index 1). Fallback - find header containing 'contrato'.
-    const contratoKey = findHeaderKey(headersNormEnt, ['ncontrato','numerocontrato','numero','contrato','no_contrato','numcontrato']) || null;
-    const contratoIndex = 1; // column B -> index 1 (0-based)
-    // Saldo Entrega (coluna I index 8) - also try to find header
-    const saldoKeyEnt = findHeaderKey(headersNormEnt, ['saldoent','saldoentrega','saldoentkg']) || null;
-    const saldoIndexEnt = 8;
-
-    // build filtered rows: only saldo > 0
-    const rowsObjEntFiltered = [];
-    const rowsArrEntFiltered = [];
-    for(let i=0;i<rowsArrEnt.length;i++){
-      const arr = rowsArrEnt[i];
-      const obj = objsEnt[i] || {};
-      // get saldo: prefer normalized header, else fallback to index 8
-      let saldoVal = '';
-      if(saldoKeyEnt && obj[saldoKeyEnt] !== undefined && obj[saldoKeyEnt] !== '') saldoVal = obj[saldoKeyEnt];
-      else if(arr[saldoIndexEnt] !== undefined) saldoVal = arr[saldoIndexEnt];
-      const n = parseNumber(saldoVal || '0');
+    // saldo detection: try header otherwise fallback to index 8 (col I)
+    const saldoKeyEnt = (['saldoent','saldoentrega','saldoentkg','saldoent(kg)','saldoentkg'].find(k => headersNormEnt.includes(k)) ) || null;
+    const saldoIndexEnt = 8; // column I index 8 (0-based)
+    // build filtered arrays only saldo > 0
+    const rowsArrEnt = [], rowsObjEnt = [], contratoVals = [];
+    for(let i=0;i<rowsArrEntAll.length;i++){
+      const arr = rowsArrEntAll[i] || [];
+      const obj = objsEntAll[i] || {};
+      // numeric value:
+      let rawSaldo = '';
+      if(saldoKeyEnt && obj[saldoKeyEnt]) rawSaldo = obj[saldoKeyEnt];
+      else if(arr[saldoIndexEnt] !== undefined) rawSaldo = arr[saldoIndexEnt];
+      const n = parseNumber(rawSaldo || '0');
       if(!isNaN(n) && n > 0){
-        // ensure Nº CONTRATO appears: if contratoKey found use obj, else fallback arr[1]
-        if(contratoKey && (obj[contratoKey] === undefined || obj[contratoKey] === '')){
-          // if missing, but arr has index 1, set it on object for display purposes
-          if(arr[contratoIndex] !== undefined) obj[contratoKey] = arr[contratoIndex];
-        }
-        rowsObjEntFiltered.push(obj);
-        rowsArrEntFiltered.push(arr);
+        rowsArrEnt.push(arr);
+        rowsObjEnt.push(obj);
+        // force contract from column B index 1
+        contratoVals.push(arr[1] !== undefined ? arr[1] : (obj['ncontrato'] || obj['contrato'] || ''));
       }
     }
 
-    // define removed and hidden for entrega
-    const removedEnt = REMOVED_COMMON.map(normalizeHeader);
-    // we don't hide NFP etc here (unless present)
-    const hiddenEnt = HIDDEN_COLS.map(normalizeHeader);
-
-    // ensure Nº CONTRATO is forced front if found, else fallback will use column index
-    const forceIncludeEnt = [];
-    if(contratoKey) forceIncludeEnt.push(contratoKey);
-
-    const tableEntHTML = buildTableHTML(rowsArrEntFiltered, rowsObjEntFiltered, headersOrigEnt, headersNormEnt, {
-      hiddenNorm: hiddenEnt,
-      removedNorm: removedEnt,
-      numericKey: saldoKeyEnt || headersNormEnt[saldoIndexEnt] || '',
-      forceInclude: forceIncludeEnt
+    // render entrega: force column contrato_forcado at left, numeric column using header if found else index
+    const forceColsEnt = [{ key: 'contrato_forcado', title: 'Nº CONTRATO', values: contratoVals }];
+    const entHTML = buildTableHTML(rowsArrEnt, rowsObjEnt, headersOrigEnt, headersNormEnt, {
+      hiddenNorm: HIDDEN_COLS.map(normalizeHeader),
+      removedNorm: REMOVED_COMMON.map(normalizeHeader),
+      numericKeyNorm: saldoKeyEnt,
+      numericIndex: saldoKeyEnt ? -1 : saldoIndexEnt,
+      forceCols: forceColsEnt,
+      prefix: 'ent'
     });
+    document.getElementById('entregaContent').innerHTML = entHTML || '<div class="empty">Nenhum lote de entrega em aberto.</div>';
 
-    document.getElementById('entregaContent').innerHTML = tableEntHTML || '<div class="empty">Nenhum lote de entrega em aberto.</div>';
-
-    // ===== LOTES DE RETIRADA =====
+    // ----- LOTES DE RETIRADA -----
     const ret = await fetchSheetByGid(GIDS.retirada);
-    const rowsArrRet = ret.arrays;
-    const headersOrigRet = ret.headersOrig;
-    const headersNormRet = ret.headersNorm;
-    const objsRet = ret.objects;
+    const rowsArrRetAll = ret.arrays || [];
+    const headersOrigRet = ret.headersOrig || [];
+    const headersNormRet = ret.headersNorm || [];
+    const objsRetAll = ret.objects || [];
 
-    // Remove INFORMAÇÕES ORIGEM from display: normalized key might be like 'informacoesdaorigem' etc
-    const removedRet = [...REMOVED_COMMON.map(normalizeHeader)];
-    // Also remove 'informacoesdaorigem' by trying to detect headers containing 'origem' or exact phrase
-    const possOrigem = headersNormRet.find(h => h.includes('origem') && h.includes('informacao'));
-    if(possOrigem) removedRet.push(possOrigem);
+    // detect and remove "informacoes origem" header(s)
+    const removedRet = REMOVED_COMMON.map(normalizeHeader);
+    // try to find header that includes both 'inform' and 'orig' or exactly 'informacoesdaorigem' etc
+    headersNormRet.forEach(h => { if(h.includes('inform') && h.includes('orig')) removedRet.push(h); });
 
-    // Hidden columns: nfp, royalties, safra (normalized)
-    const hiddenRet = HIDDEN_COLS.map(normalizeHeader);
+    const saldoKeyRet = (['saldoret','saldoretkg','saldoretirada','saldoret(kg)'].find(k => headersNormRet.includes(k))) || null;
+    const saldoIndexRet = 9; // column J index 9
+    // optionally filter by SITUAÇÃO == 'Pendente' if header exists
+    const situacaoKey = headersNormRet.find(h => h.includes('situacao')) || null;
 
-    // saldo retirada key detection fallback index (J -> index 9)
-    const saldoKeyRet = findHeaderKey(headersNormRet, ['saldoret','saldoretkg','saldoretirada']) || null;
-    const saldoIndexRet = 9;
-
-    const rowsObjRetFiltered = [];
-    const rowsArrRetFiltered = [];
-    for(let i=0;i<rowsArrRet.length;i++){
-      const arr = rowsArrRet[i];
-      const obj = objsRet[i] || {};
-      // get saldo
-      let saldoVal = '';
-      if(saldoKeyRet && obj[saldoKeyRet] !== undefined && obj[saldoKeyRet] !== '') saldoVal = obj[saldoKeyRet];
-      else if(arr[saldoIndexRet] !== undefined) saldoVal = arr[saldoIndexRet];
-      const n = parseNumber(saldoVal || '0');
-      if(!isNaN(n) && n > 0){
-        rowsObjRetFiltered.push(obj);
-        rowsArrRetFiltered.push(arr);
+    const rowsArrRet = [], rowsObjRet = [];
+    for(let i=0;i<rowsArrRetAll.length;i++){
+      const arr = rowsArrRetAll[i] || [];
+      const obj = objsRetAll[i] || {};
+      let rawSaldo = '';
+      if(saldoKeyRet && obj[saldoKeyRet]) rawSaldo = obj[saldoKeyRet];
+      else if(arr[saldoIndexRet] !== undefined) rawSaldo = arr[saldoIndexRet];
+      const n = parseNumber(rawSaldo || '0');
+      if(isNaN(n) || n <= 0) continue;
+      // if situacao exists require 'Pendente'
+      if(situacaoKey){
+        const sit = (obj[situacaoKey] || arr[ headersNormRet.indexOf(situacaoKey) ] || '').toString().trim();
+        if(sit && sit.toLowerCase() !== 'pendente') continue;
       }
+      rowsArrRet.push(arr);
+      rowsObjRet.push(obj);
     }
 
-    const tableRetHTML = buildTableHTML(rowsArrRetFiltered, rowsObjRetFiltered, headersOrigRet, headersNormRet, {
-      hiddenNorm: hiddenRet,
+    const retHTML = buildTableHTML(rowsArrRet, rowsObjRet, headersOrigRet, headersNormRet, {
+      hiddenNorm: HIDDEN_COLS.map(normalizeHeader),
       removedNorm: removedRet,
-      numericKey: saldoKeyRet || headersNormRet[saldoIndexRet] || ''
+      numericKeyNorm: saldoKeyRet,
+      numericIndex: saldoKeyRet ? -1 : saldoIndexRet,
+      prefix: 'ret'
     });
+    document.getElementById('retiradaContent').innerHTML = retHTML || '<div class="empty">Nenhum lote de retirada em aberto.</div>';
 
-    document.getElementById('retiradaContent').innerHTML = tableRetHTML || '<div class="empty">Nenhum lote de retirada em aberto.</div>';
-
-    // ===== PROGRAMAÇÃO (somente hoje) =====
+    // ----- PROGRAMAÇÃO (somente hoje) -----
     const prog = await fetchSheetByGid(GIDS.programacao);
-    const rowsArrProg = prog.arrays;
-    const headersOrigProg = prog.headersOrig;
-    const headersNormProg = prog.headersNorm;
-    const objsProg = prog.objects;
+    const rowsArrProgAll = prog.arrays || [];
+    const headersOrigProg = prog.headersOrig || [];
+    const headersNormProg = prog.headersNorm || [];
+    const objsProgAll = prog.objects || [];
 
-    // removed programacao fields normalized
     const removedProg = [...REMOVED_COMMON.map(normalizeHeader), ...REMOVED_PROGRAMACAO.map(normalizeHeader)];
-
-    // find date key (fallback index 0)
-    const dateKeyProg = findHeaderKey(headersNormProg, ['data','dataprogramacao','dataprog','dataentrega']) || headersNormProg[0] || null;
+    // find date header normalized or fallback index 0
+    const dateKeyProg = headersNormProg.find(h => h.includes('data')) || headersNormProg[0] || null;
     const dateIndexProg = 0;
 
     const today = new Date(); const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
-
-    const rowsArrProgFiltered = [];
-    const rowsObjProgFiltered = [];
-    for(let i=0;i<rowsArrProg.length;i++){
-      const arr = rowsArrProg[i];
-      const obj = objsProg[i] || {};
-      // get date
-      let dtVal = '';
-      if(dateKeyProg && obj[dateKeyProg]) dtVal = obj[dateKeyProg];
-      else if(arr[dateIndexProg] !== undefined) dtVal = arr[dateIndexProg];
-      const dt = parseDateOnly(dtVal);
+    const rowsArrProg = [], rowsObjProg = [];
+    for(let i=0;i<rowsArrProgAll.length;i++){
+      const arr = rowsArrProgAll[i] || [];
+      const obj = objsProgAll[i] || {};
+      let rawDate = '';
+      if(dateKeyProg && obj[dateKeyProg]) rawDate = obj[dateKeyProg];
+      else if(arr[dateIndexProg] !== undefined) rawDate = arr[dateIndexProg];
+      const dt = parseDateOnly(rawDate);
       if(dt && dt.getTime() === todayStart){
-        rowsArrProgFiltered.push(arr);
-        rowsObjProgFiltered.push(obj);
+        rowsArrProg.push(arr);
+        rowsObjProg.push(obj);
       }
     }
 
-    // Build programacao table: remove removedProg columns, no status numericKey
-    const tableProgHTML = buildTableHTML(rowsArrProgFiltered, rowsObjProgFiltered, headersOrigProg, headersNormProg, {
+    const progHTML = buildTableHTML(rowsArrProg, rowsObjProg, headersOrigProg, headersNormProg, {
       hiddenNorm: HIDDEN_COLS.map(normalizeHeader),
       removedNorm: removedProg,
-      numericKey: '' // no automatic status column here
+      numericKeyNorm: null,
+      numericIndex: -1,
+      prefix: 'prog'
     });
+    document.getElementById('programacaoContent').innerHTML = progHTML || '<div class="empty">Nenhuma programação para hoje.</div>';
 
-    document.getElementById('programacaoContent').innerHTML = tableProgHTML || '<div class="empty">Nenhuma programação para hoje.</div>';
-
-    // attach detail toggles (delegation)
-    attachDetailToggleHandlers();
+    // attach detail toggles
+    attachDetailToggles();
   }
   catch(err){
-    console.error('Erro loadAll:', err);
-    document.getElementById('entregaContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
-    document.getElementById('retiradaContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
-    document.getElementById('programacaoContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
+    console.error('Erro ao carregar dados:', err);
+    document.getElementById('entregaContent').innerHTML = '<div class="empty">Erro ao carregar Lotes de Entrega (veja console).</div>';
+    document.getElementById('retiradaContent').innerHTML = '<div class="empty">Erro ao carregar Lotes de Retirada (veja console).</div>';
+    document.getElementById('programacaoContent').innerHTML = '<div class="empty">Erro ao carregar Programação (veja console).</div>';
   }
 }
 
-/* toggles for details buttons (delegation) */
-function attachDetailToggleHandlers(){
+/* attach toggle handlers for details buttons */
+function attachDetailToggles(){
   document.querySelectorAll('.btn-details').forEach(btn=>{
-    btn.onclick = (e) => {
-      const rowIndex = btn.getAttribute('data-row');
-      if(!rowIndex) return;
-      const id = 'details-' + rowIndex;
-      const el = document.getElementById(id);
+    btn.onclick = () => {
+      const prefix = btn.dataset.prefix;
+      const i = btn.dataset.row;
+      const el = document.getElementById(`details-${prefix}-${i}`);
       if(!el) return;
-      const visible = el.style.display === 'table-row';
-      el.style.display = visible ? 'none' : 'table-row';
+      el.style.display = el.style.display === 'table-row' ? 'none' : 'table-row';
     };
   });
 }
@@ -429,7 +390,6 @@ document.getElementById('btnRefresh').addEventListener('click', () => {
   document.getElementById('programacaoContent').innerHTML = '<div class="empty">Atualizando...</div>';
   loadAll();
 });
-
 loadAll();
 </script>
 </body>
