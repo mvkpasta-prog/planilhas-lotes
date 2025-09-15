@@ -257,6 +257,9 @@ async function loadAll(){
     // Procurar pela coluna "ID DESTINO"
     const idDestinoKey = headersNormEnt.find(h => h.includes('iddestino') || h.includes('id_destino'));
     
+    // Procurar pela coluna "SITUAÇÃO ENT"
+    const situacaoEntKey = headersNormEnt.find(h => h.includes('situacaoent') || h.includes('situacao') || h.includes('situacaoentrega'));
+    
     // Saldo Entrega (coluna I index 8) - also try to find header
     const saldoKeyEnt = findHeaderKey(headersNormEnt, ['saldoent','saldoentrega','saldoentkg']) || null;
     const saldoIndexEnt = 8;
@@ -272,9 +275,10 @@ async function loadAll(){
     // Define as colunas que serão removidas do Lotes de Entrega
     const removedEnt = [...REMOVED_COMMON.map(normalizeHeader)];
     
-    // Adicionar INFORMAÇÕES DESTINO e ID DESTINO às colunas removidas
+    // Adicionar INFORMAÇÕES DESTINO, ID DESTINO e SITUAÇÃO ENT às colunas removidas
     if(infoDestinoKey) removedEnt.push(infoDestinoKey);
     if(idDestinoKey) removedEnt.push(idDestinoKey);
+    if(situacaoEntKey) removedEnt.push(situacaoEntKey);
 
     // build filtered rows: only saldo > 0
     const rowsObjEntFiltered = [];
