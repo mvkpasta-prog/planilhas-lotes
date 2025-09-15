@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Controle de Lotes - Entrega & Retirada</title>
+  <title>Controle de Lotes — Entrega & Retirada</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <style>
     :root{
-      --primary:#2563eb;--secondary:#0ea5e9;--bg:#f7fbff;--card:#fff;--text:#0f172a;
-      --muted:#6b7280;--success:#10b981;--warning:#f59e0b;
+      --primary:#2563eb; --secondary:#0ea5e9; --bg:#f7fbff; --card:#fff; --text:#0f172a;
+      --muted:#6b7280; --success:#10b981; --warning:#f59e0b;
     }
     *{box-sizing:border-box}
     body{font-family:Segoe UI, Tahoma, Geneva, Verdana, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:18px}
@@ -36,6 +36,7 @@
 </head>
 <body>
   <header>📦 Controle de Lotes — Entrega & Retirada</header>
+
   <div class="container">
     <div class="top-actions">
       <button class="refresh" id="btnRefresh"><i class="fas fa-sync-alt"></i> Atualizar</button>
@@ -43,7 +44,7 @@
 
     <div class="grid">
       <section class="section" id="secProgramacao">
-        <h2><i class="fas fa-calendar-check"></i> Programação</h2>
+        <h2><i class="fas fa-calendar-check"></i> Programação (Somente hoje)</h2>
         <div id="programacaoContent" class="card"></div>
       </section>
 
@@ -70,35 +71,40 @@
     retirada: '585404986'
   };
 
-  // colunas escondidas (aparecem só em "detalhes")
+  // colunas que ficam escondidas nos details (normalizadas)
   const HIDDEN_COLS = ['nfp','royalties','safra'];
 
-  // colunas removidas de vez
-  const REMOVED_COLS = [
-    'localizacao','idorigemymvk1',
-    'informacoesdestino','situacaoent','iddestino'
+  // colunas removidas globalmente (normalizadas)
+  const REMOVED_COMMON = ['localizacao','idorigemymvk1','informacoesdestino','situacaoent','iddestino'];
+
+  // colunas removidas ESPECÍFICO para Programação (normalizadas)
+  const REMOVED_PROGRAMACAO = [
+    'observacoes','ordem','notafiscal','notafical','dacte','mdfe','conftipocam','agendamento',
+    'descarga','comprovantededescarga','horarioprev','classificacaodestino','chaveid'
   ];
 
   /***********************
-   * Normalizador de cabeçalhos
+   * UTIL: normaliza cabeçalhos (remove acentos, pontuação e espaços)
    ***********************/
   function normalizeHeader(h){
     if(!h && h !== 0) return '';
     return String(h)
       .trim()
       .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-      .replace(/[^a-z0-9]/g,'');
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')   // remove acentos
+      .replace(/[^a-z0-9]/g,'');                        // remove tudo que não seja alfanumérico
   }
 
   /***********************
-   * Parser CSV
+   * UTIL: parse CSV tolerante (trata vírgulas dentro de aspas)
+   * retorna { rows: [ {normalizedKey: value} ... ], headers: [normalizedKeys], originals: [originais] }
    ***********************/
   function parseCSV(text){
     if(!text) return {rows:[], headers:[], originals:[]};
     const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
     if(lines.length === 0) return {rows:[], headers:[], originals:[]};
 
+    // split de forma segura: vírgulas fora de aspas
     const parsed = lines.map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g,'').trim()));
     const origHeaders = parsed.shift().map(h => h || '');
     const headers = origHeaders.map(h => normalizeHeader(h));
@@ -114,35 +120,80 @@
     return {rows, headers, originals: origHeaders};
   }
 
+  /***********************
+   * UTIL: leitura CSV via gviz (mais confiável)
+   ***********************/
   async function fetchCSV(gid){
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`;
     const r = await fetch(url);
+    if(!r.ok) throw new Error('Erro ao buscar planilha: ' + r.status);
     const txt = await r.text();
     return parseCSV(txt);
   }
 
+  /***********************
+   * UTIL: converte string pra número (tolerante)
+   ***********************/
   function parseNumber(val){
     if(val === undefined || val === null) return NaN;
-    const s = String(val).replace(/\s/g,'').replace(/\./g,'').replace(/,/g,'.');
-    const n = parseFloat(s.replace(/[^\d\.\-]/g,''));
+    const s = String(val).replace(/\s/g,'').replace(/\./g,'').replace(/,/g,'.'); // 1.234,56 -> 1234.56
+    const n = parseFloat(s.replace(/[^\d\.\-]/g,'')); // tira caracteres não numéricos (exceto - .)
     return isNaN(n) ? NaN : n;
   }
 
+  /***********************
+   * UTIL: parse date dd/mm/yyyy ou yyyy-mm-dd -> Date sem horário
+   ***********************/
+  function parseDateOnly(s){
+    if(!s) return null;
+    const str = String(s).trim();
+    // tenta dd/mm/yyyy
+    if(str.includes('/')){
+      const parts = str.split('/');
+      if(parts.length >= 3){
+        const d = parseInt(parts[0],10), m = parseInt(parts[1],10), y = parseInt(parts[2],10);
+        if(!isNaN(d) && !isNaN(m) && !isNaN(y)) return new Date(y, m-1, d);
+      }
+    }
+    // tenta yyyy-mm-dd ou yyyy/mm/dd
+    if(str.includes('-') || str.includes('/')){
+      const sep = str.includes('-')? '-' : '/';
+      const parts = str.split(sep);
+      if(parts.length >= 3){
+        const y = parseInt(parts[0],10), m = parseInt(parts[1],10), d = parseInt(parts[2],10);
+        if(!isNaN(d) && !isNaN(m) && !isNaN(y)) return new Date(y, m-1, d);
+      }
+    }
+    // tentativa final: Date parser
+    const dt = new Date(str);
+    if(!isNaN(dt.getTime())) return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+    return null;
+  }
+
+  /***********************
+   * Render helpers
+   ***********************/
   function renderEmpty(msg){
     return `<div class="empty">${msg}</div>`;
   }
 
+  // busca header existente por lista de padrões (headers já normalizados)
   function findHeaderKey(headers, patterns){
     for(const p of patterns){
       const found = headers.find(h => h.includes(p));
       if(found) return found;
     }
+    // alguns fallback genéricos
     if(patterns.includes('saldoret')){
-      const f = headers.find(h => h.includes('saldo') && (h.includes('ret')||h.includes('retirada')||h.includes('retkg')));
+      const f = headers.find(h => h.includes('saldo') && (h.includes('ret') || h.includes('retirada') || h.includes('retkg')));
       if(f) return f;
     }
     if(patterns.includes('saldoent')){
-      const f = headers.find(h => h.includes('saldo') && (h.includes('ent')||h.includes('entrega')||h.includes('entkg')));
+      const f = headers.find(h => h.includes('saldo') && (h.includes('ent') || h.includes('entrega') || h.includes('entkg')));
+      if(f) return f;
+    }
+    if(patterns.includes('ncontrato') || patterns.includes('contrato')){
+      const f = headers.find(h => h.includes('contrato'));
       if(f) return f;
     }
     const f = headers.find(h => h.includes('saldo'));
@@ -150,35 +201,51 @@
     return null;
   }
 
-  function buildTableHTML(rows, headers, originals, hiddenNorm, removedNorm, numericKey, mode){
+  // buildTable: forceInclude = array de headers normalizados para garantir exibição (ex: ['ncontrato'])
+  function buildTableHTML(rows, headers, originals, hiddenNorm, removedNorm, numericKey, mode, forceInclude = []){
     if(!rows || rows.length === 0) return '';
 
+    // visíveis = headers sem os removidos
     const visible = headers.filter(h => !removedNorm.includes(h));
+    // colunas exibidas (sem as hidden)
     let displayCols = visible.filter(h => !hiddenNorm.includes(h));
 
-    // garantir Nº CONTRATO (ncontrato)
-    if(visible.includes('ncontrato') && !displayCols.includes('ncontrato')){
-      displayCols.unshift('ncontrato');
-    }
+    // garantir colunas em forceInclude na frente (se existirem)
+    forceInclude.forEach(fc => {
+      if(visible.includes(fc) && !displayCols.includes(fc)){
+        displayCols.unshift(fc);
+      } else if(visible.includes(fc)){
+        // mover para frente se já está presente
+        displayCols = [fc, ...displayCols.filter(x => x !== fc)];
+      }
+    });
 
+    // se não há colunas visíveis, mostrar nada
+    if(displayCols.length === 0) return '';
+
+    // montar cabeçalho (usar nomes originais)
     let html = '<table><thead><tr>';
     displayCols.forEach(h => {
       const idx = headers.indexOf(h);
       const title = (idx >= 0) ? originals[idx] : h;
       html += `<th>${escapeHtml(title)}</th>`;
     });
-    html += '<th>Status</th><th>Ações</th></tr></thead><tbody>';
+
+    const showStatus = Boolean(numericKey);
+    if(showStatus) html += '<th>Status</th>';
+    html += '<th>Ações</th></tr></thead><tbody>';
 
     rows.forEach((row, idx) => {
-      const n = parseNumber(row[numericKey] || '0');
+      const n = showStatus ? parseNumber(row[numericKey] || '0') : NaN;
       html += '<tr>';
       displayCols.forEach(h => {
         html += `<td>${escapeHtml(row[h] || '')}</td>`;
       });
-      html += `<td>${n>0 ? `<span class="status status-aberto">Aberto</span>` : `<span class="status status-concluido">Concluído</span>`}</td>`;
+      if(showStatus) html += `<td>${n>0 ? `<span class="status status-aberto">Aberto</span>` : `<span class="status status-concluido">Concluído</span>`}</td>`;
       html += `<td><button class="btn-details" onclick="toggleDetails('${mode}-${idx}')">Ver Detalhes</button></td>`;
       html += '</tr>';
 
+      // detalhes: mostrar colunas hidden (com nomes originais)
       let detailsHtml = '';
       hiddenNorm.forEach(h => {
         const idxH = headers.indexOf(h);
@@ -190,7 +257,7 @@
       });
 
       if(detailsHtml){
-        const colspan = displayCols.length + 2;
+        const colspan = displayCols.length + (showStatus ? 2 : 1);
         html += `<tr id="details-${mode}-${idx}" class="details-row"><td colspan="${colspan}">${detailsHtml}</td></tr>`;
       }
     });
@@ -210,55 +277,95 @@
     el.classList.toggle('visible');
   };
 
+  /***********************
+   * Carrega tudo
+   ***********************/
   async function loadAll(){
+    // PROGRAMACAO -> somente hoje, remove colunas especificadas
     try{
       const progData = await fetchCSV(GIDS.programacao);
-      if(!progData.rows.length){
+      const rows = progData.rows || [], headers = progData.headers || [], orig = progData.originals || [];
+      if(!rows.length){
         document.getElementById('programacaoContent').innerHTML = renderEmpty('Nenhuma programação encontrada.');
       } else {
-        const html = buildTableHTML(progData.rows, progData.headers, progData.originals, [], [], '', 'prog');
-        document.getElementById('programacaoContent').innerHTML = html;
+        const hiddenNorm = HIDDEN_COLS.map(normalizeHeader);
+        const removedNorm = [...REMOVED_COMMON.map(normalizeHeader), ...REMOVED_PROGRAMACAO.map(normalizeHeader)];
+        // localizar coluna de data
+        const dateKey = findHeaderKey(headers, ['data','dataprogramacao','dataprog','dataentrega']);
+        if(!dateKey){
+          console.warn('Programação - date column not found. headers:', headers);
+          document.getElementById('programacaoContent').innerHTML = renderEmpty('Coluna de data não encontrada na programação.');
+        } else {
+          // hoje (sem horário)
+          const now = new Date(); const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+          const filtered = rows.filter(r => {
+            const dt = parseDateOnly(r[dateKey]);
+            return dt && dt.getTime() === today;
+          });
+          if(!filtered.length){
+            document.getElementById('programacaoContent').innerHTML = renderEmpty('Nenhuma programação para hoje.');
+          } else {
+            // numericKey vazio (não exibe coluna status)
+            const html = buildTableHTML(filtered, headers, orig, hiddenNorm, removedNorm, '', 'prog');
+            document.getElementById('programacaoContent').innerHTML = html || renderEmpty('Nenhuma programação para hoje.');
+          }
+        }
       }
     }catch(e){
-      document.getElementById('programacaoContent').innerHTML = `<div class="empty">Erro: ${escapeHtml(e.message||e)}</div>`;
+      console.error('Erro programacao', e);
+      document.getElementById('programacaoContent').innerHTML = `<div class="empty">Erro ao carregar programação: ${escapeHtml(e.message||e)}</div>`;
     }
 
+    // ENTREGA -> Nº CONTRATO (coluna B) deve aparecer; filtrar SALDO ENT > 0
     try{
       const ent = await fetchCSV(GIDS.entrega);
-      const rows = ent.rows; const headers = ent.headers; const orig = ent.originals;
+      const rows = ent.rows || [], headers = ent.headers || [], orig = ent.originals || [];
       if(!rows.length){
         document.getElementById('entregaContent').innerHTML = renderEmpty('Nenhum dado de entrega.');
       } else {
         const hiddenNorm = HIDDEN_COLS.map(normalizeHeader);
-        const removedNorm = REMOVED_COLS.map(normalizeHeader);
-        const saldoKey = findHeaderKey(headers, ['saldoent','saldoentrega','saldoentkg']);
+        const removedNorm = REMOVED_COMMON.map(normalizeHeader); // remove as colunas comuns pedidas
+        // localizar saldo entrega
+        const saldoKey = findHeaderKey(headers, ['saldoent','saldoentrega','saldoentkg','saldokg','saldoentkg']);
         if(!saldoKey){
-          document.getElementById('entregaContent').innerHTML = `<div class="empty">Coluna de saldo entrega não encontrada.</div>`;
+          console.warn('Entrega - saldo column not found. headers:', headers, 'orig:', orig);
+          document.getElementById('entregaContent').innerHTML = `<div class="empty">Coluna de "Saldo Entrega" não encontrada (verifique cabeçalho).</div>`;
         } else {
+          // localizar Nº CONTRATO (várias formas)
+          const contratoKey = findHeaderKey(headers, ['ncontrato','numerocontrato','numero_contrato','numero','contrato','no_contrato','numcontrato']);
+          if(!contratoKey){
+            console.warn('Entrega - contrato column not found. headers:', headers, 'orig:', orig);
+            // não falhar, só não forçamos
+          }
+          // filtrar > 0
           const filtered = rows.filter(r => parseNumber(r[saldoKey]||'0') > 0);
           if(!filtered.length){
             document.getElementById('entregaContent').innerHTML = renderEmpty('Nenhum lote de entrega em aberto.');
           } else {
-            const html = buildTableHTML(filtered, headers, orig, hiddenNorm, removedNorm, saldoKey, 'entrega');
+            const forceInclude = contratoKey ? [contratoKey] : [];
+            const html = buildTableHTML(filtered, headers, orig, hiddenNorm, removedNorm, saldoKey, 'entrega', forceInclude);
             document.getElementById('entregaContent').innerHTML = html;
           }
         }
       }
     }catch(e){
-      document.getElementById('entregaContent').innerHTML = `<div class="empty">Erro: ${escapeHtml(e.message||e)}</div>`;
+      console.error('Erro entrega', e);
+      document.getElementById('entregaContent').innerHTML = `<div class="empty">Erro ao carregar lotes de entrega: ${escapeHtml(e.message||e)}</div>`;
     }
 
+    // RETIRADA -> SALDO RET. (KG) > 0, esconder NFP/Royalties/Safra e remover localizacao, idorigemymvk1
     try{
       const ret = await fetchCSV(GIDS.retirada);
-      const rows = ret.rows; const headers = ret.headers; const orig = ret.originals;
+      const rows = ret.rows || [], headers = ret.headers || [], orig = ret.originals || [];
       if(!rows.length){
         document.getElementById('retiradaContent').innerHTML = renderEmpty('Nenhum dado de retirada.');
       } else {
         const hiddenNorm = HIDDEN_COLS.map(normalizeHeader);
-        const removedNorm = REMOVED_COLS.map(normalizeHeader);
-        const saldoKey = findHeaderKey(headers, ['saldoret','saldoretkg','saldoretirada']);
+        const removedNorm = REMOVED_COMMON.map(normalizeHeader);
+        const saldoKey = findHeaderKey(headers, ['saldoret','saldoretkg','saldoretirada','saldoretkg']);
         if(!saldoKey){
-          document.getElementById('retiradaContent').innerHTML = `<div class="empty">Coluna de saldo retirada não encontrada.</div>`;
+          console.warn('Retirada - saldo column not found. headers:', headers, 'orig:', orig);
+          document.getElementById('retiradaContent').innerHTML = `<div class="empty">Coluna de "Saldo Ret." não encontrada (verifique cabeçalho).</div>`;
         } else {
           const filtered = rows.filter(r => parseNumber(r[saldoKey]||'0') > 0);
           if(!filtered.length){
@@ -270,12 +377,20 @@
         }
       }
     }catch(e){
-      document.getElementById('retiradaContent').innerHTML = `<div class="empty">Erro: ${escapeHtml(e.message||e)}</div>`;
+      console.error('Erro retirada', e);
+      document.getElementById('retiradaContent').innerHTML = `<div class="empty">Erro ao carregar lotes de retirada: ${escapeHtml(e.message||e)}</div>`;
     }
   }
 
   document.getElementById('btnRefresh').addEventListener('click', loadAll);
+  // carregar ao abrir
   loadAll();
+
+  /***********************
+   * Debug notes
+   * - Se alguma seção disser "coluna ... não encontrada", abra o Console (F12) e cole aqui a saída dos "headers" mostrados
+   * - Certifique-se que a planilha está visível para quem tem o link (ou pública) para que o browser faça o fetch do CSV
+   ***********************/
   </script>
 </body>
 </html>
