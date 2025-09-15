@@ -9,6 +9,9 @@
   :root{
     --primary:#2563eb; --accent:#0ea5e9; --bg:#f6fbff; --card:#fff; --text:#0f172a;
     --muted:#6b7280; --success:#10b981; --warning:#f59e0b;
+    --status-carregado: #10b981; /* Verde */
+    --status-embarque: #3b82f6; /* Azul */
+    --status-transito: #ef4444; /* Vermelho */
   }
   *{box-sizing:border-box}
   body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:18px}
@@ -27,10 +30,14 @@
   .status{display:inline-block;padding:6px 10px;border-radius:16px;color:#fff;font-weight:700}
   .status-aberto{background:var(--warning)}
   .status-fechado{background:var(--success)}
+  
+  /* Estilos para os novos status da programação */
+  .status-programacao{display:inline-block;padding:6px 12px;border-radius:16px;color:#fff;font-weight:700;font-size:12px;min-width:100px;text-align:center}
+  .status-carregado{background-color: var(--status-carregado);}
+  .status-embarque{background-color: var(--status-embarque);}
+  .status-transito{background-color: var(--status-transito);}
+  
   .empty{color:var(--muted);font-style:italic;padding:12px}
-  .btn-details{background:transparent;border:0;color:var(--primary);cursor:pointer;text-decoration:underline;padding:0}
-  .details-row{display:none;background:#f3f7ff}
-  .details-row.visible{display:table-row}
   @media (max-width:900px){
     table{min-width:700px}
     th, td{padding:8px;font-size:12px}
@@ -189,14 +196,37 @@ function formatCurrencyBRL(value) {
   }).format(value);
 }
 
+/* Formata o status da programação com cores específicas */
+function formatStatusProgramacao(status) {
+  let className = 'status-programacao';
+  let text = status;
+  
+  // Normalizar o status para comparação
+  const statusLower = status.toLowerCase().trim();
+  
+  if (statusLower.includes('carregado')) {
+    className += ' status-carregado';
+  } else if (statusLower.includes('embarque') || statusLower.includes('no embarque')) {
+    className += ' status-embarque';
+  } else if (statusLower.includes('transito') || statusLower.includes('em transito')) {
+    className += ' status-transito';
+  } else {
+    // Status padrão (cinza)
+    className += ' status-aberto';
+  }
+  
+  return `<span class="${className}">${escapeHtml(text)}</span>`;
+}
+
 /* build table HTML: rowsArrays = array of arrays; rowsObjects = array of objects keyed by normalized headers */
 function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts){
-  // opts: {hiddenNorm:[], removedNorm:[], numericKey: 'somenorm', forceColsNorm:[], currencyCols:[]}
+  // opts: {hiddenNorm:[], removedNorm:[], numericKey: 'somenorm', forceColsNorm:[], currencyCols:[], statusCol: ''}
   const hiddenNorm = opts.hiddenNorm || [];
   const removedNorm = opts.removedNorm || [];
   const numericKey = opts.numericKey || '';
   const forceInclude = opts.forceInclude || [];
   const currencyCols = opts.currencyCols || [];
+  const statusCol = opts.statusCol || '';
 
   // visible columns: headersNorm minus removed
   const visible = headersNorm.filter(h => !removedNorm.includes(h));
@@ -221,7 +251,6 @@ function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts)
     html += `<th>${escapeHtml(title)}</th>`;
   });
   if(numericKey) html += '<th>Status</th>';
-  // REMOVIDO: Coluna "Ações" conforme solicitado
   html += '</tr></thead><tbody>';
 
   rowsObjects.forEach((obj, i) => {
@@ -241,10 +270,15 @@ function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts)
         }
       }
       
-      html += `<td>${escapeHtml(value)}</td>`;
+      // Formatar status da programação
+      if(h === statusCol) {
+        value = formatStatusProgramacao(value);
+        html += `<td>${value}</td>`;
+      } else {
+        html += `<td>${escapeHtml(value)}</td>`;
+      }
     });
     if(numericKey) html += `<td>${n>0?'<span class="status status-aberto">ABERTO</span>':'<span class="status status-fechado">FECHADO</span>'}</td>`;
-    // REMOVIDO: Botão "Ver Detalhes" e coluna "Ações" conforme solicitado
     html += '</tr>';
   });
 
@@ -414,9 +448,9 @@ async function loadAll(){
     const headersNormProg = prog.headersNorm;
     const objsProg = prog.objects;
 
-    // removed programacao fields normalized
-    const removedProg = [...REMOVED_COMMON.map(normalizeHeader), ...REMOVED_PROGRAMACAO.map(normalizeHeader)];
-
+    // Encontrar a coluna "STATUS"
+    const statusKey = headersNormProg.find(h => h.includes('status') && !h.includes('agendamento')) || null;
+    
     // Encontrar a coluna "FRETE EMPRESA"
     const freteEmpresaKey = headersNormProg.find(h => h.includes('freteempresa') || h.includes('frete') && h.includes('empresa')) || null;
 
@@ -442,12 +476,26 @@ async function loadAll(){
       }
     }
 
-    // Build programacao table: remove removedProg columns, no status numericKey
+    // Identificar a penúltima coluna para remoção
+    let removedProg = [...REMOVED_COMMON.map(normalizeHeader), ...REMOVED_PROGRAMACAO.map(normalizeHeader)];
+    
+    // Se tivermos colunas suficientes, remover a penúltima
+    if(headersNormProg.length > 1) {
+      // Encontrar a penúltima coluna visível (não removida)
+      const visibleCols = headersNormProg.filter(h => !removedProg.includes(h));
+      if(visibleCols.length > 1) {
+        const penultimaCol = visibleCols[visibleCols.length - 2];
+        removedProg.push(penultimaCol);
+      }
+    }
+
+    // Build programacao table: remove removedProg columns, format status and currency
     const tableProgHTML = buildTableHTML(rowsArrProgFiltered, rowsObjProgFiltered, headersOrigProg, headersNormProg, {
       hiddenNorm: HIDDEN_COLS.map(normalizeHeader),
       removedNorm: removedProg,
       numericKey: '',
-      currencyCols: freteEmpresaKey ? [freteEmpresaKey] : [] // Formatar como moeda
+      currencyCols: freteEmpresaKey ? [freteEmpresaKey] : [],
+      statusCol: statusKey
     });
 
     document.getElementById('programacaoContent').innerHTML = tableProgHTML || '<div class="empty">Nenhuma programação para hoje.</div>';
