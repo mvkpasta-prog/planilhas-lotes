@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Controle de Lotes — Entrega & Retirada</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css  "/>
 <style>
   :root{
     --primary:#2563eb; --accent:#0ea5e9; --bg:#f6fbff; --card:#fff; --text:#0f172a;
@@ -79,7 +79,8 @@ const REMOVED_COMMON = ['localizacao','idorigemymvk1'];
 /* colunas removidas especificamente da Programação (normalizadas) */
 const REMOVED_PROGRAMACAO = [
   'observacoes','ordem','notafiscal','dacte','mdfe','conftipocam','agendamento',
-  'descarga','comprovantededescarga','horarioprev','classificacaodestino','chaveid'
+  'descarga','comprovantededescarga','horarioprev','classificacaodestino','chaveid',
+  'notafiscal', 'frete', 'statusagendamento', 'datadedescarga' // Adicionadas conforme solicitação
 ];
 
 /* Normaliza cabeçalho: remove acento, espaços e pontuação */
@@ -251,7 +252,7 @@ function numericKeyIndex(headersNorm, key){ return headersNorm.indexOf(key); }
 
 function escapeHtml(s){
   if(s === undefined || s === null) return '';
-  return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x27;','/':'&#x2F;'}[c]));
+  return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'<','>':'>','"':'&quot;',"'":'&#x27;','/':'&#x2F;'}[c]));
 }
 
 /* --- Main load function --- */
@@ -283,10 +284,29 @@ async function loadAll(){
       else if(arr[saldoIndexEnt] !== undefined) saldoVal = arr[saldoIndexEnt];
       const n = parseNumber(saldoVal || '0');
       if(!isNaN(n) && n > 0){
-        // ensure Nº CONTRATO appears: if contratoKey found use obj, else fallback arr[1]
-        if(contratoKey && (obj[contratoKey] === undefined || obj[contratoKey] === '')){
-          // if missing, but arr has index 1, set it on object for display purposes
-          if(arr[contratoIndex] !== undefined) obj[contratoKey] = arr[contratoIndex];
+        // Garantir que o Nº CONTRATO da coluna B seja incluído
+        // Se contratoKey não for encontrado, vamos criar uma chave temporária para exibir o valor da coluna B
+        if(contratoKey) {
+          // Se a chave do contrato for encontrada, garantir que tenha valor
+          if(obj[contratoKey] === undefined || obj[contratoKey] === '') {
+            if(arr[contratoIndex] !== undefined) {
+              obj[contratoKey] = arr[contratoIndex];
+            }
+          }
+        } else {
+          // Se não encontrou chave de contrato, vamos adicionar manualmente usando o valor da coluna B
+          // Criamos uma chave temporária para exibição
+          const tempContratoKey = 'numero_contrato';
+          obj[tempContratoKey] = arr[contratoIndex] !== undefined ? arr[contratoIndex] : '';
+          // Adicionar ao array de headers se necessário
+          if(!headersNormEnt.includes(tempContratoKey)) {
+            headersNormEnt.push(tempContratoKey);
+            headersOrigEnt.push('Nº CONTRATO');
+          }
+          // Forçar inclusão desta coluna
+          if(!forceIncludeEnt.includes(tempContratoKey)) {
+            forceIncludeEnt.push(tempContratoKey);
+          }
         }
         rowsObjEntFiltered.push(obj);
         rowsArrEntFiltered.push(arr);
@@ -299,8 +319,13 @@ async function loadAll(){
     const hiddenEnt = HIDDEN_COLS.map(normalizeHeader);
 
     // ensure Nº CONTRATO is forced front if found, else fallback will use column index
-    const forceIncludeEnt = [];
-    if(contratoKey) forceIncludeEnt.push(contratoKey);
+    let forceIncludeEnt = [];
+    if(contratoKey) {
+      forceIncludeEnt.push(contratoKey);
+    } else {
+      // Se não encontrou, vamos forçar a coluna temporária
+      forceIncludeEnt.push('numero_contrato');
+    }
 
     const tableEntHTML = buildTableHTML(rowsArrEntFiltered, rowsObjEntFiltered, headersOrigEnt, headersNormEnt, {
       hiddenNorm: hiddenEnt,
@@ -321,7 +346,7 @@ async function loadAll(){
     // Remove INFORMAÇÕES ORIGEM from display: normalized key might be like 'informacoesdaorigem' etc
     const removedRet = [...REMOVED_COMMON.map(normalizeHeader)];
     // Also remove 'informacoesdaorigem' by trying to detect headers containing 'origem' or exact phrase
-    const possOrigem = headersNormRet.find(h => h.includes('origem') && h.includes('informacao'));
+    const possOrigem = headersNormRet.find(h => h.includes('origem') && (h.includes('informacao') || h.includes('informacoes')));
     if(possOrigem) removedRet.push(possOrigem);
 
     // Hidden columns: nfp, royalties, safra (normalized)
