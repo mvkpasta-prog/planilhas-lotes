@@ -211,7 +211,8 @@ function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts)
     html += `<th>${escapeHtml(title)}</th>`;
   });
   if(numericKey) html += '<th>Status</th>';
-  html += '<th>Ações</th></tr></thead><tbody>';
+  // REMOVIDO: Coluna "Ações" conforme solicitado
+  html += '</tr></thead><tbody>';
 
   rowsObjects.forEach((obj, i) => {
     const arr = rowsArrays[i] || [];
@@ -224,7 +225,7 @@ function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts)
       html += `<td>${escapeHtml(value)}</td>`;
     });
     if(numericKey) html += `<td>${n>0?'<span class="status status-aberto">ABERTO</span>':'<span class="status status-fechado">FECHADO</span>'}</td>`;
-    html += `<td><button class="btn-details" data-row="${i}">Ver Detalhes</button></td>`;
+    // REMOVIDO: Botão "Ver Detalhes" e coluna "Ações" conforme solicitado
     html += '</tr>';
 
     // details: show hiddenNorm columns (with original titles)
@@ -237,10 +238,7 @@ function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts)
         if(val) details += `<div><strong>${escapeHtml(title)}:</strong> ${escapeHtml(val)}</div>`;
       }
     });
-    if(details){
-      const colspan = displayCols.length + (numericKey?2:1);
-      html += `<tr class="details-row" id="details-${i}" style="display:none"><td colspan="${colspan}">${details}</td></tr>`;
-    }
+    // REMOVIDO: Linha de detalhes pois não temos mais o botão para exibi-la
   });
 
   html += '</tbody></table>';
@@ -265,49 +263,54 @@ async function loadAll(){
     const headersNormEnt = ent.headersNorm;
     const objsEnt = ent.objects;
 
-    // Force: Nº CONTRATO deve vir da coluna B (index 1). Fallback - find header containing 'contrato'.
-    const contratoKey = findHeaderKey(headersNormEnt, ['ncontrato','numerocontrato','numero','contrato','no_contrato','numcontrato']) || null;
-    const contratoIndex = 1; // column B -> index 1 (0-based)
+    // Procurar pela coluna "INFORMAÇÕES DESTINO"
+    const infoDestinoKey = headersNormEnt.find(h => h.includes('informacoesdestino') || h.includes('informacaodestino') || h.includes('destino'));
+    
     // Saldo Entrega (coluna I index 8) - also try to find header
     const saldoKeyEnt = findHeaderKey(headersNormEnt, ['saldoent','saldoentrega','saldoentkg']) || null;
     const saldoIndexEnt = 8;
+
+    // Criar uma nova chave para o número do contrato
+    const contratoKey = 'numero_contrato';
+    // Adicionar ao cabeçalho se necessário
+    if(!headersNormEnt.includes(contratoKey)) {
+      headersNormEnt.push(contratoKey);
+      headersOrigEnt.push('Nº CONTRATO');
+    }
 
     // build filtered rows: only saldo > 0
     const rowsObjEntFiltered = [];
     const rowsArrEntFiltered = [];
     for(let i=0;i<rowsArrEnt.length;i++){
       const arr = rowsArrEnt[i];
-      const obj = objsEnt[i] || {};
+      let obj = objsEnt[i] || {};
+      
+      // Extrair número do contrato de "INFORMAÇÕES DESTINO"
+      let contratoNumero = '';
+      if(infoDestinoKey && obj[infoDestinoKey]) {
+        // Extrair o número antes do primeiro traço
+        const valorDestino = obj[infoDestinoKey];
+        if(valorDestino.includes('-')) {
+          contratoNumero = valorDestino.split('-')[0].trim();
+        } else {
+          contratoNumero = valorDestino;
+        }
+      } else {
+        // Fallback: tentar pegar da coluna B (índice 1)
+        if(arr[1] !== undefined) {
+          contratoNumero = arr[1];
+        }
+      }
+      
+      // Adicionar o número do contrato ao objeto
+      obj[contratoKey] = contratoNumero;
+
       // get saldo: prefer normalized header, else fallback to index 8
       let saldoVal = '';
       if(saldoKeyEnt && obj[saldoKeyEnt] !== undefined && obj[saldoKeyEnt] !== '') saldoVal = obj[saldoKeyEnt];
       else if(arr[saldoIndexEnt] !== undefined) saldoVal = arr[saldoIndexEnt];
       const n = parseNumber(saldoVal || '0');
       if(!isNaN(n) && n > 0){
-        // Garantir que o Nº CONTRATO da coluna B seja incluído
-        // Se contratoKey não for encontrado, vamos criar uma chave temporária para exibir o valor da coluna B
-        if(contratoKey) {
-          // Se a chave do contrato for encontrada, garantir que tenha valor
-          if(obj[contratoKey] === undefined || obj[contratoKey] === '') {
-            if(arr[contratoIndex] !== undefined) {
-              obj[contratoKey] = arr[contratoIndex];
-            }
-          }
-        } else {
-          // Se não encontrou chave de contrato, vamos adicionar manualmente usando o valor da coluna B
-          // Criamos uma chave temporária para exibição
-          const tempContratoKey = 'numero_contrato';
-          obj[tempContratoKey] = arr[contratoIndex] !== undefined ? arr[contratoIndex] : '';
-          // Adicionar ao array de headers se necessário
-          if(!headersNormEnt.includes(tempContratoKey)) {
-            headersNormEnt.push(tempContratoKey);
-            headersOrigEnt.push('Nº CONTRATO');
-          }
-          // Forçar inclusão desta coluna
-          if(!forceIncludeEnt.includes(tempContratoKey)) {
-            forceIncludeEnt.push(tempContratoKey);
-          }
-        }
         rowsObjEntFiltered.push(obj);
         rowsArrEntFiltered.push(arr);
       }
@@ -318,14 +321,8 @@ async function loadAll(){
     // we don't hide NFP etc here (unless present)
     const hiddenEnt = HIDDEN_COLS.map(normalizeHeader);
 
-    // ensure Nº CONTRATO is forced front if found, else fallback will use column index
-    let forceIncludeEnt = [];
-    if(contratoKey) {
-      forceIncludeEnt.push(contratoKey);
-    } else {
-      // Se não encontrou, vamos forçar a coluna temporária
-      forceIncludeEnt.push('numero_contrato');
-    }
+    // Forçar inclusão da coluna de contrato
+    const forceIncludeEnt = [contratoKey];
 
     const tableEntHTML = buildTableHTML(rowsArrEntFiltered, rowsObjEntFiltered, headersOrigEnt, headersNormEnt, {
       hiddenNorm: hiddenEnt,
@@ -421,8 +418,7 @@ async function loadAll(){
 
     document.getElementById('programacaoContent').innerHTML = tableProgHTML || '<div class="empty">Nenhuma programação para hoje.</div>';
 
-    // attach detail toggles (delegation)
-    attachDetailToggleHandlers();
+    // REMOVIDO: attachDetailToggleHandlers pois não temos mais botões de detalhes
   }
   catch(err){
     console.error('Erro loadAll:', err);
@@ -430,21 +426,6 @@ async function loadAll(){
     document.getElementById('retiradaContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
     document.getElementById('programacaoContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
   }
-}
-
-/* toggles for details buttons (delegation) */
-function attachDetailToggleHandlers(){
-  document.querySelectorAll('.btn-details').forEach(btn=>{
-    btn.onclick = (e) => {
-      const rowIndex = btn.getAttribute('data-row');
-      if(!rowIndex) return;
-      const id = 'details-' + rowIndex;
-      const el = document.getElementById(id);
-      if(!el) return;
-      const visible = el.style.display === 'table-row';
-      el.style.display = visible ? 'none' : 'table-row';
-    };
-  });
 }
 
 /* init */
