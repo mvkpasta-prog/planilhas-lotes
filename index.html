@@ -80,7 +80,7 @@ const REMOVED_COMMON = ['localizacao','idorigemymvk1'];
 const REMOVED_PROGRAMACAO = [
   'observacoes','ordem','notafiscal','dacte','mdfe','conftipocam','agendamento',
   'descarga','comprovantededescarga','horarioprev','classificacaodestino','chaveid',
-  'notafiscal', 'frete', 'statusagendamento', 'datadedescarga' // Adicionadas conforme solicitação
+  'frete', 'statusagendamento', 'datadedescarga', 'notafiscal' // Adicionadas conforme solicitação
 ];
 
 /* Normaliza cabeçalho: remove acento, espaços e pontuação */
@@ -180,13 +180,23 @@ function findHeaderKey(headersNorm, patterns){
   return null;
 }
 
+/* Formata número como moeda brasileira */
+function formatCurrencyBRL(value) {
+  if (isNaN(value)) return value;
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(value);
+}
+
 /* build table HTML: rowsArrays = array of arrays; rowsObjects = array of objects keyed by normalized headers */
 function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts){
-  // opts: {hiddenNorm:[], removedNorm:[], numericKey: 'somenorm', forceColsNorm:[]}
+  // opts: {hiddenNorm:[], removedNorm:[], numericKey: 'somenorm', forceColsNorm:[], currencyCols:[]}
   const hiddenNorm = opts.hiddenNorm || [];
   const removedNorm = opts.removedNorm || [];
   const numericKey = opts.numericKey || '';
   const forceInclude = opts.forceInclude || [];
+  const currencyCols = opts.currencyCols || [];
 
   // visible columns: headersNorm minus removed
   const visible = headersNorm.filter(h => !removedNorm.includes(h));
@@ -221,7 +231,16 @@ function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts)
     displayCols.forEach(h => {
       // prefer object value, fallback to array by index if available
       const idx = headersNorm.indexOf(h);
-      const value = (obj[h] !== undefined && obj[h] !== '') ? obj[h] : (arr[idx] !== undefined ? arr[idx] : '');
+      let value = (obj[h] !== undefined && obj[h] !== '') ? obj[h] : (arr[idx] !== undefined ? arr[idx] : '');
+      
+      // Formatar como moeda se for uma coluna de moeda
+      if(currencyCols.includes(h)) {
+        const numValue = parseNumber(value);
+        if(!isNaN(numValue)) {
+          value = formatCurrencyBRL(numValue);
+        }
+      }
+      
       html += `<td>${escapeHtml(value)}</td>`;
     });
     if(numericKey) html += `<td>${n>0?'<span class="status status-aberto">ABERTO</span>':'<span class="status status-fechado">FECHADO</span>'}</td>`;
@@ -260,18 +279,16 @@ async function loadAll(){
     // Procurar pela coluna "SITUAÇÃO ENT"
     const situacaoEntKey = headersNormEnt.find(h => h.includes('situacaoent') || h.includes('situacao') || h.includes('situacaoentrega'));
     
+    // Procurar por possíveis colunas de contrato existentes
+    const existingContratoKeys = headersNormEnt.filter(h => h.includes('contrato') || h.includes('ncontrato') || h.includes('numerocontrato'));
+    
     // Saldo Entrega (coluna I index 8) - also try to find header
     const saldoKeyEnt = findHeaderKey(headersNormEnt, ['saldoent','saldoentrega','saldoentkg']) || null;
     const saldoIndexEnt = 8;
 
     // Criar uma nova chave para o número do contrato
     const contratoKey = 'numero_contrato';
-    // Adicionar ao cabeçalho se necessário
-    if(!headersNormEnt.includes(contratoKey)) {
-      headersNormEnt.push(contratoKey);
-      headersOrigEnt.push('Nº CONTRATO');
-    }
-
+    
     // Define as colunas que serão removidas do Lotes de Entrega
     const removedEnt = [...REMOVED_COMMON.map(normalizeHeader)];
     
@@ -279,13 +296,20 @@ async function loadAll(){
     if(infoDestinoKey) removedEnt.push(infoDestinoKey);
     if(idDestinoKey) removedEnt.push(idDestinoKey);
     if(situacaoEntKey) removedEnt.push(situacaoEntKey);
+    
+    // Remover todas as colunas existentes de contrato para evitar duplicação
+    existingContratoKeys.forEach(key => {
+      if(!removedEnt.includes(key)) {
+        removedEnt.push(key);
+      }
+    });
 
     // build filtered rows: only saldo > 0
     const rowsObjEntFiltered = [];
     const rowsArrEntFiltered = [];
     for(let i=0;i<rowsArrEnt.length;i++){
       const arr = rowsArrEnt[i];
-      let obj = objsEnt[i] || {};
+      let obj = {...objsEnt[i]} || {}; // Criar cópia para não modificar o original
       
       // Extrair número do contrato de "INFORMAÇÕES DESTINO"
       let contratoNumero = '';
@@ -316,6 +340,12 @@ async function loadAll(){
         rowsObjEntFiltered.push(obj);
         rowsArrEntFiltered.push(arr);
       }
+    }
+
+    // Adicionar a nova coluna de contrato aos cabeçalhos
+    if(!headersNormEnt.includes(contratoKey)) {
+      headersNormEnt.push(contratoKey);
+      headersOrigEnt.push('Nº CONTRATO');
     }
 
     // define removed and hidden for entrega
@@ -387,6 +417,9 @@ async function loadAll(){
     // removed programacao fields normalized
     const removedProg = [...REMOVED_COMMON.map(normalizeHeader), ...REMOVED_PROGRAMACAO.map(normalizeHeader)];
 
+    // Encontrar a coluna "FRETE EMPRESA"
+    const freteEmpresaKey = headersNormProg.find(h => h.includes('freteempresa') || h.includes('frete') && h.includes('empresa')) || null;
+
     // find date key (fallback index 0)
     const dateKeyProg = findHeaderKey(headersNormProg, ['data','dataprogramacao','dataprog','dataentrega']) || headersNormProg[0] || null;
     const dateIndexProg = 0;
@@ -413,7 +446,8 @@ async function loadAll(){
     const tableProgHTML = buildTableHTML(rowsArrProgFiltered, rowsObjProgFiltered, headersOrigProg, headersNormProg, {
       hiddenNorm: HIDDEN_COLS.map(normalizeHeader),
       removedNorm: removedProg,
-      numericKey: '' // no automatic status column here
+      numericKey: '',
+      currencyCols: freteEmpresaKey ? [freteEmpresaKey] : [] // Formatar como moeda
     });
 
     document.getElementById('programacaoContent').innerHTML = tableProgHTML || '<div class="empty">Nenhuma programação para hoje.</div>';
