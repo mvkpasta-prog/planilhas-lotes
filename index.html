@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Controle de Lotes — Entrega & Retirada</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css  "/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <style>
   :root{
     --primary:#2563eb; --accent:#0ea5e9; --bg:#f6fbff; --card:#fff; --text:#0f172a;
@@ -17,9 +17,29 @@
   body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:18px}
   header{background:linear-gradient(90deg,var(--primary),var(--accent));color:white;padding:14px;border-radius:8px;margin-bottom:18px;text-align:center;font-weight:700}
   .wrap{max-width:1280px;margin:0 auto}
-  .actions{display:flex;justify-content:flex-end;margin-bottom:12px}
+  .actions{display:flex;justify-content:flex-end;margin-bottom:18px}
   .btn{background:var(--primary);color:#fff;border:0;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:700}
   .btn:hover{opacity:.95}
+  
+  /* Cards de Status no topo */
+  .status-cards{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+  .status-card{background:var(--card);border-radius:10px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,0.08);flex:1;min-width:200px;text-align:center;transition:all 0.3s ease}
+  .status-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.12)}
+  .status-card h3{margin:0 0 8px 0;font-size:16px;color:var(--text);font-weight:600}
+  .status-card .count{font-size:28px;font-weight:700;margin:8px 0}
+  .status-card-carregado{border-top:4px solid var(--status-carregado);}
+  .status-card-embarque{border-top:4px solid var(--status-embarque);}
+  .status-card-transito{border-top:4px solid var(--status-transito);}
+  
+  /* Títulos expansíveis */
+  .section-header{background:linear-gradient(90deg,var(--primary),var(--accent));color:white;padding:14px;border-radius:8px;margin-bottom:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:700;transition:all 0.3s ease}
+  .section-header:hover{opacity:0.95}
+  .section-header .toggle-icon{transition:transform 0.3s ease}
+  .section-header.collapsed .toggle-icon{transform:rotate(-90deg)}
+  
+  .section-content{display:block;transition:all 0.3s ease;overflow:hidden}
+  .section-content.collapsed{display:none}
+  
   h2{color:var(--primary);margin:6px 0 12px 0}
   .card{background:var(--card);border-radius:10px;padding:12px;margin-bottom:18px;box-shadow:0 6px 18px rgba(16,24,40,0.06)}
   .table-wrap{overflow-x:auto}
@@ -41,6 +61,7 @@
   @media (max-width:900px){
     table{min-width:700px}
     th, td{padding:8px;font-size:12px}
+    .status-cards{flex-direction:column}
   }
 </style>
 </head>
@@ -51,19 +72,50 @@
     <div class="actions">
       <button id="btnRefresh" class="btn"><i class="fas fa-sync-alt"></i> Atualizar</button>
     </div>
+    
+    <!-- Cards de Status -->
+    <div class="status-cards">
+      <div class="status-card status-card-carregado">
+        <h3>CARREGADO</h3>
+        <div class="count" id="count-carregado">0</div>
+        <div>Veículos</div>
+      </div>
+      <div class="status-card status-card-embarque">
+        <h3>NO EMBARQUE</h3>
+        <div class="count" id="count-embarque">0</div>
+        <div>Veículos</div>
+      </div>
+      <div class="status-card status-card-transito">
+        <h3>EM TRÂNSITO</h3>
+        <div class="count" id="count-transito">0</div>
+        <div>Veículos</div>
+      </div>
+    </div>
 
-    <div class="card" id="cardEntrega">
-      <h2>🚚 Lotes de Entrega</h2>
+    <!-- Lotes de Entrega -->
+    <div class="section-header" id="toggle-entrega">
+      <span>🚚 Lotes de Entrega</span>
+      <i class="fas fa-chevron-down toggle-icon"></i>
+    </div>
+    <div class="section-content card" id="content-entrega">
       <div id="entregaContent" class="table-wrap"></div>
     </div>
 
-    <div class="card" id="cardRetirada">
-      <h2>📦 Lotes de Retirada</h2>
+    <!-- Lotes de Retirada -->
+    <div class="section-header" id="toggle-retirada">
+      <span>📦 Lotes de Retirada</span>
+      <i class="fas fa-chevron-down toggle-icon"></i>
+    </div>
+    <div class="section-content card" id="content-retirada">
       <div id="retiradaContent" class="table-wrap"></div>
     </div>
 
-    <div class="card" id="cardProg">
-      <h2>🗓 Programação — Somente hoje</h2>
+    <!-- Programação (nome alterado) -->
+    <div class="section-header" id="toggle-programacao">
+      <span>🗓 Programação</span>
+      <i class="fas fa-chevron-down toggle-icon"></i>
+    </div>
+    <div class="section-content card" id="content-programacao">
       <div id="programacaoContent" class="table-wrap"></div>
     </div>
   </div>
@@ -294,6 +346,28 @@ function escapeHtml(s){
   return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'<','>':'>','"':'&quot;',"'":'&#x27;','/':'&#x2F;'}[c]));
 }
 
+/* Contar status da programação */
+function countStatusProgramacao(rowsObjects, statusCol) {
+  let carregado = 0, embarque = 0, transito = 0;
+  
+  if(!statusCol) return {carregado, embarque, transito};
+  
+  rowsObjects.forEach(obj => {
+    const status = obj[statusCol] || '';
+    const statusLower = status.toLowerCase().trim();
+    
+    if (statusLower.includes('carregado')) {
+      carregado++;
+    } else if (statusLower.includes('embarque') || statusLower.includes('no embarque')) {
+      embarque++;
+    } else if (statusLower.includes('transito') || statusLower.includes('em transito')) {
+      transito++;
+    }
+  });
+  
+  return {carregado, embarque, transito};
+}
+
 /* --- Main load function --- */
 async function loadAll(){
   try{
@@ -489,6 +563,12 @@ async function loadAll(){
       }
     }
 
+    // Contar status para os cards
+    const statusCounts = countStatusProgramacao(rowsObjProgFiltered, statusKey);
+    document.getElementById('count-carregado').textContent = statusCounts.carregado;
+    document.getElementById('count-embarque').textContent = statusCounts.embarque;
+    document.getElementById('count-transito').textContent = statusCounts.transito;
+
     // Build programacao table: remove removedProg columns, format status and currency
     const tableProgHTML = buildTableHTML(rowsArrProgFiltered, rowsObjProgFiltered, headersOrigProg, headersNormProg, {
       hiddenNorm: HIDDEN_COLS.map(normalizeHeader),
@@ -499,12 +579,51 @@ async function loadAll(){
     });
 
     document.getElementById('programacaoContent').innerHTML = tableProgHTML || '<div class="empty">Nenhuma programação para hoje.</div>';
+    
+    // Inicialmente colapsar todas as seções
+    document.getElementById('content-entrega').classList.add('collapsed');
+    document.getElementById('content-retirada').classList.add('collapsed');
+    document.getElementById('content-programacao').classList.add('collapsed');
+    
+    document.getElementById('toggle-entrega').classList.add('collapsed');
+    document.getElementById('toggle-retirada').classList.add('collapsed');
+    document.getElementById('toggle-programacao').classList.add('collapsed');
   }
   catch(err){
     console.error('Erro loadAll:', err);
     document.getElementById('entregaContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
     document.getElementById('retiradaContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
     document.getElementById('programacaoContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
+  }
+}
+
+/* Toggle sections */
+function setupToggleHandlers() {
+  document.getElementById('toggle-entrega').addEventListener('click', function() {
+    toggleSection('entrega');
+  });
+  
+  document.getElementById('toggle-retirada').addEventListener('click', function() {
+    toggleSection('retirada');
+  });
+  
+  document.getElementById('toggle-programacao').addEventListener('click', function() {
+    toggleSection('programacao');
+  });
+}
+
+function toggleSection(sectionId) {
+  const content = document.getElementById(`content-${sectionId}`);
+  const header = document.getElementById(`toggle-${sectionId}`);
+  
+  const isCollapsed = content.classList.contains('collapsed');
+  
+  if(isCollapsed) {
+    content.classList.remove('collapsed');
+    header.classList.remove('collapsed');
+  } else {
+    content.classList.add('collapsed');
+    header.classList.add('collapsed');
   }
 }
 
@@ -516,7 +635,11 @@ document.getElementById('btnRefresh').addEventListener('click', () => {
   loadAll();
 });
 
-loadAll();
+// Setup toggle handlers after DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+  setupToggleHandlers();
+  loadAll();
+});
 </script>
 </body>
 </html>
