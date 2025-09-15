@@ -227,18 +227,6 @@ function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts)
     if(numericKey) html += `<td>${n>0?'<span class="status status-aberto">ABERTO</span>':'<span class="status status-fechado">FECHADO</span>'}</td>`;
     // REMOVIDO: Botão "Ver Detalhes" e coluna "Ações" conforme solicitado
     html += '</tr>';
-
-    // details: show hiddenNorm columns (with original titles)
-    let details = '';
-    hiddenNorm.forEach(h => {
-      const idx = headersNorm.indexOf(h);
-      if(idx >= 0){
-        const title = headersOrig[idx] || h;
-        const val = (obj[h] !== undefined && obj[h] !== '') ? obj[h] : (arr[idx] !== undefined ? arr[idx] : '');
-        if(val) details += `<div><strong>${escapeHtml(title)}:</strong> ${escapeHtml(val)}</div>`;
-      }
-    });
-    // REMOVIDO: Linha de detalhes pois não temos mais o botão para exibi-la
   });
 
   html += '</tbody></table>';
@@ -266,6 +254,9 @@ async function loadAll(){
     // Procurar pela coluna "INFORMAÇÕES DESTINO"
     const infoDestinoKey = headersNormEnt.find(h => h.includes('informacoesdestino') || h.includes('informacaodestino') || h.includes('destino'));
     
+    // Procurar pela coluna "ID DESTINO"
+    const idDestinoKey = headersNormEnt.find(h => h.includes('iddestino') || h.includes('id_destino'));
+    
     // Saldo Entrega (coluna I index 8) - also try to find header
     const saldoKeyEnt = findHeaderKey(headersNormEnt, ['saldoent','saldoentrega','saldoentkg']) || null;
     const saldoIndexEnt = 8;
@@ -277,6 +268,13 @@ async function loadAll(){
       headersNormEnt.push(contratoKey);
       headersOrigEnt.push('Nº CONTRATO');
     }
+
+    // Define as colunas que serão removidas do Lotes de Entrega
+    const removedEnt = [...REMOVED_COMMON.map(normalizeHeader)];
+    
+    // Adicionar INFORMAÇÕES DESTINO e ID DESTINO às colunas removidas
+    if(infoDestinoKey) removedEnt.push(infoDestinoKey);
+    if(idDestinoKey) removedEnt.push(idDestinoKey);
 
     // build filtered rows: only saldo > 0
     const rowsObjEntFiltered = [];
@@ -317,8 +315,6 @@ async function loadAll(){
     }
 
     // define removed and hidden for entrega
-    const removedEnt = REMOVED_COMMON.map(normalizeHeader);
-    // we don't hide NFP etc here (unless present)
     const hiddenEnt = HIDDEN_COLS.map(normalizeHeader);
 
     // Forçar inclusão da coluna de contrato
@@ -417,8 +413,6 @@ async function loadAll(){
     });
 
     document.getElementById('programacaoContent').innerHTML = tableProgHTML || '<div class="empty">Nenhuma programação para hoje.</div>';
-
-    // REMOVIDO: attachDetailToggleHandlers pois não temos mais botões de detalhes
   }
   catch(err){
     console.error('Erro loadAll:', err);
