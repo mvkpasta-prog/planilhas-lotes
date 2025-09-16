@@ -13,6 +13,9 @@
     --status-embarque: #3b82f6; /* Azul */
     --status-transito: #ef4444; /* Vermelho */
     --status-contratar: #f97316; /* Laranja para CONTRATAR */
+    --produto-soja: #84cc16; /* Verde claro para Soja */
+    --produto-milho: #fbbf24; /* Amarelo para Milho */
+    --produto-sorgo: #6b7280; /* Cinza para Sorgo */
   }
   *{box-sizing:border-box}
   body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:18px}
@@ -36,6 +39,16 @@
   .status-card-embarque{border-top:4px solid var(--status-embarque);}
   .status-card-transito{border-top:4px solid var(--status-transito);}
   .status-card-contratar{border-top:4px solid var(--status-contratar);}
+  
+  /* Cards de Produtos */
+  .produto-cards{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+  .produto-card{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 4px 12px rgba(0,0,0,0.08);flex:1;min-width:180px;text-align:center;transition:all 0.3s ease;border-top:3px solid transparent}
+  .produto-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.12)}
+  .produto-card h3{margin:0 0 6px 0;font-size:14px;color:var(--text);font-weight:600}
+  .produto-card .count{font-size:24px;font-weight:700;margin:6px 0}
+  .produto-soja{border-top-color: var(--produto-soja);}
+  .produto-milho{border-top-color: var(--produto-milho);}
+  .produto-sorgo{border-top-color: var(--produto-sorgo);}
   
   /* Títulos expansíveis */
   .section-header{background:linear-gradient(90deg,var(--primary),var(--accent));color:white;padding:14px;border-radius:8px;margin-bottom:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:700;transition:all 0.3s ease}
@@ -68,7 +81,7 @@
   @media (max-width:900px){
     table{min-width:700px}
     th, td{padding:8px;font-size:12px}
-    .status-cards{flex-direction:column}
+    .status-cards, .produto-cards{flex-direction:column}
   }
 </style>
 </head>
@@ -108,6 +121,34 @@
       </div>
     </div>
 
+    <!-- Cards de Produtos -->
+    <div class="produto-cards">
+      <div class="produto-card produto-soja">
+        <h3>SOJA</h3>
+        <div class="count" id="count-soja">0</div>
+        <div>KG Embarcados</div>
+      </div>
+      <div class="produto-card produto-milho">
+        <h3>MILHO</h3>
+        <div class="count" id="count-milho">0</div>
+        <div>KG Embarcados</div>
+      </div>
+      <div class="produto-card produto-sorgo">
+        <h3>SORGO</h3>
+        <div class="count" id="count-sorgo">0</div>
+        <div>KG Embarcados</div>
+      </div>
+    </div>
+
+    <!-- Programação (agora em primeiro lugar) -->
+    <div class="section-header" id="toggle-programacao">
+      <span>🗓 Programação</span>
+      <i class="fas fa-chevron-down toggle-icon"></i>
+    </div>
+    <div class="section-content card" id="content-programacao">
+      <div id="programacaoContent" class="table-wrap"></div>
+    </div>
+
     <!-- Lotes de Entrega -->
     <div class="section-header" id="toggle-entrega">
       <span>🚚 Lotes de Entrega</span>
@@ -124,15 +165,6 @@
     </div>
     <div class="section-content card" id="content-retirada">
       <div id="retiradaContent" class="table-wrap"></div>
-    </div>
-
-    <!-- Programação (nome alterado) -->
-    <div class="section-header" id="toggle-programacao">
-      <span>🗓 Programação</span>
-      <i class="fas fa-chevron-down toggle-icon"></i>
-    </div>
-    <div class="section-content card" id="content-programacao">
-      <div id="programacaoContent" class="table-wrap"></div>
     </div>
   </div>
 
@@ -398,6 +430,76 @@ function countStatusProgramacao(rowsObjects, statusCol) {
   return {carregado, embarque, transito, contratar};
 }
 
+/* Extrair produto do texto (última parte após o último traço) */
+function extractProduto(text) {
+  if(!text) return '';
+  // Dividir por traços e pegar a última parte
+  const parts = text.split('-');
+  if(parts.length === 0) return '';
+  
+  // Pegar a última parte e remover espaços
+  let produto = parts[parts.length - 1].trim().toLowerCase();
+  
+  // Remover possíveis números ou caracteres especiais no final
+  produto = produto.replace(/[0-9\.\,\(\)\[\]]/g, '').trim();
+  
+  return produto;
+}
+
+/* Calcular totais por produto */
+function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex) {
+  let soja = 0, milho = 0, sorgo = 0;
+  
+  rowsObjects.forEach(obj => {
+    // Pegar o valor da coluna de produto (coluna B - índice 1)
+    let produtoText = '';
+    if(produtoColIndex !== -1) {
+      // Se estivermos usando arrays, pegar pelo índice
+      if(Array.isArray(obj) && obj[produtoColIndex] !== undefined) {
+        produtoText = obj[produtoColIndex];
+      } else if(typeof obj === 'object') {
+        // Se estivermos usando objetos, tentar encontrar a chave
+        const keys = Object.keys(obj);
+        if(keys.length > produtoColIndex) {
+          const key = keys[produtoColIndex];
+          produtoText = obj[key];
+        }
+      }
+    }
+    
+    // Extrair o produto
+    const produto = extractProduto(produtoText);
+    
+    // Pegar o peso (coluna J - índice 9)
+    let pesoText = '';
+    if(pesoColIndex !== -1) {
+      if(Array.isArray(obj) && obj[pesoColIndex] !== undefined) {
+        pesoText = obj[pesoColIndex];
+      } else if(typeof obj === 'object') {
+        const keys = Object.keys(obj);
+        if(keys.length > pesoColIndex) {
+          const key = keys[pesoColIndex];
+          pesoText = obj[key];
+        }
+      }
+    }
+    
+    const peso = parseNumber(pesoText);
+    if(isNaN(peso)) return;
+    
+    // Somar ao produto correspondente
+    if(produto.includes('soja')) {
+      soja += peso;
+    } else if(produto.includes('milho')) {
+      milho += peso;
+    } else if(produto.includes('sorgo')) {
+      sorgo += peso;
+    }
+  });
+  
+  return {soja, milho, sorgo};
+}
+
 /* Atualizar o texto da última atualização */
 function updateLastUpdateTime() {
   const now = new Date();
@@ -409,6 +511,12 @@ function updateLastUpdateTime() {
   `;
 }
 
+/* Formata número com separadores de milhar */
+function formatNumber(value) {
+  if(isNaN(value)) return '0';
+  return new Intl.NumberFormat('pt-BR').format(Math.round(value));
+}
+
 /* --- Main load function --- */
 async function loadAll(isAutoUpdate = false){
   try{
@@ -416,6 +524,78 @@ async function loadAll(isAutoUpdate = false){
     if(isAutoUpdate) {
       document.body.classList.add('updating');
     }
+    
+    // ===== PROGRAMAÇÃO (agora em primeiro lugar) =====
+    const prog = await fetchSheetByGid(GIDS.programacao);
+    const rowsArrProg = prog.arrays;
+    const headersOrigProg = prog.headersOrig;
+    const headersNormProg = prog.headersNorm;
+    const objsProg = prog.objects;
+
+    // Encontrar a coluna "STATUS"
+    const statusKey = headersNormProg.find(h => h.includes('status') && !h.includes('agendamento')) || null;
+    
+    // Encontrar a coluna "FRETE EMPRESA"
+    const freteEmpresaKey = headersNormProg.find(h => h.includes('freteempresa') || h.includes('frete') && h.includes('empresa')) || null;
+
+    // find date key (fallback index 0)
+    const dateKeyProg = findHeaderKey(headersNormProg, ['data','dataprogramacao','dataprog','dataentrega']) || headersNormProg[0] || null;
+    const dateIndexProg = 0;
+
+    const today = new Date(); const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+
+    const rowsArrProgFiltered = [];
+    const rowsObjProgFiltered = [];
+    for(let i=0;i<rowsArrProg.length;i++){
+      const arr = rowsArrProg[i];
+      const obj = objsProg[i] || {};
+      // get date
+      let dtVal = '';
+      if(dateKeyProg && obj[dateKeyProg]) dtVal = obj[dateKeyProg];
+      else if(arr[dateIndexProg] !== undefined) dtVal = arr[dateIndexProg];
+      const dt = parseDateOnly(dtVal);
+      if(dt && dt.getTime() === todayStart){
+        rowsArrProgFiltered.push(arr);
+        rowsObjProgFiltered.push(obj);
+      }
+    }
+
+    // Identificar a penúltima coluna para remoção
+    let removedProg = [...REMOVED_COMMON.map(normalizeHeader), ...REMOVED_PROGRAMACAO.map(normalizeHeader)];
+    
+    // Se tivermos colunas suficientes, remover a penúltima
+    if(headersNormProg.length > 1) {
+      // Encontrar a penúltima coluna visível (não removida)
+      const visibleCols = headersNormProg.filter(h => !removedProg.includes(h));
+      if(visibleCols.length > 1) {
+        const penultimaCol = visibleCols[visibleCols.length - 2];
+        removedProg.push(penultimaCol);
+      }
+    }
+
+    // Contar status para os cards
+    const statusCounts = countStatusProgramacao(rowsObjProgFiltered, statusKey);
+    document.getElementById('count-carregado').textContent = statusCounts.carregado;
+    document.getElementById('count-embarque').textContent = statusCounts.embarque;
+    document.getElementById('count-transito').textContent = statusCounts.transito;
+    document.getElementById('count-contratar').textContent = statusCounts.contratar;
+
+    // Calcular totais por produto (coluna B = índice 1, coluna J = índice 9)
+    const produtosTotais = calculateProdutosTotais(rowsArrProgFiltered, 1, 9);
+    document.getElementById('count-soja').textContent = formatNumber(produtosTotais.soja);
+    document.getElementById('count-milho').textContent = formatNumber(produtosTotais.milho);
+    document.getElementById('count-sorgo').textContent = formatNumber(produtosTotais.sorgo);
+
+    // Build programacao table: remove removedProg columns, format status and currency
+    const tableProgHTML = buildTableHTML(rowsArrProgFiltered, rowsObjProgFiltered, headersOrigProg, headersNormProg, {
+      hiddenNorm: HIDDEN_COLS.map(normalizeHeader),
+      removedNorm: removedProg,
+      numericKey: '',
+      currencyCols: freteEmpresaKey ? [freteEmpresaKey] : [],
+      statusCol: statusKey
+    });
+
+    document.getElementById('programacaoContent').innerHTML = tableProgHTML || '<div class="empty">Nenhuma programação para hoje.</div>';
     
     // ===== LOTES DE ENTREGA =====
     const ent = await fetchSheetByGid(GIDS.entrega);
@@ -560,72 +740,6 @@ async function loadAll(isAutoUpdate = false){
     });
 
     document.getElementById('retiradaContent').innerHTML = tableRetHTML || '<div class="empty">Nenhum lote de retirada em aberto.</div>';
-
-    // ===== PROGRAMAÇÃO (somente hoje) =====
-    const prog = await fetchSheetByGid(GIDS.programacao);
-    const rowsArrProg = prog.arrays;
-    const headersOrigProg = prog.headersOrig;
-    const headersNormProg = prog.headersNorm;
-    const objsProg = prog.objects;
-
-    // Encontrar a coluna "STATUS"
-    const statusKey = headersNormProg.find(h => h.includes('status') && !h.includes('agendamento')) || null;
-    
-    // Encontrar a coluna "FRETE EMPRESA"
-    const freteEmpresaKey = headersNormProg.find(h => h.includes('freteempresa') || h.includes('frete') && h.includes('empresa')) || null;
-
-    // find date key (fallback index 0)
-    const dateKeyProg = findHeaderKey(headersNormProg, ['data','dataprogramacao','dataprog','dataentrega']) || headersNormProg[0] || null;
-    const dateIndexProg = 0;
-
-    const today = new Date(); const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
-
-    const rowsArrProgFiltered = [];
-    const rowsObjProgFiltered = [];
-    for(let i=0;i<rowsArrProg.length;i++){
-      const arr = rowsArrProg[i];
-      const obj = objsProg[i] || {};
-      // get date
-      let dtVal = '';
-      if(dateKeyProg && obj[dateKeyProg]) dtVal = obj[dateKeyProg];
-      else if(arr[dateIndexProg] !== undefined) dtVal = arr[dateIndexProg];
-      const dt = parseDateOnly(dtVal);
-      if(dt && dt.getTime() === todayStart){
-        rowsArrProgFiltered.push(arr);
-        rowsObjProgFiltered.push(obj);
-      }
-    }
-
-    // Identificar a penúltima coluna para remoção
-    let removedProg = [...REMOVED_COMMON.map(normalizeHeader), ...REMOVED_PROGRAMACAO.map(normalizeHeader)];
-    
-    // Se tivermos colunas suficientes, remover a penúltima
-    if(headersNormProg.length > 1) {
-      // Encontrar a penúltima coluna visível (não removida)
-      const visibleCols = headersNormProg.filter(h => !removedProg.includes(h));
-      if(visibleCols.length > 1) {
-        const penultimaCol = visibleCols[visibleCols.length - 2];
-        removedProg.push(penultimaCol);
-      }
-    }
-
-    // Contar status para os cards
-    const statusCounts = countStatusProgramacao(rowsObjProgFiltered, statusKey);
-    document.getElementById('count-carregado').textContent = statusCounts.carregado;
-    document.getElementById('count-embarque').textContent = statusCounts.embarque;
-    document.getElementById('count-transito').textContent = statusCounts.transito;
-    document.getElementById('count-contratar').textContent = statusCounts.contratar;
-
-    // Build programacao table: remove removedProg columns, format status and currency
-    const tableProgHTML = buildTableHTML(rowsArrProgFiltered, rowsObjProgFiltered, headersOrigProg, headersNormProg, {
-      hiddenNorm: HIDDEN_COLS.map(normalizeHeader),
-      removedNorm: removedProg,
-      numericKey: '',
-      currencyCols: freteEmpresaKey ? [freteEmpresaKey] : [],
-      statusCol: statusKey
-    });
-
-    document.getElementById('programacaoContent').innerHTML = tableProgHTML || '<div class="empty">Nenhuma programação para hoje.</div>';
     
     // Inicialmente colapsar todas as seções
     document.getElementById('content-entrega').classList.add('collapsed');
