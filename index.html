@@ -50,6 +50,20 @@
   .produto-milho{border-top-color: var(--produto-milho);}
   .produto-sorgo{border-top-color: var(--produto-sorgo);}
   
+  /* Seção de Clientes e Destinos */
+  .clientes-section{margin-bottom:24px}
+  .clientes-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .clientes-title{color:var(--primary);font-weight:700;font-size:18px}
+  .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+  .cliente-card{background:var(--card);border-radius:10px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,0.08);transition:all 0.3s ease}
+  .cliente-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.12)}
+  .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 8px 0}
+  .cliente-destino{font-weight:600;color:var(--accent);margin:0 0 12px 0;font-size:14px}
+  .cliente-info{display:flex;justify-content:space-between;margin-bottom:8px}
+  .info-label{font-weight:600;color:var(--muted);font-size:13px}
+  .info-value{font-weight:700;font-size:14px}
+  .cliente-produto{background:var(--success);color:white;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600;display:inline-block;margin-top:4px}
+  
   /* Títulos expansíveis */
   .section-header{background:linear-gradient(90deg,var(--primary),var(--accent));color:white;padding:14px;border-radius:8px;margin-bottom:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:700;transition:all 0.3s ease}
   .section-header:hover{opacity:0.95}
@@ -82,6 +96,7 @@
     table{min-width:700px}
     th, td{padding:8px;font-size:12px}
     .status-cards, .produto-cards{flex-direction:column}
+    .clientes-container{grid-template-columns:1fr}
   }
 </style>
 </head>
@@ -141,6 +156,17 @@
         <h3>SORGO</h3>
         <div class="count" id="count-sorgo">0</div>
         <div>KG Embarcados</div>
+      </div>
+    </div>
+
+    <!-- Seção de Clientes e Destinos -->
+    <div class="clientes-section">
+      <div class="clientes-header">
+        <h2 class="clientes-title">🚚 Clientes e Destinos</h2>
+        <div class="clientes-summary" id="clientesSummary">Carregando...</div>
+      </div>
+      <div class="clientes-container" id="clientesContainer">
+        <!-- Os cards de clientes serão inseridos aqui dinamicamente -->
       </div>
     </div>
 
@@ -450,6 +476,42 @@ function extractProduto(text) {
   return produto;
 }
 
+/* Extrair cliente e destino da coluna C (INFORMAÇÕES DO DESTINO) */
+function extractClienteDestino(text) {
+  if(!text) return {cliente: '', destino: ''};
+  
+  const parts = text.split(' - ');
+  if(parts.length < 4) return {cliente: '', destino: ''};
+  
+  // O cliente é a segunda parte (índice 1) ou terceira parte (índice 2) dependendo do formato
+  let cliente = '';
+  let destino = '';
+  
+  // Tentar identificar o cliente (segunda parte)
+  if(parts.length >= 2) {
+    cliente = parts[1].trim();
+  }
+  
+  // Se a terceira parte for igual à segunda, usar a quarta parte como destino
+  if(parts.length >= 4) {
+    if(parts[2].trim() === cliente) {
+      destino = parts[3].trim();
+      // Se houver estado (ex: PR), remover do destino
+      if(destino.includes(' - ')) {
+        destino = destino.split(' - ')[0].trim();
+      }
+    } else {
+      destino = parts[2].trim();
+      // Se houver estado (ex: PR), remover do destino
+      if(destino.includes(' - ')) {
+        destino = destino.split(' - ')[0].trim();
+      }
+    }
+  }
+  
+  return {cliente, destino};
+}
+
 /* Calcular totais por produto */
 function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex) {
   let soja = 0, milho = 0, sorgo = 0;
@@ -458,16 +520,8 @@ function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex) {
     // Pegar o valor da coluna de produto (coluna B - índice 1)
     let produtoText = '';
     if(produtoColIndex !== -1) {
-      // Se estivermos usando arrays, pegar pelo índice
       if(Array.isArray(obj) && obj[produtoColIndex] !== undefined) {
         produtoText = obj[produtoColIndex];
-      } else if(typeof obj === 'object') {
-        // Se estivermos usando objetos, tentar encontrar a chave
-        const keys = Object.keys(obj);
-        if(keys.length > produtoColIndex) {
-          const key = keys[produtoColIndex];
-          produtoText = obj[key];
-        }
       }
     }
     
@@ -479,12 +533,6 @@ function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex) {
     if(pesoColIndex !== -1) {
       if(Array.isArray(obj) && obj[pesoColIndex] !== undefined) {
         pesoText = obj[pesoColIndex];
-      } else if(typeof obj === 'object') {
-        const keys = Object.keys(obj);
-        if(keys.length > pesoColIndex) {
-          const key = keys[pesoColIndex];
-          pesoText = obj[key];
-        }
       }
     }
     
@@ -504,6 +552,80 @@ function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex) {
   return {soja, milho, sorgo};
 }
 
+/* Agrupar clientes e destinos */
+function groupClientesDestinos(rowsObjects, destinoColIndex, produtoColIndex, pesoColIndex, placaColIndex) {
+  const grupos = {};
+  
+  rowsObjects.forEach(obj => {
+    // Extrair cliente e destino da coluna C (índice 2)
+    let destinoText = '';
+    if(destinoColIndex !== -1) {
+      if(Array.isArray(obj) && obj[destinoColIndex] !== undefined) {
+        destinoText = obj[destinoColIndex];
+      }
+    }
+    
+    const {cliente, destino} = extractClienteDestino(destinoText);
+    if(!cliente || !destino) return;
+    
+    // Criar chave única para cliente + destino
+    const key = `${cliente}||${destino}`;
+    
+    // Extrair produto da coluna B (índice 1)
+    let produtoText = '';
+    if(produtoColIndex !== -1) {
+      if(Array.isArray(obj) && obj[produtoColIndex] !== undefined) {
+        produtoText = obj[produtoColIndex];
+      }
+    }
+    const produto = extractProduto(produtoText);
+    
+    // Pegar peso da coluna J (índice 9)
+    let pesoText = '';
+    if(pesoColIndex !== -1) {
+      if(Array.isArray(obj) && obj[pesoColIndex] !== undefined) {
+        pesoText = obj[pesoColIndex];
+      }
+    }
+    const peso = parseNumber(pesoText) || 0;
+    
+    // Pegar placa da coluna H (índice 7)
+    let placa = '';
+    if(placaColIndex !== -1) {
+      if(Array.isArray(obj) && obj[placaColIndex] !== undefined) {
+        placa = obj[placaColIndex];
+      }
+    }
+    
+    // Inicializar grupo se não existir
+    if(!grupos[key]) {
+      grupos[key] = {
+        cliente,
+        destino,
+        produto,
+        totalPeso: 0,
+        placas: new Set(), // Usar Set para evitar duplicatas
+        count: 0
+      };
+    }
+    
+    // Atualizar valores
+    grupos[key].totalPeso += peso;
+    if(placa) {
+      grupos[key].placas.add(placa.trim());
+    }
+    grupos[key].count++;
+  });
+  
+  // Converter para array e formatar
+  return Object.values(grupos).map(grupo => ({
+    ...grupo,
+    totalPeso: Math.round(grupo.totalPeso),
+    totalCaminhoes: grupo.placas.size,
+    placas: Array.from(grupo.placas)
+  })).sort((a, b) => b.totalPeso - a.totalPeso); // Ordenar por peso decrescente
+}
+
 /* Atualizar o texto da última atualização */
 function updateLastUpdateTime() {
   const now = new Date();
@@ -519,6 +641,48 @@ function updateLastUpdateTime() {
 function formatNumber(value) {
   if(isNaN(value)) return '0';
   return new Intl.NumberFormat('pt-BR').format(Math.round(value));
+}
+
+/* Gerar HTML para os cards de clientes */
+function buildClientesHTML(clientes) {
+  if(clientes.length === 0) {
+    return '<div class="empty">Nenhum cliente encontrado para hoje.</div>';
+  }
+  
+  let html = '';
+  clientes.forEach(cliente => {
+    html += `
+      <div class="cliente-card">
+        <h3 class="cliente-name">${escapeHtml(cliente.cliente)}</h3>
+        <div class="cliente-destino">${escapeHtml(cliente.destino)}</div>
+        <div class="cliente-info">
+          <span class="info-label">Produto:</span>
+          <span class="cliente-produto">${escapeHtml(cliente.produto.toUpperCase())}</span>
+        </div>
+        <div class="cliente-info">
+          <span class="info-label">Quantidade:</span>
+          <span class="info-value">${formatNumber(cliente.totalPeso)} KG</span>
+        </div>
+        <div class="cliente-info">
+          <span class="info-label">Caminhões:</span>
+          <span class="info-value">${cliente.totalCaminhoes}</span>
+        </div>
+      </div>
+    `;
+  });
+  
+  return html;
+}
+
+/* Atualizar o resumo de clientes */
+function updateClientesSummary(clientes) {
+  const totalClientes = clientes.length;
+  const totalCaminhoes = clientes.reduce((sum, cliente) => sum + cliente.totalCaminhoes, 0);
+  const totalPeso = clientes.reduce((sum, cliente) => sum + cliente.totalPeso, 0);
+  
+  document.getElementById('clientesSummary').innerHTML = `
+    ${totalClientes} clientes • ${totalCaminhoes} caminhões • ${formatNumber(totalPeso)} KG
+  `;
 }
 
 /* --- Main load function --- */
@@ -589,6 +753,11 @@ async function loadAll(isAutoUpdate = false){
     document.getElementById('count-soja').textContent = formatNumber(produtosTotais.soja);
     document.getElementById('count-milho').textContent = formatNumber(produtosTotais.milho);
     document.getElementById('count-sorgo').textContent = formatNumber(produtosTotais.sorgo);
+
+    // Agrupar clientes e destinos (coluna C = índice 2, coluna B = índice 1, coluna J = índice 9, coluna H = índice 7)
+    const clientes = groupClientesDestinos(rowsArrProgFiltered, 2, 1, 9, 7);
+    document.getElementById('clientesContainer').innerHTML = buildClientesHTML(clientes);
+    updateClientesSummary(clientes);
 
     // Build programacao table: remove removedProg columns, format status and currency
     const tableProgHTML = buildTableHTML(rowsArrProgFiltered, rowsObjProgFiltered, headersOrigProg, headersNormProg, {
@@ -765,6 +934,7 @@ async function loadAll(isAutoUpdate = false){
     document.getElementById('entregaContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
     document.getElementById('retiradaContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
     document.getElementById('programacaoContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
+    document.getElementById('clientesContainer').innerHTML = '<div class="empty">Erro ao carregar dados dos clientes (ver console).</div>';
     
     // Atualizar o texto da última atualização mesmo em caso de erro
     document.getElementById('lastUpdate').innerHTML = `
