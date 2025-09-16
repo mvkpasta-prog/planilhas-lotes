@@ -18,11 +18,11 @@
     --produto-sorgo: #6b7280; /* Cinza para Sorgo */
   }
   *{box-sizing:border-box}
-  body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:12px} /* Reduzi o padding */
+  body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:12px}
   header{background:linear-gradient(90deg,var(--primary),var(--accent));color:white;padding:12px;border-radius:8px;margin-bottom:16px;text-align:center;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px}
-  .wrap{max-width:1400px;margin:0 auto;width:100%} /* Aumentei a largura máxima e defini width:100% */
+  .wrap{max-width:1400px;margin:0 auto;width:100%}
   .actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px}
-  .btn{background:var(--primary);color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px} /* Diminuí o botão */
+  .btn{background:var(--primary);color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px}
   .btn:hover{opacity:.95}
   .last-update{color:var(--muted);font-size:12px;display:flex;align-items:center;gap:6px}
   .last-update i{font-size:14px;animation:spin 2s linear infinite}
@@ -30,8 +30,8 @@
   .updating .last-update i{animation:spin 1s linear infinite}
   
   /* Cards de Status no topo - versão compacta */
-  .status-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px} /* Reduzi o gap */
-  .status-card{background:var(--card);border-radius:8px;padding:12px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:160px;text-align:center;transition:all 0.3s ease} /* Versão compacta */
+  .status-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+  .status-card{background:var(--card);border-radius:8px;padding:12px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:160px;text-align:center;transition:all 0.3s ease}
   .status-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
   .status-card h3{margin:0 0 6px 0;font-size:14px;color:var(--text);font-weight:600}
   .status-card .count{font-size:24px;font-weight:700;margin:6px 0}
@@ -41,8 +41,8 @@
   .status-card-contratar{border-top:3px solid var(--status-contratar);}
   
   /* Cards de Produtos - versão compacta */
-  .produto-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px} /* Reduzi o gap */
-  .produto-card{background:var(--card);border-radius:8px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:150px;text-align:center;transition:all 0.3s ease;border-top:3px solid transparent} /* Versão compacta */
+  .produto-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+  .produto-card{background:var(--card);border-radius:8px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:150px;text-align:center;transition:all 0.3s ease;border-top:3px solid transparent}
   .produto-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
   .produto-card h3{margin:0 0 4px 0;font-size:13px;color:var(--text);font-weight:600}
   .produto-card .count{font-size:20px;font-weight:700;margin:4px 0}
@@ -55,22 +55,22 @@
   .clientes-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
   .clientes-title{color:var(--primary);font-weight:700;font-size:18px}
   .clientes-summary{color:var(--muted);font-size:14px}
-  .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px} /* Reduzi o min-width de 350px para 300px */
-  .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all 0.3s ease} /* Versão compacta */
+  .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px}
+  .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all 0.3s ease}
   .cliente-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
-  .cliente-name{font-weight:700;font-size:15px;color:var(--text);margin:0 0 6px 0} /* Reduzi a fonte */
-  .cliente-destino{font-weight:600;color:var(--accent);margin:0 0 10px 0;font-size:13px} /* Reduzi a fonte */
-  .cliente-info{display:flex;justify-content:space-between;margin-bottom:6px;align-items:center} /* Reduzi o margin-bottom */
-  .info-label{font-weight:600;color:var(--muted);font-size:12px} /* Reduzi a fonte */
-  .info-value{font-weight:700;font-size:13px} /* Reduzi a fonte */
-  .cliente-produto{padding:3px 7px;border-radius:5px;font-size:11px;font-weight:600;display:inline-block;margin-top:4px} /* Versão compacta */
+  .cliente-name{font-weight:700;font-size:15px;color:var(--text);margin:0 0 6px 0}
+  .cliente-destino{font-weight:600;color:var(--accent);margin:0 0 10px 0;font-size:13px}
+  .cliente-info{display:flex;justify-content:space-between;margin-bottom:6px;align-items:center}
+  .info-label{font-weight:600;color:var(--muted);font-size:12px}
+  .info-value{font-weight:700;font-size:13px}
+  .cliente-produto{padding:3px 7px;border-radius:5px;font-size:11px;font-weight:600;display:inline-block;margin-top:4px}
   .status-carregado-tag{background-color: var(--status-carregado);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
   .status-pendente-tag{background-color: var(--status-embarque);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
-  .caminhoes-info{display:flex;gap:8px;margin-top:6px;padding-top:6px;border-top:1px solid #eee} /* Versão compacta */
-  .caminhoes-separados{display:flex;gap:6px;align-items:center} /* Reduzi o gap */
+  .caminhoes-info{display:flex;gap:8px;margin-top:6px;padding-top:6px;border-top:1px solid #eee}
+  .caminhoes-separados{display:flex;gap:6px;align-items:center}
   
   /* Títulos expansíveis */
-  .section-header{background:linear-gradient(90deg,var(--primary),var(--accent));color:white;padding:12px;border-radius:8px;margin-bottom:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:700;transition:all 0.3s ease;font-size:15px} /* Reduzi a fonte */
+  .section-header{background:linear-gradient(90deg,var(--primary),var(--accent));color:white;padding:12px;border-radius:8px;margin-bottom:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:700;transition:all 0.3s ease;font-size:15px}
   .section-header:hover{opacity:0.95}
   .section-header .toggle-icon{transition:transform 0.3s ease}
   .section-header.collapsed .toggle-icon{transform:rotate(-90deg)}
@@ -78,25 +78,25 @@
   .section-content{display:block;transition:all 0.3s ease;overflow:hidden}
   .section-content.collapsed{display:none}
   
-  h2{color:var(--primary);margin:6px 0 12px 0;font-size:18px} /* Reduzi a fonte */
-  .card{background:var(--card);border-radius:8px;padding:12px;margin-bottom:16px;box-shadow:0 4px 12px rgba(16,24,40,0.06)} /* Versão compacta */
+  h2{color:var(--primary);margin:6px 0 12px 0;font-size:18px}
+  .card{background:var(--card);border-radius:8px;padding:12px;margin-bottom:16px;box-shadow:0 4px 12px rgba(16,24,40,0.06)}
   .table-wrap{overflow-x:auto}
-  table{width:100%;border-collapse:collapse;margin:0;font-size:12px;min-width:750px} /* Reduzi a fonte e min-width */
-  th,td{border:1px solid #e6eefc;padding:8px;text-align:left;vertical-align:top} /* Reduzi o padding */
+  table{width:100%;border-collapse:collapse;margin:0;font-size:12px;min-width:750px}
+  th,td{border:1px solid #e6eefc;padding:8px;text-align:left;vertical-align:top}
   th{background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff;font-weight:700;white-space:nowrap}
   tr:nth-child(even){background:#fbfdff}
-  .status{display:inline-block;padding:5px 9px;border-radius:14px;color:#fff;font-weight:700;font-size:11px} /* Versão compacta */
+  .status{display:inline-block;padding:5px 9px;border-radius:14px;color:#fff;font-weight:700;font-size:11px}
   .status-aberto{background:var(--warning)}
   .status-fechado{background:var(--success)}
   
   /* Estilos para os novos status da programação */
-  .status-programacao{display:inline-block;padding:5px 10px;border-radius:14px;color:#fff;font-weight:700;font-size:11px;min-width:90px;text-align:center} /* Versão compacta */
+  .status-programacao{display:inline-block;padding:5px 10px;border-radius:14px;color:#fff;font-weight:700;font-size:11px;min-width:90px;text-align:center}
   .status-carregado{background-color: var(--status-carregado);}
   .status-embarque{background-color: var(--status-embarque);}
   .status-transito{background-color: var(--status-transito);}
   .status-contratar{background-color: var(--status-contratar);}
   
-  .empty{color:var(--muted);font-style:italic;padding:10px} /* Reduzi o padding */
+  .empty{color:var(--muted);font-style:italic;padding:10px}
   @media (max-width:900px){
     table{min-width:650px}
     th, td{padding:6px;font-size:11px}
@@ -105,7 +105,7 @@
     .cliente-card{min-width:260px}
   }
   @media (max-width:600px){
-    body{padding:8px} /* Reduzi ainda mais o padding para telas pequenas */
+    body{padding:8px}
     .section-header{padding:10px;font-size:14px}
     .cliente-card{min-width:100%;padding:12px}
     .status-card{min-width:140px;padding:10px}
@@ -116,13 +116,13 @@
 <body>
   <!-- Cabeçalho com imagem PNG do GitHub -->
   <header>
-    <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height: 22px; vertical-align: middle; margin-right: 8px;"> <!-- Reduzi a imagem -->
+    <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height: 22px; vertical-align: middle; margin-right: 8px;">
     Controle de Lotes — Entrega & Retirada
   </header>
 
   <div class="wrap">
     <div class="actions">
-      <button id="btnRefresh" class="btn"><i class="fas fa-sync-alt"></i> Atualizar</button> <!-- Texto mais curto -->
+      <button id="btnRefresh" class="btn"><i class="fas fa-sync-alt"></i> Atualizar</button>
       <div class="last-update" id="lastUpdate">
         <i class="fas fa-circle-notch"></i>
         <span>Atualizando...</span>
@@ -158,17 +158,17 @@
       <div class="produto-card produto-soja">
         <h3>SOJA</h3>
         <div class="count" id="count-soja">0</div>
-        <div>KG</div> <!-- Texto mais curto -->
+        <div>KG</div>
       </div>
       <div class="produto-card produto-milho">
         <h3>MILHO</h3>
         <div class="count" id="count-milho">0</div>
-        <div>KG</div> <!-- Texto mais curto -->
+        <div>KG</div>
       </div>
       <div class="produto-card produto-sorgo">
         <h3>SORGO</h3>
         <div class="count" id="count-sorgo">0</div>
-        <div>KG</div> <!-- Texto mais curto -->
+        <div>KG</div>
       </div>
     </div>
 
@@ -491,45 +491,60 @@ function extractProduto(text) {
 
 /* Extrair cliente e destino da coluna C (INFORMAÇÕES DO DESTINO) */
 function extractClienteDestino(text) {
-  if(!text) return {cliente: '', destino: ''};
+  if(!text || text.trim() === '') return {cliente: '', destino: '', isValid: false};
   
-  const parts = text.split(' - ');
-  if(parts.length < 4) return {cliente: '', destino: ''};
+  const parts = text.split(' - ').map(part => part.trim());
+  if(parts.length < 4) return {cliente: '', destino: '', isValid: false};
   
-  // O cliente é a segunda parte (índice 1) ou terceira parte (índice 2) dependendo do formato
+  // O cliente é geralmente a segunda parte (índice 1)
   let cliente = '';
   let destino = '';
   
-  // Tentar identificar o cliente (segunda parte)
+  // Tentar identificar o cliente
   if(parts.length >= 2) {
-    cliente = parts[1].trim();
+    cliente = parts[1];
   }
   
-  // Se a terceira parte for igual à segunda, usar a quarta parte como destino
+  // Identificar o destino (geralmente a quarta parte ou terceira)
   if(parts.length >= 4) {
-    if(parts[2].trim() === cliente) {
-      destino = parts[3].trim();
-      // Se houver estado (ex: PR), remover do destino
-      if(destino.includes(' - ')) {
-        destino = destino.split(' - ')[0].trim();
-      }
+    // Se a terceira parte for igual à segunda, o destino é a quarta parte
+    if(parts[2] === cliente && parts.length >= 4) {
+      destino = parts[3];
     } else {
-      destino = parts[2].trim();
-      // Se houver estado (ex: PR), remover do destino
-      if(destino.includes(' - ')) {
-        destino = destino.split(' - ')[0].trim();
-      }
+      destino = parts[2];
+    }
+    
+    // Remover estado se estiver presente (ex: "MARAU - RS" -> "MARAU")
+    if(destino.includes(' - ')) {
+      destino = destino.split(' - ')[0];
     }
   }
   
-  return {cliente, destino};
+  // Verificar se conseguimos extrair informações válidas
+  const isValid = cliente !== '' && destino !== '' && cliente !== 'undefined' && destino !== 'undefined';
+  
+  return {cliente: cliente.trim(), destino: destino.trim(), isValid};
 }
 
-/* Calcular totais por produto */
-function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex) {
+/* Calcular totais por produto - CORRIGIDA para considerar apenas registros com informações de destino */
+function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, destinoColIndex) {
   let soja = 0, milho = 0, sorgo = 0;
   
   rowsObjects.forEach(obj => {
+    // Verificar se tem informações na coluna C (destino)
+    let destinoText = '';
+    if(destinoColIndex !== -1) {
+      if(Array.isArray(obj) && obj[destinoColIndex] !== undefined) {
+        destinoText = obj[destinoColIndex];
+      }
+    }
+    
+    // Extrair informações do destino
+    const {isValid} = extractClienteDestino(destinoText);
+    
+    // Só considerar se tiver informações válidas de destino
+    if(!isValid) return;
+    
     // Pegar o valor da coluna de produto (coluna B - índice 1)
     let produtoText = '';
     if(produtoColIndex !== -1) {
@@ -565,7 +580,7 @@ function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex) {
   return {soja, milho, sorgo};
 }
 
-/* Agrupar clientes e destinos com separação por status */
+/* Agrupar clientes e destinos com separação por status - CORRIGIDA */
 function groupClientesDestinos(rowsObjects, destinoColIndex, produtoColIndex, pesoColIndex, placaColIndex, statusColIndex) {
   const grupos = {};
   
@@ -578,11 +593,14 @@ function groupClientesDestinos(rowsObjects, destinoColIndex, produtoColIndex, pe
       }
     }
     
-    const {cliente, destino} = extractClienteDestino(destinoText);
-    if(!cliente || !destino) return;
+    const {cliente, destino, isValid} = extractClienteDestino(destinoText);
+    
+    // Só processar se tiver informações válidas de cliente e destino
+    if(!isValid || !cliente || !destino) return;
     
     // Criar chave única para cliente + destino (isso garante que mesmo cliente com destinos diferentes fiquem em cards separados)
-    const key = `${cliente}||${destino}`;
+    // Usando um separador que não deve aparecer nos nomes para garantir unicidade
+    const key = `${cliente}###${destino}`;
     
     // Extrair produto da coluna B (índice 1)
     let produtoText = '';
@@ -640,19 +658,19 @@ function groupClientesDestinos(rowsObjects, destinoColIndex, produtoColIndex, pe
     
     // Atualizar valores gerais
     grupos[key].totalPeso += peso;
-    if(placa) {
+    if(placa && placa.trim() !== '') {
       grupos[key].placas.add(placa.trim());
     }
     
     // Separar por status
     if(isCarregado) {
       grupos[key].totalPesoCarregado += peso;
-      if(placa) {
+      if(placa && placa.trim() !== '') {
         grupos[key].placasCarregadas.add(placa.trim());
       }
     } else {
       grupos[key].totalPesoPendente += peso;
-      if(placa) {
+      if(placa && placa.trim() !== '') {
         grupos[key].placasPendentes.add(placa.trim());
       }
     }
@@ -820,8 +838,8 @@ async function loadAll(isAutoUpdate = false){
     document.getElementById('count-transito').textContent = statusCounts.transito;
     document.getElementById('count-contratar').textContent = statusCounts.contratar;
 
-    // Calcular totais por produto (coluna B = índice 1, coluna J = índice 9)
-    const produtosTotais = calculateProdutosTotais(rowsArrProgFiltered, 1, 9);
+    // Calcular totais por produto (coluna B = índice 1, coluna J = índice 9, coluna C = índice 2)
+    const produtosTotais = calculateProdutosTotais(rowsArrProgFiltered, 1, 9, 2);
     document.getElementById('count-soja').textContent = formatNumber(produtosTotais.soja);
     document.getElementById('count-milho').textContent = formatNumber(produtosTotais.milho);
     document.getElementById('count-sorgo').textContent = formatNumber(produtosTotais.sorgo);
