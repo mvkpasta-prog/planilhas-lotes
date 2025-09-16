@@ -168,6 +168,12 @@ function normalizeHeader(h){
   return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
 }
 
+/* Normaliza texto: remove acentos — reutilizável para status */
+function normalizeText(text) {
+  if(text === undefined || text === null) return '';
+  return String(text).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+
 /* Parse CSV tolerante (trata vírgulas dentro de aspas)
    Retorna { arrays: [ [col1,col2,...], ... ], headersOrig: [], headersNorm: [], objects: [ {normKey: value}, ... ] }
 */
@@ -268,21 +274,21 @@ function formatCurrencyBRL(value) {
   }).format(value);
 }
 
-/* Formata o status da programação com cores específicas */
+/* Formata o status da programação com cores específicas — CORRIGIDA */
 function formatStatusProgramacao(status) {
   let className = 'status-programacao';
   let text = status;
   
-  // Normalizar o status para comparação
-  const statusLower = status.toLowerCase().trim();
+  // Normalizar o status para comparação (remover acentos)
+  const statusNorm = normalizeText(status);
   
-  if (statusLower.includes('carregado')) {
+  if (statusNorm.includes('carregado')) {
     className += ' status-carregado';
-  } else if (statusLower.includes('embarque') || statusLower.includes('no embarque')) {
+  } else if (statusNorm.includes('embarque') || statusNorm.includes('no embarque')) {
     className += ' status-embarque';
-  } else if (statusLower.includes('transito') || statusLower.includes('em transito')) {
+  } else if (statusNorm.includes('transito') || statusNorm.includes('em transito')) {
     className += ' status-transito';
-  } else if (statusLower.includes('contratar')) {
+  } else if (statusNorm.includes('contratar')) {
     className += ' status-contratar';
   } else {
     // Status padrão (cinza)
@@ -368,7 +374,7 @@ function escapeHtml(s){
   return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'<','>':'>','"':'&quot;',"'":'&#x27;','/':'&#x2F;'}[c]));
 }
 
-/* Contar status da programação */
+/* Contar status da programação — CORRIGIDA */
 function countStatusProgramacao(rowsObjects, statusCol) {
   let carregado = 0, embarque = 0, transito = 0, contratar = 0;
   
@@ -376,15 +382,15 @@ function countStatusProgramacao(rowsObjects, statusCol) {
   
   rowsObjects.forEach(obj => {
     const status = obj[statusCol] || '';
-    const statusLower = status.toLowerCase().trim();
+    const statusNorm = normalizeText(status); // Normaliza removendo acentos
     
-    if (statusLower.includes('carregado')) {
+    if (statusNorm.includes('carregado')) {
       carregado++;
-    } else if (statusLower.includes('embarque') || statusLower.includes('no embarque')) {
+    } else if (statusNorm.includes('embarque') || statusNorm.includes('no embarque')) {
       embarque++;
-    } else if (statusLower.includes('transito') || statusLower.includes('em transito')) {
+    } else if (statusNorm.includes('transito') || statusNorm.includes('em transito')) {
       transito++;
-    } else if (statusLower.includes('contratar')) {
+    } else if (statusNorm.includes('contratar')) {
       contratar++;
     }
   });
