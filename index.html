@@ -13,7 +13,7 @@
     --status-embarque: #3b82f6; /* Azul */
     --status-transito: #ef4444; /* Vermelho */
     --status-contratar: #f97316; /* Laranja para CONTRATAR */
-    --produto-soja: #84cc16; /* Verde claro para Soja */
+    --produto-soja: #10b981; /* Verde para Soja */
     --produto-milho: #fbbf24; /* Amarelo para Milho */
     --produto-sorgo: #6b7280; /* Cinza para Sorgo */
   }
@@ -54,15 +54,20 @@
   .clientes-section{margin-bottom:24px}
   .clientes-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
   .clientes-title{color:var(--primary);font-weight:700;font-size:18px}
-  .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+  .clientes-summary{color:var(--muted);font-size:14px}
+  .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:16px;margin-bottom:24px}
   .cliente-card{background:var(--card);border-radius:10px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,0.08);transition:all 0.3s ease}
   .cliente-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.12)}
   .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 8px 0}
   .cliente-destino{font-weight:600;color:var(--accent);margin:0 0 12px 0;font-size:14px}
-  .cliente-info{display:flex;justify-content:space-between;margin-bottom:8px}
+  .cliente-info{display:flex;justify-content:space-between;margin-bottom:8px;align-items:center}
   .info-label{font-weight:600;color:var(--muted);font-size:13px}
   .info-value{font-weight:700;font-size:14px}
-  .cliente-produto{background:var(--success);color:white;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600;display:inline-block;margin-top:4px}
+  .cliente-produto{padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600;display:inline-block;margin-top:4px}
+  .status-carregado-tag{background-color: var(--status-carregado);color: white;padding: 3px 8px;border-radius: 12px;font-size: 12px;font-weight: 600;}
+  .status-pendente-tag{background-color: var(--status-embarque);color: white;padding: 3px 8px;border-radius: 12px;font-size: 12px;font-weight: 600;}
+  .caminhoes-info{display:flex;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid #eee}
+  .caminhoes-separados{display:flex;gap:8px;align-items:center}
   
   /* Títulos expansíveis */
   .section-header{background:linear-gradient(90deg,var(--primary),var(--accent));color:white;padding:14px;border-radius:8px;margin-bottom:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:700;transition:all 0.3s ease}
@@ -97,6 +102,7 @@
     th, td{padding:8px;font-size:12px}
     .status-cards, .produto-cards{flex-direction:column}
     .clientes-container{grid-template-columns:1fr}
+    .cliente-card{min-width:280px}
   }
 </style>
 </head>
@@ -552,8 +558,8 @@ function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex) {
   return {soja, milho, sorgo};
 }
 
-/* Agrupar clientes e destinos */
-function groupClientesDestinos(rowsObjects, destinoColIndex, produtoColIndex, pesoColIndex, placaColIndex) {
+/* Agrupar clientes e destinos com separação por status */
+function groupClientesDestinos(rowsObjects, destinoColIndex, produtoColIndex, pesoColIndex, placaColIndex, statusColIndex) {
   const grupos = {};
   
   rowsObjects.forEach(obj => {
@@ -597,6 +603,18 @@ function groupClientesDestinos(rowsObjects, destinoColIndex, produtoColIndex, pe
       }
     }
     
+    // Pegar status da coluna STATUS (índice a ser determinado)
+    let status = '';
+    if(statusColIndex !== -1) {
+      if(Array.isArray(obj) && obj[statusColIndex] !== undefined) {
+        status = obj[statusColIndex];
+      }
+    }
+    
+    // Normalizar status para comparação
+    const statusNorm = normalizeText(status);
+    const isCarregado = statusNorm.includes('carregado');
+    
     // Inicializar grupo se não existir
     if(!grupos[key]) {
       grupos[key] = {
@@ -604,16 +622,34 @@ function groupClientesDestinos(rowsObjects, destinoColIndex, produtoColIndex, pe
         destino,
         produto,
         totalPeso: 0,
-        placas: new Set(), // Usar Set para evitar duplicatas
+        totalPesoCarregado: 0,
+        totalPesoPendente: 0,
+        placas: new Set(),
+        placasCarregadas: new Set(),
+        placasPendentes: new Set(),
         count: 0
       };
     }
     
-    // Atualizar valores
+    // Atualizar valores gerais
     grupos[key].totalPeso += peso;
     if(placa) {
       grupos[key].placas.add(placa.trim());
     }
+    
+    // Separar por status
+    if(isCarregado) {
+      grupos[key].totalPesoCarregado += peso;
+      if(placa) {
+        grupos[key].placasCarregadas.add(placa.trim());
+      }
+    } else {
+      grupos[key].totalPesoPendente += peso;
+      if(placa) {
+        grupos[key].placasPendentes.add(placa.trim());
+      }
+    }
+    
     grupos[key].count++;
   });
   
@@ -621,8 +657,14 @@ function groupClientesDestinos(rowsObjects, destinoColIndex, produtoColIndex, pe
   return Object.values(grupos).map(grupo => ({
     ...grupo,
     totalPeso: Math.round(grupo.totalPeso),
+    totalPesoCarregado: Math.round(grupo.totalPesoCarregado),
+    totalPesoPendente: Math.round(grupo.totalPesoPendente),
     totalCaminhoes: grupo.placas.size,
-    placas: Array.from(grupo.placas)
+    totalCaminhoesCarregados: grupo.placasCarregadas.size,
+    totalCaminhoesPendentes: grupo.placasPendentes.size,
+    placas: Array.from(grupo.placas),
+    placasCarregadas: Array.from(grupo.placasCarregadas),
+    placasPendentes: Array.from(grupo.placasPendentes)
   })).sort((a, b) => b.totalPeso - a.totalPeso); // Ordenar por peso decrescente
 }
 
@@ -651,21 +693,41 @@ function buildClientesHTML(clientes) {
   
   let html = '';
   clientes.forEach(cliente => {
+    // Definir cor do produto
+    let corProduto = '#6b7280'; // Cinza padrão
+    if(cliente.produto.includes('soja')) {
+      corProduto = '#10b981'; // Verde para Soja
+    } else if(cliente.produto.includes('milho')) {
+      corProduto = '#fbbf24'; // Amarelo para Milho
+    } else if(cliente.produto.includes('sorgo')) {
+      corProduto = '#6b7280'; // Cinza para Sorgo
+    }
+    
     html += `
       <div class="cliente-card">
         <h3 class="cliente-name">${escapeHtml(cliente.cliente)}</h3>
         <div class="cliente-destino">${escapeHtml(cliente.destino)}</div>
         <div class="cliente-info">
           <span class="info-label">Produto:</span>
-          <span class="cliente-produto">${escapeHtml(cliente.produto.toUpperCase())}</span>
+          <span class="cliente-produto" style="background-color: ${corProduto}; color: white;">${escapeHtml(cliente.produto.toUpperCase())}</span>
         </div>
         <div class="cliente-info">
-          <span class="info-label">Quantidade:</span>
+          <span class="info-label">Quantidade Total:</span>
           <span class="info-value">${formatNumber(cliente.totalPeso)} KG</span>
         </div>
+        <div class="caminhoes-info">
+          <div class="caminhoes-separados">
+            <span class="status-carregado-tag">Carregados: ${cliente.totalCaminhoesCarregados}</span>
+            <span class="status-pendente-tag">Pendentes: ${cliente.totalCaminhoesPendentes}</span>
+          </div>
+        </div>
+        <div class="cliente-info" style="margin-top: 8px;">
+          <span class="info-label">Peso Carregado:</span>
+          <span class="info-value">${formatNumber(cliente.totalPesoCarregado)} KG</span>
+        </div>
         <div class="cliente-info">
-          <span class="info-label">Caminhões:</span>
-          <span class="info-value">${cliente.totalCaminhoes}</span>
+          <span class="info-label">Peso Pendente:</span>
+          <span class="info-value">${formatNumber(cliente.totalPesoPendente)} KG</span>
         </div>
       </div>
     `;
@@ -679,9 +741,11 @@ function updateClientesSummary(clientes) {
   const totalClientes = clientes.length;
   const totalCaminhoes = clientes.reduce((sum, cliente) => sum + cliente.totalCaminhoes, 0);
   const totalPeso = clientes.reduce((sum, cliente) => sum + cliente.totalPeso, 0);
+  const totalCaminhoesCarregados = clientes.reduce((sum, cliente) => sum + cliente.totalCaminhoesCarregados, 0);
+  const totalCaminhoesPendentes = clientes.reduce((sum, cliente) => sum + cliente.totalCaminhoesPendentes, 0);
   
   document.getElementById('clientesSummary').innerHTML = `
-    ${totalClientes} clientes • ${totalCaminhoes} caminhões • ${formatNumber(totalPeso)} KG
+    ${totalClientes} clientes • ${totalCaminhoesCarregados} carregados • ${totalCaminhoesPendentes} pendentes • ${formatNumber(totalPeso)} KG
   `;
 }
 
@@ -702,6 +766,7 @@ async function loadAll(isAutoUpdate = false){
 
     // Encontrar a coluna "STATUS"
     const statusKey = headersNormProg.find(h => h.includes('status') && !h.includes('agendamento')) || null;
+    const statusIndex = headersNormProg.indexOf(statusKey);
     
     // Encontrar a coluna "FRETE EMPRESA"
     const freteEmpresaKey = headersNormProg.find(h => h.includes('freteempresa') || h.includes('frete') && h.includes('empresa')) || null;
@@ -754,8 +819,8 @@ async function loadAll(isAutoUpdate = false){
     document.getElementById('count-milho').textContent = formatNumber(produtosTotais.milho);
     document.getElementById('count-sorgo').textContent = formatNumber(produtosTotais.sorgo);
 
-    // Agrupar clientes e destinos (coluna C = índice 2, coluna B = índice 1, coluna J = índice 9, coluna H = índice 7)
-    const clientes = groupClientesDestinos(rowsArrProgFiltered, 2, 1, 9, 7);
+    // Agrupar clientes e destinos (coluna C = índice 2, coluna B = índice 1, coluna J = índice 9, coluna H = índice 7, coluna STATUS = índice statusIndex)
+    const clientes = groupClientesDestinos(rowsArrProgFiltered, 2, 1, 9, 7, statusIndex);
     document.getElementById('clientesContainer').innerHTML = buildClientesHTML(clientes);
     updateClientesSummary(clientes);
 
