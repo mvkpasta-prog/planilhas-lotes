@@ -19,7 +19,7 @@
   }
   *{box-sizing:border-box}
   body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:18px}
-  header{background:linear-gradient(90deg,var(--primary),var(--accent));color:white;padding:14px;border-radius:8px;margin-bottom:18px;text-align:center;font-weight:700}
+  header{background:linear-gradient(90deg,var(--primary),var(--accent));color:white;padding:14px;border-radius:8px;margin-bottom:18px;text-align:center;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px}
   .wrap{max-width:1280px;margin:0 auto}
   .actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px}
   .btn{background:var(--primary);color:#fff;border:0;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:700}
@@ -86,7 +86,11 @@
 </style>
 </head>
 <body>
-  <header>📦 Controle de Lotes — Entrega & Retirada</header>
+  <!-- Cabeçalho com imagem PNG do GitHub -->
+  <header>
+    <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height: 24px; vertical-align: middle; margin-right: 8px;">
+    Controle de Lotes — Entrega & Retirada
+  </header>
 
   <div class="wrap">
     <div class="actions">
