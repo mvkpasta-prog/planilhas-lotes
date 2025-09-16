@@ -12,14 +12,19 @@
     --status-carregado: #10b981; /* Verde */
     --status-embarque: #3b82f6; /* Azul */
     --status-transito: #ef4444; /* Vermelho */
+    --status-contratar: #f97316; /* Laranja para CONTRATAR */
   }
   *{box-sizing:border-box}
   body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:18px}
   header{background:linear-gradient(90deg,var(--primary),var(--accent));color:white;padding:14px;border-radius:8px;margin-bottom:18px;text-align:center;font-weight:700}
   .wrap{max-width:1280px;margin:0 auto}
-  .actions{display:flex;justify-content:flex-end;margin-bottom:18px}
+  .actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px}
   .btn{background:var(--primary);color:#fff;border:0;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:700}
   .btn:hover{opacity:.95}
+  .last-update{color:var(--muted);font-size:12px;display:flex;align-items:center;gap:6px}
+  .last-update i{font-size:14px;animation:spin 2s linear infinite}
+  @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+  .updating .last-update i{animation:spin 1s linear infinite}
   
   /* Cards de Status no topo */
   .status-cards{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:24px}
@@ -30,6 +35,7 @@
   .status-card-carregado{border-top:4px solid var(--status-carregado);}
   .status-card-embarque{border-top:4px solid var(--status-embarque);}
   .status-card-transito{border-top:4px solid var(--status-transito);}
+  .status-card-contratar{border-top:4px solid var(--status-contratar);}
   
   /* Títulos expansíveis */
   .section-header{background:linear-gradient(90deg,var(--primary),var(--accent));color:white;padding:14px;border-radius:8px;margin-bottom:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:700;transition:all 0.3s ease}
@@ -56,6 +62,7 @@
   .status-carregado{background-color: var(--status-carregado);}
   .status-embarque{background-color: var(--status-embarque);}
   .status-transito{background-color: var(--status-transito);}
+  .status-contratar{background-color: var(--status-contratar);}
   
   .empty{color:var(--muted);font-style:italic;padding:12px}
   @media (max-width:900px){
@@ -70,7 +77,11 @@
 
   <div class="wrap">
     <div class="actions">
-      <button id="btnRefresh" class="btn"><i class="fas fa-sync-alt"></i> Atualizar</button>
+      <button id="btnRefresh" class="btn"><i class="fas fa-sync-alt"></i> Atualizar Agora</button>
+      <div class="last-update" id="lastUpdate">
+        <i class="fas fa-circle-notch"></i>
+        <span>Atualizando...</span>
+      </div>
     </div>
     
     <!-- Cards de Status -->
@@ -88,6 +99,11 @@
       <div class="status-card status-card-transito">
         <h3>EM TRÂNSITO</h3>
         <div class="count" id="count-transito">0</div>
+        <div>Veículos</div>
+      </div>
+      <div class="status-card status-card-contratar">
+        <h3>CONTRATAR</h3>
+        <div class="count" id="count-contratar">0</div>
         <div>Veículos</div>
       </div>
     </div>
@@ -128,6 +144,10 @@ const GIDS = {
   retirada: '585404986',   // aba LOTES RETIRADA
   programacao: '1183141602'// aba PROGRAMAÇÃO
 };
+
+// Configuração do intervalo de atualização automática (em milissegundos)
+// 300000 = 5 minutos (5 * 60 * 1000)
+const AUTO_UPDATE_INTERVAL = 300000;
 
 /* colunas que ficam ocultas em exibição (aparecem em detalhes) - normalizadas */
 const HIDDEN_COLS = ['nfp','royalties','safra'];
@@ -262,6 +282,8 @@ function formatStatusProgramacao(status) {
     className += ' status-embarque';
   } else if (statusLower.includes('transito') || statusLower.includes('em transito')) {
     className += ' status-transito';
+  } else if (statusLower.includes('contratar')) {
+    className += ' status-contratar';
   } else {
     // Status padrão (cinza)
     className += ' status-aberto';
@@ -348,9 +370,9 @@ function escapeHtml(s){
 
 /* Contar status da programação */
 function countStatusProgramacao(rowsObjects, statusCol) {
-  let carregado = 0, embarque = 0, transito = 0;
+  let carregado = 0, embarque = 0, transito = 0, contratar = 0;
   
-  if(!statusCol) return {carregado, embarque, transito};
+  if(!statusCol) return {carregado, embarque, transito, contratar};
   
   rowsObjects.forEach(obj => {
     const status = obj[statusCol] || '';
@@ -362,15 +384,33 @@ function countStatusProgramacao(rowsObjects, statusCol) {
       embarque++;
     } else if (statusLower.includes('transito') || statusLower.includes('em transito')) {
       transito++;
+    } else if (statusLower.includes('contratar')) {
+      contratar++;
     }
   });
   
-  return {carregado, embarque, transito};
+  return {carregado, embarque, transito, contratar};
+}
+
+/* Atualizar o texto da última atualização */
+function updateLastUpdateTime() {
+  const now = new Date();
+  const timeString = now.toLocaleTimeString('pt-BR');
+  const dateString = now.toLocaleDateString('pt-BR');
+  document.getElementById('lastUpdate').innerHTML = `
+    <i class="fas fa-check-circle" style="color: #10b981;"></i>
+    <span>Última atualização: ${timeString} - ${dateString}</span>
+  `;
 }
 
 /* --- Main load function --- */
-async function loadAll(){
+async function loadAll(isAutoUpdate = false){
   try{
+    // Adicionar classe de atualização durante o carregamento
+    if(isAutoUpdate) {
+      document.body.classList.add('updating');
+    }
+    
     // ===== LOTES DE ENTREGA =====
     const ent = await fetchSheetByGid(GIDS.entrega);
     const rowsArrEnt = ent.arrays;      // array of arrays
@@ -568,6 +608,7 @@ async function loadAll(){
     document.getElementById('count-carregado').textContent = statusCounts.carregado;
     document.getElementById('count-embarque').textContent = statusCounts.embarque;
     document.getElementById('count-transito').textContent = statusCounts.transito;
+    document.getElementById('count-contratar').textContent = statusCounts.contratar;
 
     // Build programacao table: remove removedProg columns, format status and currency
     const tableProgHTML = buildTableHTML(rowsArrProgFiltered, rowsObjProgFiltered, headersOrigProg, headersNormProg, {
@@ -588,12 +629,26 @@ async function loadAll(){
     document.getElementById('toggle-entrega').classList.add('collapsed');
     document.getElementById('toggle-retirada').classList.add('collapsed');
     document.getElementById('toggle-programacao').classList.add('collapsed');
+    
+    // Atualizar o texto da última atualização
+    updateLastUpdateTime();
+    
+    // Remover classe de atualização
+    document.body.classList.remove('updating');
   }
   catch(err){
     console.error('Erro loadAll:', err);
     document.getElementById('entregaContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
     document.getElementById('retiradaContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
     document.getElementById('programacaoContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
+    
+    // Atualizar o texto da última atualização mesmo em caso de erro
+    document.getElementById('lastUpdate').innerHTML = `
+      <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
+      <span>Erro na atualização - ${new Date().toLocaleTimeString('pt-BR')}</span>
+    `;
+    
+    document.body.classList.remove('updating');
   }
 }
 
@@ -627,18 +682,46 @@ function toggleSection(sectionId) {
   }
 }
 
+/* Configurar atualização automática */
+let autoUpdateInterval;
+
+function startAutoUpdate() {
+  // Executar imediatamente ao carregar
+  loadAll(true);
+  
+  // Configurar intervalo para atualizações subsequentes (5 minutos)
+  autoUpdateInterval = setInterval(() => {
+    loadAll(true);
+  }, AUTO_UPDATE_INTERVAL);
+}
+
+function stopAutoUpdate() {
+  if(autoUpdateInterval) {
+    clearInterval(autoUpdateInterval);
+    autoUpdateInterval = null;
+  }
+}
+
 /* init */
 document.getElementById('btnRefresh').addEventListener('click', () => {
-  document.getElementById('entregaContent').innerHTML = '<div class="empty">Atualizando...</div>';
-  document.getElementById('retiradaContent').innerHTML = '<div class="empty">Atualizando...</div>';
-  document.getElementById('programacaoContent').innerHTML = '<div class="empty">Atualizando...</div>';
-  loadAll();
+  loadAll(false); // Atualização manual
 });
 
-// Setup toggle handlers after DOM is loaded
+// Setup toggle handlers and start auto update after DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
   setupToggleHandlers();
-  loadAll();
+  startAutoUpdate();
+  
+  // Adicionar evento de visibilidade para pausar/recuperar atualizações
+  document.addEventListener('visibilitychange', function() {
+    if(document.hidden) {
+      console.log('Página oculta - pausando atualizações automáticas');
+    } else {
+      console.log('Página visível - retomando atualizações automáticas');
+      // Atualizar imediatamente quando a página volta a ficar visível
+      loadAll(true);
+    }
+  });
 });
 </script>
 </body>
