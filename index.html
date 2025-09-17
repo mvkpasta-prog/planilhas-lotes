@@ -433,133 +433,120 @@ function extractProduto(text) {
   produto = produto.replace(/[0-9\.\,\(\)\[\]]/g, '').trim();
   return produto;
 }
-/* Extrair cliente e destino da coluna C (INFORMAÇÕES DO DESTINO) */
-function extractClienteDestino(text) {
-  if(!text || text.trim() === '') return {cliente: '', destino: '', isValid: false};
+/* NOVA FUNÇÃO: Extrair informações do contrato da coluna C (INFORMAÇÕES DO DESTINO) */
+function extractContratoInfo(text) {
+  if(!text || text.trim() === '') return {contrato: '', cliente: '', destino: '', produto: '', isValid: false};
   const parts = text.split(' - ').map(part => part.trim());
-  if(parts.length < 4) return {cliente: '', destino: '', isValid: false};
-  // O cliente é geralmente a segunda parte (índice 1)
-  let cliente = '';
-  let destino = '';
-  // Tentar identificar o cliente
-  if(parts.length >= 2) {
-    cliente = parts[1];
+  // Verificar se temos pelo menos 6 partes: contrato, cliente, cliente (repetido), destino, estado, produto
+  if(parts.length < 6) {
+    console.warn('Formato inválido para extrair informações do contrato:', text);
+    return {contrato: '', cliente: '', destino: '', produto: '', isValid: false};
   }
-  // Identificar o destino (geralmente a quarta parte ou terceira)
-  if(parts.length >= 4) {
-    // Se a terceira parte for igual à segunda, o destino é a quarta parte
-    if(parts[2] === cliente && parts.length >= 4) {
-      destino = parts[3];
-    } else {
-      destino = parts[2];
-    }
-    // Remover estado se estiver presente (ex: "MARAU - RS" -> "MARAU")
-    if(destino.includes(' - ')) {
-      destino = destino.split(' - ')[0];
-    }
+  // Seguir exatamente o padrão fornecido:
+  // 0: contrato, 1: cliente, 2: cliente (repetido - ignorar), 3: destino, 4: estado (ignorar), 5+: produto
+  const contrato = parts[0].replace(/\D/g, ''); // Apenas números
+  const cliente = parts[1]; // Segunda parte (após o primeiro traço)
+  const destino = parts[3]; // Quarta parte (após o terceiro traço)
+  // Produto: tudo após o estado (parte 4), juntando as partes restantes
+  const produtoParts = parts.slice(5);
+  let produto = produtoParts.join(' - ').trim().toUpperCase();
+  // Se não conseguirmos extrair o produto, tentar do final
+  if(!produto) {
+    produto = parts[parts.length - 1].trim().toUpperCase();
   }
-  // Verificar se conseguimos extrair informações válidas
-  const isValid = cliente !== '' && destino !== '' && cliente !== 'undefined' && destino !== 'undefined';
-  return {cliente: cliente.trim(), destino: destino.trim(), isValid};
+  // Verificar se os campos essenciais estão preenchidos
+  const isValid = contrato !== '' && cliente !== '' && destino !== '' && produto !== '';
+  return {
+    contrato: contrato,
+    cliente: cliente,
+    destino: destino,
+    produto: produto,
+    isValid: isValid
+  };
 }
-/* Extrair número do contrato da coluna C (primeiro número antes do primeiro traço) */
-function extractNumeroContrato(text) {
-  if(!text) return '';
-  const parts = text.split(' - ');
-  if(parts.length === 0) return '';
-  // Pegar a primeira parte (antes do primeiro traço)
-  let numeroContrato = parts[0].trim();
-  // Remover possíveis caracteres não numéricos
-  numeroContrato = numeroContrato.replace(/\D/g, '');
-  return numeroContrato;
+/* Atualizar o texto da última atualização */
+function updateLastUpdateTime() {
+  const now = new Date();
+  const timeString = now.toLocaleTimeString('pt-BR');
+  const dateString = now.toLocaleDateString('pt-BR');
+  document.getElementById('lastUpdate').innerHTML = `
+    <i class="fas fa-check-circle" style="color: #10b981;"></i>
+    <span>Última atualização: ${timeString} - ${dateString}</span>
+  `;
 }
-/* Extrair peso da coluna I da Programação (último número após o último traço, converter para KG) */
-function extractPesoProgramacao(text) {
-  if(!text) return 0;
-  // Dividir por traços e pegar a última parte
-  const parts = text.split('-');
-  if(parts.length === 0) return 0;
-  // Pegar a última parte
-  let ultimaParte = parts[parts.length - 1].trim();
-  // Extrair número (pode estar no formato "51 TON" ou "51TON")
-  const match = ultimaParte.match(/(\d+\.?\d*)/);
-  if(!match) return 0;
-  let toneladas = parseFloat(match[1]);
-  if(isNaN(toneladas)) return 0;
-  // Converter para KG (1 tonelada = 1000 kg)
-  return toneladas * 1000;
+/* Formata número com separadores de milhar */
+function formatNumber(value) {
+  if(isNaN(value)) return '0';
+  return new Intl.NumberFormat('pt-BR').format(Math.round(value));
 }
-/* Calcular totais por produto - CORRIGIDA para considerar apenas registros com informações de destino */
-function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, destinoColIndex) {
-  let soja = 0, milho = 0, sorgo = 0;
-  rowsObjects.forEach(obj => {
-    // Verificar se tem informações na coluna C (destino)
-    let destinoText = '';
-    if(destinoColIndex !== -1) {
-      if(Array.isArray(obj) && obj[destinoColIndex] !== undefined) {
-        destinoText = obj[destinoColIndex];
-      }
+/* Gerar HTML para os cards de clientes (agora por contrato) */
+function buildClientesHTML(clientes) {
+  if(clientes.length === 0) {
+    return '<div class="empty">Nenhum contrato encontrado para hoje.</div>';
+  }
+  let html = '';
+  clientes.forEach(cliente => {
+    // Definir cor do produto
+    let corProduto = '#6b7280'; // Cinza padrão
+    if(cliente.produto.includes('SOJA')) {
+      corProduto = '#10b981'; // Verde para Soja
+    } else if(cliente.produto.includes('MILHO')) {
+      corProduto = '#fbbf24'; // Amarelo para Milho
+    } else if(cliente.produto.includes('SORGO')) {
+      corProduto = '#6b7280'; // Cinza para Sorgo
     }
-    // Extrair informações do destino
-    const {isValid} = extractClienteDestino(destinoText);
-    // Só considerar se tiver informações válidas de destino
-    if(!isValid) return;
-    // Pegar o valor da coluna de produto (coluna B - índice 1)
-    let produtoText = '';
-    if(produtoColIndex !== -1) {
-      if(Array.isArray(obj) && obj[produtoColIndex] !== undefined) {
-        produtoText = obj[produtoColIndex];
-      }
-    }
-    // Extrair o produto
-    const produto = extractProduto(produtoText);
-    // Pegar o peso (coluna J - índice 9)
-    let pesoText = '';
-    if(pesoColIndex !== -1) {
-      if(Array.isArray(obj) && obj[pesoColIndex] !== undefined) {
-        pesoText = obj[pesoColIndex];
-      }
-    }
-    const peso = parseNumber(pesoText);
-    if(isNaN(peso)) return;
-    // Somar ao produto correspondente
-    if(produto.includes('soja')) {
-      soja += peso;
-    } else if(produto.includes('milho')) {
-      milho += peso;
-    } else if(produto.includes('sorgo')) {
-      sorgo += peso;
-    }
+    html += `
+      <div class="cliente-card">
+        <h3 class="cliente-name">Contrato: ${escapeHtml(cliente.contrato)}</h3>
+        <div class="cliente-destino">${escapeHtml(cliente.cliente)} - ${escapeHtml(cliente.destino)}</div>
+        <div class="cliente-info">
+          <span class="info-label">Produto:</span>
+          <span class="cliente-produto" style="background-color: ${corProduto}; color: white;">${escapeHtml(cliente.produto)}</span>
+        </div>
+        <div class="caminhoes-info">
+          <div class="caminhoes-separados">
+            <span class="status-carregado-tag">Carregados: ${cliente.totalCaminhoesCarregados}</span>
+            <span class="status-pendente-tag">Pendentes: ${cliente.totalCaminhoesPendentes}</span>
+          </div>
+        </div>
+        <div class="cliente-info" style="margin-top: 8px;">
+          <span class="info-label">Peso Carregado:</span>
+          <span class="info-value">${formatNumber(cliente.totalPesoCarregado)} KG</span>
+        </div>
+      </div>
+    `;
   });
-  return {soja, milho, sorgo};
+  return html;
 }
-/* Agrupar por Contrato - LÓGICA SIMPLIFICADA (SEM PESO PENDENTE CONTRATO) */
-async function groupByContract(rowsProg, destinoColIndex, produtoColIndex, pesoColIndex, placaColIndex, statusColIndex) {
+/* Atualizar o resumo de clientes */
+function updateClientesSummary(clientes) {
+  const totalContratos = clientes.length;
+  const totalCaminhoes = clientes.reduce((sum, cliente) => sum + cliente.totalCaminhoes, 0);
+  const totalPeso = clientes.reduce((sum, cliente) => sum + cliente.totalPeso, 0);
+  const totalCaminhoesCarregados = clientes.reduce((sum, cliente) => sum + cliente.totalCaminhoesCarregados, 0);
+  const totalCaminhoesPendentes = clientes.reduce((sum, cliente) => sum + cliente.totalCaminhoesPendentes, 0);
+  document.getElementById('clientesSummary').innerHTML = `
+    ${totalContratos} contratos • ${totalCaminhoesCarregados} carregados • ${totalCaminhoesPendentes} pendentes • ${formatNumber(totalPeso)} KG
+  `;
+}
+/* --- NOVA FUNÇÃO: Agrupar por Contrato - LÓGICA REFEITA DO ZERO --- */
+async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusColIndex) {
   const grupos = {};
-  // Processar cada linha da Programação para criar os cards
+  // Processar cada linha da Programação
   rowsProg.forEach(obj => {
-    // Extrair cliente e destino da coluna C (índice 2)
+    // Extrair informações da coluna C (índice 2)
     let destinoText = '';
     if(destinoColIndex !== -1) {
       if(Array.isArray(obj) && obj[destinoColIndex] !== undefined) {
         destinoText = obj[destinoColIndex];
       }
     }
-    const {cliente, destino, isValid} = extractClienteDestino(destinoText);
-    // Extrair número do contrato da coluna C (primeiro número antes do primeiro traço)
-    const numContrato = extractNumeroContrato(destinoText);
-    // Só processar se tivermos um número de contrato válido
-    if(!numContrato) return;
+    // Usar a NOVA função para extrair contrato, cliente, destino e produto
+    const {contrato, cliente, destino, produto, isValid} = extractContratoInfo(destinoText);
+    // Só processar se tivermos um contrato válido
+    if(!isValid || !contrato) return;
     // Criar chave única para o contrato
-    const key = `contrato_${numContrato}`;
-    // Extrair produto da coluna B (índice 1)
-    let produtoText = '';
-    if(produtoColIndex !== -1) {
-      if(Array.isArray(obj) && obj[produtoColIndex] !== undefined) {
-        produtoText = obj[produtoColIndex];
-      }
-    }
-    const produto = extractProduto(produtoText);
+    const key = `contrato_${contrato}`;
     // Pegar peso real da coluna J (índice 9)
     let pesoRealText = '';
     if(Array.isArray(obj) && obj[9] !== undefined) {
@@ -586,10 +573,10 @@ async function groupByContract(rowsProg, destinoColIndex, produtoColIndex, pesoC
     // Inicializar grupo se não existir
     if(!grupos[key]) {
       grupos[key] = {
-        contrato: numContrato,
-        cliente,
-        destino,
-        produto,
+        contrato: contrato,
+        cliente: cliente,
+        destino: destino,
+        produto: produto,
         totalPeso: 0,
         totalPesoCarregado: 0,
         totalPesoPendente: 0,
@@ -631,71 +618,6 @@ async function groupByContract(rowsProg, destinoColIndex, produtoColIndex, pesoC
     placasCarregadas: Array.from(grupo.placasCarregadas),
     placasPendentes: Array.from(grupo.placasPendentes)
   })).sort((a, b) => b.totalPeso - a.totalPeso); // Ordenar por peso total decrescente
-}
-/* Atualizar o texto da última atualização */
-function updateLastUpdateTime() {
-  const now = new Date();
-  const timeString = now.toLocaleTimeString('pt-BR');
-  const dateString = now.toLocaleDateString('pt-BR');
-  document.getElementById('lastUpdate').innerHTML = `
-    <i class="fas fa-check-circle" style="color: #10b981;"></i>
-    <span>Última atualização: ${timeString} - ${dateString}</span>
-  `;
-}
-/* Formata número com separadores de milhar */
-function formatNumber(value) {
-  if(isNaN(value)) return '0';
-  return new Intl.NumberFormat('pt-BR').format(Math.round(value));
-}
-/* Gerar HTML para os cards de clientes (agora por contrato) */
-function buildClientesHTML(clientes) {
-  if(clientes.length === 0) {
-    return '<div class="empty">Nenhum contrato encontrado para hoje.</div>';
-  }
-  let html = '';
-  clientes.forEach(cliente => {
-    // Definir cor do produto
-    let corProduto = '#6b7280'; // Cinza padrão
-    if(cliente.produto.includes('soja')) {
-      corProduto = '#10b981'; // Verde para Soja
-    } else if(cliente.produto.includes('milho')) {
-      corProduto = '#fbbf24'; // Amarelo para Milho
-    } else if(cliente.produto.includes('sorgo')) {
-      corProduto = '#6b7280'; // Cinza para Sorgo
-    }
-    html += `
-      <div class="cliente-card">
-        <h3 class="cliente-name">Contrato: ${escapeHtml(cliente.contrato)}</h3>
-        <div class="cliente-destino">${escapeHtml(cliente.cliente)} - ${escapeHtml(cliente.destino)}</div>
-        <div class="cliente-info">
-          <span class="info-label">Produto:</span>
-          <span class="cliente-produto" style="background-color: ${corProduto}; color: white;">${escapeHtml(cliente.produto.toUpperCase())}</span>
-        </div>
-        <div class="caminhoes-info">
-          <div class="caminhoes-separados">
-            <span class="status-carregado-tag">Carregados: ${cliente.totalCaminhoesCarregados}</span>
-            <span class="status-pendente-tag">Pendentes: ${cliente.totalCaminhoesPendentes}</span>
-          </div>
-        </div>
-        <div class="cliente-info" style="margin-top: 8px;">
-          <span class="info-label">Peso Carregado:</span>
-          <span class="info-value">${formatNumber(cliente.totalPesoCarregado)} KG</span>
-        </div>
-      </div>
-    `;
-  });
-  return html;
-}
-/* Atualizar o resumo de clientes */
-function updateClientesSummary(clientes) {
-  const totalContratos = clientes.length;
-  const totalCaminhoes = clientes.reduce((sum, cliente) => sum + cliente.totalCaminhoes, 0);
-  const totalPeso = clientes.reduce((sum, cliente) => sum + cliente.totalPeso, 0);
-  const totalCaminhoesCarregados = clientes.reduce((sum, cliente) => sum + cliente.totalCaminhoesCarregados, 0);
-  const totalCaminhoesPendentes = clientes.reduce((sum, cliente) => sum + cliente.totalCaminhoesPendentes, 0);
-  document.getElementById('clientesSummary').innerHTML = `
-    ${totalContratos} contratos • ${totalCaminhoesCarregados} carregados • ${totalCaminhoesPendentes} pendentes • ${formatNumber(totalPeso)} KG
-  `;
 }
 /* --- Main load function --- */
 async function loadAll(isAutoUpdate = false){
@@ -762,8 +684,8 @@ async function loadAll(isAutoUpdate = false){
     document.getElementById('count-soja').textContent = formatNumber(produtosTotais.soja);
     document.getElementById('count-milho').textContent = formatNumber(produtosTotais.milho);
     document.getElementById('count-sorgo').textContent = formatNumber(produtosTotais.sorgo);
-    // Agrupar por contrato (SEM buscar dados da aba de Entrega)
-    const clientes = await groupByContract(rowsArrProgFiltered, 2, 1, 9, 7, statusIndex);
+    // Agrupar por contrato com a NOVA lógica
+    const clientes = await groupByContract(rowsArrProgFiltered, 2, 7, statusIndex);
     document.getElementById('clientesContainer').innerHTML = buildClientesHTML(clientes);
     updateClientesSummary(clientes);
     // Build programacao table: remove removedProg columns, format status and currency
@@ -902,15 +824,17 @@ async function loadAll(isAutoUpdate = false){
   }
   catch(err){
     console.error('Erro loadAll:', err);
+    // Atualizar TODAS as seções com mensagem de erro
     document.getElementById('entregaContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
     document.getElementById('retiradaContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
     document.getElementById('programacaoContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
     document.getElementById('clientesContainer').innerHTML = '<div class="empty">Erro ao carregar dados dos contratos (ver console).</div>';
-    // Atualizar o texto da última atualização mesmo em caso de erro
+    // Atualizar o texto da última atualização
     document.getElementById('lastUpdate').innerHTML = `
       <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
       <span>Erro na atualização - ${new Date().toLocaleTimeString('pt-BR')}</span>
     `;
+    // GARANTIR que a classe 'updating' seja removida, mesmo em caso de erro
     document.body.classList.remove('updating');
   }
 }
