@@ -617,7 +617,7 @@ function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, des
   return {soja, milho, sorgo};
 }
 
-/* Agrupar por Contrato (não mais por Cliente x Destino) */
+/* Agrupar por Contrato - LÓGICA CORRIGIDA */
 async function groupByContract(rowsProg, destinoColIndex, produtoColIndex, pesoColIndex, placaColIndex, statusColIndex, rowsEntrega, headersNormEnt) {
   const grupos = {};
   
@@ -634,7 +634,48 @@ async function groupByContract(rowsProg, destinoColIndex, produtoColIndex, pesoC
     }
   });
   
-  // Processar cada linha da Programação
+  // Criar um mapa para somar os pesos previstos por contrato (quando peso real estiver vazio)
+  const pesosPrevistosPorContrato = {};
+  
+  // Primeiro, calcular a soma dos pesos previstos para cada contrato
+  rowsProg.forEach(obj => {
+    // Extrair número do contrato da coluna C
+    let destinoText = '';
+    if(destinoColIndex !== -1) {
+      if(Array.isArray(obj) && obj[destinoColIndex] !== undefined) {
+        destinoText = obj[destinoColIndex];
+      }
+    }
+    
+    const numContrato = extractNumeroContrato(destinoText);
+    if(!numContrato) return;
+    
+    // Pegar peso real da coluna J (índice 9)
+    let pesoRealText = '';
+    if(Array.isArray(obj) && obj[9] !== undefined) {
+      pesoRealText = obj[9];
+    }
+    const pesoReal = parseNumber(pesoRealText) || 0;
+    
+    // Só considerar o peso previsto se o peso real estiver vazio
+    if(pesoReal === 0) {
+      // Pegar peso previsto da coluna I (índice 8)
+      let configVeiculoText = '';
+      if(Array.isArray(obj) && obj[8] !== undefined) {
+        configVeiculoText = obj[8];
+      }
+      const pesoPrevisto = extractPesoProgramacao(configVeiculoText);
+      
+      if(pesoPrevisto > 0) {
+        if(!pesosPrevistosPorContrato[numContrato]) {
+          pesosPrevistosPorContrato[numContrato] = 0;
+        }
+        pesosPrevistosPorContrato[numContrato] += pesoPrevisto;
+      }
+    }
+  });
+  
+  // Agora, processar cada linha da Programação para criar os cards
   rowsProg.forEach(obj => {
     // Extrair cliente e destino da coluna C (índice 2)
     let destinoText = '';
@@ -666,17 +707,10 @@ async function groupByContract(rowsProg, destinoColIndex, produtoColIndex, pesoC
     
     // Pegar peso real da coluna J (índice 9)
     let pesoRealText = '';
-    if(Array.isArray(obj) && obj[9] !== undefined) { // Coluna J = índice 9
+    if(Array.isArray(obj) && obj[9] !== undefined) {
       pesoRealText = obj[9];
     }
     const pesoReal = parseNumber(pesoRealText) || 0;
-    
-    // Pegar peso previsto da coluna I da Programação (configuração de veículo)
-    let configVeiculoText = '';
-    if(Array.isArray(obj) && obj[8] !== undefined) { // Coluna I = índice 8
-      configVeiculoText = obj[8];
-    }
-    const pesoPrevisto = extractPesoProgramacao(configVeiculoText);
     
     // Pegar placa da coluna H (índice 7)
     let placa = '';
@@ -737,23 +771,13 @@ async function groupByContract(rowsProg, destinoColIndex, produtoColIndex, pesoC
     }
     
     // Calcular peso pendente do contrato
-    // Só se tivermos o número do contrato e ele existir no mapa de contratos
     if(contratoMap[numContrato]) {
       grupos[key].pesoTotalContrato = contratoMap[numContrato];
       
-      // Determinar quanto desse contrato já foi alocado
-      let pesoAlocado = 0;
-      
-      // Se o peso real estiver vazio (0), usamos o peso previsto da configuração do veículo
-      if(pesoReal === 0 && pesoPrevisto > 0) {
-        pesoAlocado = pesoPrevisto;
-      }
-      // Se o peso real estiver preenchido, NÃO subtraímos nada do saldo do contrato
-      // (só subtraímos quando o peso real está vazio e usamos o peso previsto)
-      
       // Calcular peso pendente do contrato
-      // Peso pendente = SALDO ENT. (KG) - peso alocado (só se peso real estiver vazio)
-      grupos[key].pesoPendenteContrato = contratoMap[numContrato] - pesoAlocado;
+      // Peso pendente = Saldo do Contrato - Soma dos Pesos Previstos (para cargas sem peso real)
+      const pesoPrevistoTotal = pesosPrevistosPorContrato[numContrato] || 0;
+      grupos[key].pesoPendenteContrato = contratoMap[numContrato] - pesoPrevistoTotal;
       
       // Garantir que não seja negativo
       grupos[key].pesoPendenteContrato = Math.max(0, grupos[key].pesoPendenteContrato);
