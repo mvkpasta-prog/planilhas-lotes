@@ -446,7 +446,7 @@ function numericKeyIndex(headersNorm, key){ return headersNorm.indexOf(key); }
 
 function escapeHtml(s){
   if(s === undefined || s === null) return '';
-  return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'<','>':'>','"':'&quot;',"'":'&#x27;','/':'&#x2F;'}[c]));
+  return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x27;','/':'&#x2F;'}[c]));
 }
 
 /* Contar status da programação — CORRIGIDA */
@@ -621,84 +621,72 @@ function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, des
 async function groupClientesDestinosWithContractWeight(rowsProg, destinoColIndex, produtoColIndex, pesoColIndex, placaColIndex, statusColIndex, rowsEntrega, headersNormEnt) {
   const grupos = {};
   
-  // Primeiro, criar um mapa de contratos da aba de Entrega (coluna B = índice 1, coluna I = índice 8)
+  // 1) Criar um mapa de contratos da aba de Entrega (coluna B = índice 1, coluna I = índice 8)
+  // Agora somamos SALDO ENT. por contrato (caso existam várias linhas para o mesmo contrato)
   const contratoMap = {};
   rowsEntrega.forEach(row => {
-    if(Array.isArray(row) && row.length > 8) {
-      const numContrato = row[1] ? String(row[1]).trim() : '';
-      const saldoEnt = parseNumber(row[8]); // SALDO ENT. (KG)
-      
-      if(numContrato && !isNaN(saldoEnt) && saldoEnt > 0) {
-        contratoMap[numContrato] = saldoEnt;
-      }
+    if(!Array.isArray(row)) return;
+    // Coluna B = índice 1
+    const numContrato = row[1] ? String(row[1]).trim() : '';
+    // SALDO ENT. (KG) coluna I = índice 8
+    const saldoEnt = parseNumber(row[8]) || 0;
+    if(!numContrato) return;
+    if(!isNaN(saldoEnt) && saldoEnt > 0) {
+      contratoMap[numContrato] = (contratoMap[numContrato] || 0) + saldoEnt;
     }
   });
   
-  // Processar cada linha da Programação
-  rowsProg.forEach(obj => {
-    // Extrair cliente e destino da coluna C (índice 2)
-    let destinoText = '';
-    if(destinoColIndex !== -1) {
-      if(Array.isArray(obj) && obj[destinoColIndex] !== undefined) {
-        destinoText = obj[destinoColIndex];
-      }
+  // 2) Criar mapa de alocações (soma dos pesos na Programação por contrato)
+  // Para cada linha da programação: se tiver PESO (coluna J -> pesoColIndex) usa ele; se não tiver, usa PESO PREVISTO (coluna I -> índice 8, extraído)
+  const allocationsMap = {};
+  rowsProg.forEach(arr => {
+    if(!Array.isArray(arr)) return;
+    // Extrair número do contrato da coluna DESTINO (destinoColIndex)
+    const destinoText = (destinoColIndex !== -1 && arr[destinoColIndex] !== undefined) ? arr[destinoColIndex] : '';
+    const numContrato = extractNumeroContrato(destinoText);
+    if(!numContrato) return;
+    // Peso real (coluna J)
+    const pesoReal = (pesoColIndex !== -1 && arr[pesoColIndex] !== undefined) ? (parseNumber(arr[pesoColIndex]) || 0) : 0;
+    // Peso previsto (coluna I -> index 8)
+    const configVeiculoText = (arr[8] !== undefined) ? arr[8] : '';
+    const pesoPrevisto = extractPesoProgramacao(configVeiculoText) || 0;
+    // Se tiver peso real (>0) usamos ele, senão usamos pesoPrevisto (se existir)
+    const allocated = (pesoReal > 0) ? pesoReal : (pesoPrevisto > 0 ? pesoPrevisto : 0);
+    if(allocated > 0) {
+      allocationsMap[numContrato] = (allocationsMap[numContrato] || 0) + allocated;
     }
-    
+  });
+  
+  // 3) Agora agrupar por cliente+destino e calcular os indicadores
+  rowsProg.forEach(arr => {
+    if(!Array.isArray(arr)) return;
+    // Extrair cliente e destino da coluna C (destinoColIndex)
+    const destinoText = (destinoColIndex !== -1 && arr[destinoColIndex] !== undefined) ? arr[destinoColIndex] : '';
     const {cliente, destino, isValid} = extractClienteDestino(destinoText);
-    
-    // Só processar se tiver informações válidas de cliente e destino
     if(!isValid || !cliente || !destino) return;
-    
-    // Criar chave única para cliente + destino
     const key = `${cliente}###${destino}`;
     
-    // Extrair produto da coluna B (índice 1)
-    let produtoText = '';
-    if(produtoColIndex !== -1) {
-      if(Array.isArray(obj) && obj[produtoColIndex] !== undefined) {
-        produtoText = obj[produtoColIndex];
-      }
-    }
+    // Produto (coluna B)
+    const produtoText = (produtoColIndex !== -1 && arr[produtoColIndex] !== undefined) ? arr[produtoColIndex] : '';
     const produto = extractProduto(produtoText);
     
-    // Extrair número do contrato da coluna C (primeiro número antes do primeiro traço)
+    // Número do contrato
     const numContrato = extractNumeroContrato(destinoText);
     
-    // Pegar peso real da coluna J (índice 9)
-    let pesoRealText = '';
-    if(Array.isArray(obj) && obj[9] !== undefined) { // Coluna J = índice 9
-      pesoRealText = obj[9];
-    }
-    const pesoReal = parseNumber(pesoRealText) || 0;
+    // Pesos nas colunas
+    const pesoReal = (pesoColIndex !== -1 && arr[pesoColIndex] !== undefined) ? (parseNumber(arr[pesoColIndex]) || 0) : 0;
+    const configVeiculoText = (arr[8] !== undefined) ? arr[8] : '';
+    const pesoPrevisto = extractPesoProgramacao(configVeiculoText) || 0;
     
-    // Pegar peso previsto da coluna I da Programação (configuração de veículo)
-    let configVeiculoText = '';
-    if(Array.isArray(obj) && obj[8] !== undefined) { // Coluna I = índice 8
-      configVeiculoText = obj[8];
-    }
-    const pesoPrevisto = extractPesoProgramacao(configVeiculoText);
+    // Placa (coluna H index 7)
+    const placa = (placaColIndex !== -1 && arr[placaColIndex] !== undefined) ? arr[placaColIndex] : '';
     
-    // Pegar placa da coluna H (índice 7)
-    let placa = '';
-    if(placaColIndex !== -1) {
-      if(Array.isArray(obj) && obj[placaColIndex] !== undefined) {
-        placa = obj[placaColIndex];
-      }
-    }
-    
-    // Pegar status da coluna STATUS (índice a ser determinado)
-    let status = '';
-    if(statusColIndex !== -1) {
-      if(Array.isArray(obj) && obj[statusColIndex] !== undefined) {
-        status = obj[statusColIndex];
-      }
-    }
-    
-    // Normalizar status para comparação
+    // Status
+    const status = (statusColIndex !== -1 && arr[statusColIndex] !== undefined) ? arr[statusColIndex] : '';
     const statusNorm = normalizeText(status);
     const isCarregado = statusNorm.includes('carregado');
     
-    // Inicializar grupo se não existir
+    // Inicializar grupo
     if(!grupos[key]) {
       grupos[key] = {
         cliente,
@@ -716,7 +704,7 @@ async function groupClientesDestinosWithContractWeight(rowsProg, destinoColIndex
       };
     }
     
-    // Atualizar valores gerais
+    // Atualizar totais (mantive a lógica pré-existente: totalPeso soma pesoReal)
     grupos[key].totalPeso += pesoReal;
     if(placa && placa.trim() !== '') {
       grupos[key].placas.add(placa.trim());
@@ -735,29 +723,12 @@ async function groupClientesDestinosWithContractWeight(rowsProg, destinoColIndex
       }
     }
     
-    // Calcular peso pendente do contrato
-    // Só se tivermos o número do contrato e ele existir no mapa de contratos
+    // Preencher dados do contrato e calcular peso pendente a partir dos mapas calculados acima
     if(numContrato && contratoMap[numContrato]) {
       grupos[key].pesoTotalContrato = contratoMap[numContrato];
-      
-      // Determinar quanto desse contrato já foi alocado
-      let pesoAlocado = 0;
-      
-      // Se o peso real estiver preenchido, usamos ele
-      if(pesoReal > 0) {
-        pesoAlocado = pesoReal;
-      } 
-      // Se o peso real estiver vazio (0), usamos o peso previsto da configuração do veículo
-      else if(pesoPrevisto > 0) {
-        pesoAlocado = pesoPrevisto;
-      }
-      
-      // Calcular peso pendente do contrato
-      // Peso pendente = SALDO ENT. (KG) - peso já alocado
-      grupos[key].pesoPendenteContrato = contratoMap[numContrato] - pesoAlocado;
-      
-      // Garantir que não seja negativo
-      grupos[key].pesoPendenteContrato = Math.max(0, grupos[key].pesoPendenteContrato);
+      const totalAllocations = allocationsMap[numContrato] || 0;
+      grupos[key].pesoPendenteContrato = contratoMap[numContrato] - totalAllocations;
+      if(grupos[key].pesoPendenteContrato < 0) grupos[key].pesoPendenteContrato = 0;
     }
     
     grupos[key].count++;
