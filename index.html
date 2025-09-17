@@ -931,15 +931,17 @@ async function loadAll(isAutoUpdate = false){
   }
   catch(err){
     console.error('Erro loadAll:', err);
+    // Atualizar TODAS as seções com mensagem de erro
     document.getElementById('entregaContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
     document.getElementById('retiradaContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
     document.getElementById('programacaoContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
     document.getElementById('clientesContainer').innerHTML = '<div class="empty">Erro ao carregar dados dos contratos (ver console).</div>';
-    // Atualizar o texto da última atualização mesmo em caso de erro
+    // Atualizar o texto da última atualização
     document.getElementById('lastUpdate').innerHTML = `
       <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
       <span>Erro na atualização - ${new Date().toLocaleTimeString('pt-BR')}</span>
     `;
+    // GARANTIR que a classe 'updating' seja removida, mesmo em caso de erro
     document.body.classList.remove('updating');
   }
 }
