@@ -231,9 +231,9 @@ function normalizeText(text) {
 */
 function parseCSV(text){
   if(!text) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
-  const lines = text.split(/\r?
-/).filter(l => l.trim() !== '');
+  const lines = text.split(/\r?\n/).filter(l => l.trim() !== ''); // Corrigido: \r?\n
   if(lines.length === 0) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
+  // Corrigido: Expressão regular completa em uma linha
   const parsed = lines.map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g,'').trim()));
   const headersOrig = parsed.shift().map(h => h||'');
   const headersNorm = headersOrig.map(h => normalizeHeader(h));
@@ -633,7 +633,7 @@ async function groupByContract(rowsProg, destinoColIndex, produtoColIndex, pesoC
     // Buscar o peso pendente do contrato na aba de Entrega
     if(contratoMap[numContrato]) {
       grupos[key].pesoTotalContrato = contratoMap[numContrato];
-      grupos[key].pesoPendenteContrato = contratoMap[numContrato];
+      grupos[key].pesoPendenteContrato = contratoMap[numContrato]; // Atribuição direta da coluna I
     }
     grupos[key].count++;
   });
