@@ -231,9 +231,8 @@ function normalizeText(text) {
 */
 function parseCSV(text){
   if(!text) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
-  const lines = text.split(/\r?\n/).filter(l => l.trim() !== ''); // Corrigido: \r?\n
+  const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
   if(lines.length === 0) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
-  // Corrigido: Expressão regular completa em uma linha
   const parsed = lines.map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g,'').trim()));
   const headersOrig = parsed.shift().map(h => h||'');
   const headersNorm = headersOrig.map(h => normalizeHeader(h));
@@ -534,7 +533,7 @@ function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, des
   });
   return {soja, milho, sorgo};
 }
-/* Agrupar por Contrato - LÓGICA CORRIGIDA PARA PESO PENDENTE CONTRATO */
+/* Agrupar por Contrato - LÓGICA SIMPLIFICADA PARA PESO PENDENTE CONTRATO */
 async function groupByContract(rowsProg, destinoColIndex, produtoColIndex, pesoColIndex, placaColIndex, statusColIndex, rowsEntrega, headersNormEnt) {
   const grupos = {};
   // Criar um mapa de contratos da aba de Entrega (coluna B = índice 1, coluna I = índice 8)
@@ -542,7 +541,7 @@ async function groupByContract(rowsProg, destinoColIndex, produtoColIndex, pesoC
   rowsEntrega.forEach(row => {
     if(Array.isArray(row) && row.length > 8) {
       const numContrato = row[1] ? String(row[1]).trim() : '';
-      const saldoEnt = parseNumber(row[8]); // SALDO ENT. (KG)
+      const saldoEnt = parseNumber(row[8]); // SALDO ENT. (KG) - Coluna I
       if(numContrato && !isNaN(saldoEnt) && saldoEnt > 0) {
         contratoMap[numContrato] = saldoEnt;
       }
@@ -630,10 +629,11 @@ async function groupByContract(rowsProg, destinoColIndex, produtoColIndex, pesoC
         grupos[key].placasPendentes.add(placa.trim());
       }
     }
-    // Buscar o peso pendente do contrato na aba de Entrega
+    // Buscar o peso pendente do contrato na aba de Entrega (COLUNA I)
+    // ATRIBUIÇÃO DIRETA: O valor de "Peso Pendente Contrato" é o valor da coluna I da planilha de Entrega
     if(contratoMap[numContrato]) {
       grupos[key].pesoTotalContrato = contratoMap[numContrato];
-      grupos[key].pesoPendenteContrato = contratoMap[numContrato]; // Atribuição direta da coluna I
+      grupos[key].pesoPendenteContrato = contratoMap[numContrato]; // Valor direto da coluna I
     }
     grupos[key].count++;
   });
