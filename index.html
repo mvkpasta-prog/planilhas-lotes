@@ -464,6 +464,50 @@ function extractContratoInfo(text) {
     isValid: isValid
   };
 }
+/* Calcular totais por produto - ADICIONADA DE VOLTA */
+function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, destinoColIndex) {
+  let soja = 0, milho = 0, sorgo = 0;
+  rowsObjects.forEach(obj => {
+    // Verificar se tem informações na coluna C (destino)
+    let destinoText = '';
+    if(destinoColIndex !== -1) {
+      if(Array.isArray(obj) && obj[destinoColIndex] !== undefined) {
+        destinoText = obj[destinoColIndex];
+      }
+    }
+    // Extrair informações do destino usando a nova função
+    const {isValid} = extractContratoInfo(destinoText);
+    // Só considerar se tiver informações válidas de destino
+    if(!isValid) return;
+    // Pegar o valor da coluna de produto (coluna B - índice 1)
+    let produtoText = '';
+    if(produtoColIndex !== -1) {
+      if(Array.isArray(obj) && obj[produtoColIndex] !== undefined) {
+        produtoText = obj[produtoColIndex];
+      }
+    }
+    // Extrair o produto
+    const produto = extractProduto(produtoText);
+    // Pegar o peso (coluna J - índice 9)
+    let pesoText = '';
+    if(pesoColIndex !== -1) {
+      if(Array.isArray(obj) && obj[pesoColIndex] !== undefined) {
+        pesoText = obj[pesoColIndex];
+      }
+    }
+    const peso = parseNumber(pesoText);
+    if(isNaN(peso)) return;
+    // Somar ao produto correspondente
+    if(produto.includes('soja')) {
+      soja += peso;
+    } else if(produto.includes('milho')) {
+      milho += peso;
+    } else if(produto.includes('sorgo')) {
+      sorgo += peso;
+    }
+  });
+  return {soja, milho, sorgo};
+}
 /* Atualizar o texto da última atualização */
 function updateLastUpdateTime() {
   const now = new Date();
