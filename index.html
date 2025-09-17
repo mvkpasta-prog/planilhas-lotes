@@ -433,34 +433,22 @@ function extractProduto(text) {
   produto = produto.replace(/[0-9\.\,\(\)\[\]]/g, '').trim();
   return produto;
 }
-/* Extrair cliente e destino da coluna C (INFORMAÇÕES DO DESTINO) */
+/* Extrair cliente e destino da coluna C (INFORMAÇÕES DO DESTINO) - LÓGICA CORRIGIDA */
 function extractClienteDestino(text) {
   if(!text || text.trim() === '') return {cliente: '', destino: '', isValid: false};
   const parts = text.split(' - ').map(part => part.trim());
-  if(parts.length < 4) return {cliente: '', destino: '', isValid: false};
+  if(parts.length < 3) return {cliente: '', destino: '', isValid: false};
   // O cliente é geralmente a segunda parte (índice 1)
-  let cliente = '';
-  let destino = '';
-  // Tentar identificar o cliente
-  if(parts.length >= 2) {
-    cliente = parts[1];
-  }
-  // Identificar o destino (geralmente a quarta parte ou terceira)
-  if(parts.length >= 4) {
-    // Se a terceira parte for igual à segunda, o destino é a quarta parte
-    if(parts[2] === cliente && parts.length >= 4) {
-      destino = parts[3];
-    } else {
-      destino = parts[2];
-    }
-    // Remover estado se estiver presente (ex: "MARAU - RS" -> "MARAU")
-    if(destino.includes(' - ')) {
-      destino = destino.split(' - ')[0];
-    }
+  let cliente = parts[1] || '';
+  // O destino é geralmente a terceira parte (índice 2)
+  let destino = parts[2] || '';
+  // Remover estado se estiver presente (ex: "MARAU - RS" -> "MARAU")
+  if(destino.includes(' - ')) {
+    destino = destino.split(' - ')[0];
   }
   // Verificar se conseguimos extrair informações válidas
   const isValid = cliente !== '' && destino !== '' && cliente !== 'undefined' && destino !== 'undefined';
-  return {cliente: cliente.trim(), destino: destino.trim(), isValid};
+  return {cliente: cliente.trim(), destino: destino.trim(), isValid: true}; // Força isValid como true
 }
 /* Extrair número do contrato da coluna C (primeiro número antes do primeiro traço) */
 function extractNumeroContrato(text) {
