@@ -628,7 +628,7 @@ async function groupClientesDestinosWithContractWeight(rowsProg, destinoColIndex
       const numContrato = row[1] ? String(row[1]).trim() : '';
       const saldoEnt = parseNumber(row[8]); // SALDO ENT. (KG)
       
-      if(numContrato && !isNaN(saldoEnt)) {
+      if(numContrato && !isNaN(saldoEnt) && saldoEnt > 0) {
         contratoMap[numContrato] = saldoEnt;
       }
     }
@@ -664,19 +664,19 @@ async function groupClientesDestinosWithContractWeight(rowsProg, destinoColIndex
     // Extrair número do contrato da coluna C (primeiro número antes do primeiro traço)
     const numContrato = extractNumeroContrato(destinoText);
     
-    // Pegar peso previsto da coluna I da Programação (configuração de veículo)
-    let configVeiculoText = '';
-    if(Array.isArray(obj) && obj[8] !== undefined) { // Coluna I = índice 8
-      configVeiculoText = obj[8];
-    }
-    const pesoPrevisto = extractPesoProgramacao(configVeiculoText);
-    
     // Pegar peso real da coluna J (índice 9)
     let pesoRealText = '';
     if(Array.isArray(obj) && obj[9] !== undefined) { // Coluna J = índice 9
       pesoRealText = obj[9];
     }
     const pesoReal = parseNumber(pesoRealText) || 0;
+    
+    // Pegar peso previsto da coluna I da Programação (configuração de veículo)
+    let configVeiculoText = '';
+    if(Array.isArray(obj) && obj[8] !== undefined) { // Coluna I = índice 8
+      configVeiculoText = obj[8];
+    }
+    const pesoPrevisto = extractPesoProgramacao(configVeiculoText);
     
     // Pegar placa da coluna H (índice 7)
     let placa = '';
@@ -736,24 +736,26 @@ async function groupClientesDestinosWithContractWeight(rowsProg, destinoColIndex
     }
     
     // Calcular peso pendente do contrato
-    // Só considerar o peso previsto se o peso real estiver vazio (0)
-    let pesoAConsiderar = 0;
-    if(pesoReal === 0 && pesoPrevisto > 0) {
-      pesoAConsiderar = pesoPrevisto;
-    }
-    
-    // Se tivermos o número do contrato e ele existir no mapa de contratos
+    // Só se tivermos o número do contrato e ele existir no mapa de contratos
     if(numContrato && contratoMap[numContrato]) {
       grupos[key].pesoTotalContrato = contratoMap[numContrato];
       
-      // Calcular peso pendente do contrato
-      // Peso pendente = SALDO ENT. (KG) - peso já considerado (peso real ou previsto)
-      let pesoJaConsiderado = pesoReal;
-      if(pesoReal === 0 && pesoPrevisto > 0) {
-        pesoJaConsiderado = pesoPrevisto;
+      // Determinar quanto desse contrato já foi alocado
+      let pesoAlocado = 0;
+      
+      // Se o peso real estiver preenchido, usamos ele
+      if(pesoReal > 0) {
+        pesoAlocado = pesoReal;
+      } 
+      // Se o peso real estiver vazio (0), usamos o peso previsto da configuração do veículo
+      else if(pesoPrevisto > 0) {
+        pesoAlocado = pesoPrevisto;
       }
       
-      grupos[key].pesoPendenteContrato = contratoMap[numContrato] - pesoJaConsiderado;
+      // Calcular peso pendente do contrato
+      // Peso pendente = SALDO ENT. (KG) - peso já alocado
+      grupos[key].pesoPendenteContrato = contratoMap[numContrato] - pesoAlocado;
+      
       // Garantir que não seja negativo
       grupos[key].pesoPendenteContrato = Math.max(0, grupos[key].pesoPendenteContrato);
     }
