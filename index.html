@@ -28,7 +28,6 @@
   .last-update i{font-size:14px;animation:spin 2s linear infinite}
   @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
   .updating .last-update i{animation:spin 1s linear infinite}
-  
   /* Cards de Status no topo - versão compacta */
   .status-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
   .status-card{background:var(--card);border-radius:8px;padding:12px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:160px;text-align:center;transition:all 0.3s ease}
@@ -39,7 +38,6 @@
   .status-card-embarque{border-top:3px solid var(--status-embarque);}
   .status-card-transito{border-top:3px solid var(--status-transito);}
   .status-card-contratar{border-top:3px solid var(--status-contratar);}
-  
   /* Cards de Produtos - versão compacta */
   .produto-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
   .produto-card{background:var(--card);border-radius:8px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:150px;text-align:center;transition:all 0.3s ease;border-top:3px solid transparent}
@@ -49,7 +47,6 @@
   .produto-soja{border-top-color: var(--produto-soja);}
   .produto-milho{border-top-color: var(--produto-milho);}
   .produto-sorgo{border-top-color: var(--produto-sorgo);}
-  
   /* Seção de Clientes e Destinos */
   .clientes-section{margin-bottom:24px}
   .clientes-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
@@ -68,16 +65,13 @@
   .status-pendente-tag{background-color: var(--status-embarque);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
   .caminhoes-info{display:flex;gap:8px;margin-top:6px;padding-top:6px;border-top:1px solid #eee}
   .caminhoes-separados{display:flex;gap:6px;align-items:center}
-  
   /* Títulos expansíveis */
   .section-header{background:linear-gradient(90deg,var(--primary),var(--accent));color:white;padding:12px;border-radius:8px;margin-bottom:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:700;transition:all 0.3s ease;font-size:15px}
   .section-header:hover{opacity:0.95}
   .section-header .toggle-icon{transition:transform 0.3s ease}
   .section-header.collapsed .toggle-icon{transform:rotate(-90deg)}
-  
   .section-content{display:block;transition:all 0.3s ease;overflow:hidden}
   .section-content.collapsed{display:none}
-  
   h2{color:var(--primary);margin:6px 0 12px 0;font-size:18px}
   .card{background:var(--card);border-radius:8px;padding:12px;margin-bottom:16px;box-shadow:0 4px 12px rgba(16,24,40,0.06)}
   .table-wrap{overflow-x:auto}
@@ -88,14 +82,12 @@
   .status{display:inline-block;padding:5px 9px;border-radius:14px;color:#fff;font-weight:700;font-size:11px}
   .status-aberto{background:var(--warning)}
   .status-fechado{background:var(--success)}
-  
   /* Estilos para os novos status da programação */
   .status-programacao{display:inline-block;padding:5px 10px;border-radius:14px;color:#fff;font-weight:700;font-size:11px;min-width:90px;text-align:center}
   .status-carregado{background-color: var(--status-carregado);}
   .status-embarque{background-color: var(--status-embarque);}
   .status-transito{background-color: var(--status-transito);}
   .status-contratar{background-color: var(--status-contratar);}
-  
   .empty{color:var(--muted);font-style:italic;padding:10px}
   @media (max-width:900px){
     table{min-width:650px}
@@ -119,7 +111,6 @@
     <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height: 22px; vertical-align: middle; margin-right: 8px;">
     Controle de Lotes — Entrega & Retirada
   </header>
-
   <div class="wrap">
     <div class="actions">
       <button id="btnRefresh" class="btn"><i class="fas fa-sync-alt"></i> Atualizar</button>
@@ -128,7 +119,6 @@
         <span>Atualizando...</span>
       </div>
     </div>
-    
     <!-- Cards de Status -->
     <div class="status-cards">
       <div class="status-card status-card-carregado">
@@ -152,7 +142,6 @@
         <div>Veículos</div>
       </div>
     </div>
-
     <!-- Cards de Produtos -->
     <div class="produto-cards">
       <div class="produto-card produto-soja">
@@ -171,7 +160,6 @@
         <div>KG</div>
       </div>
     </div>
-
     <!-- Seção de Clientes e Destinos -->
     <div class="clientes-section">
       <div class="clientes-header">
@@ -182,7 +170,6 @@
         <!-- Os cards de clientes serão inseridos aqui dinamicamente -->
       </div>
     </div>
-
     <!-- Programação (agora em primeiro lugar) -->
     <div class="section-header" id="toggle-programacao">
       <span>🗓 Programação</span>
@@ -191,7 +178,6 @@
     <div class="section-content card" id="content-programacao">
       <div id="programacaoContent" class="table-wrap"></div>
     </div>
-
     <!-- Lotes de Entrega -->
     <div class="section-header" id="toggle-entrega">
       <span>🚚 Lotes de Entrega</span>
@@ -200,7 +186,6 @@
     <div class="section-content card" id="content-entrega">
       <div id="entregaContent" class="table-wrap"></div>
     </div>
-
     <!-- Lotes de Retirada -->
     <div class="section-header" id="toggle-retirada">
       <span>📦 Lotes de Retirada</span>
@@ -210,7 +195,6 @@
       <div id="retiradaContent" class="table-wrap"></div>
     </div>
   </div>
-
 <script>
 /* ====== CONFIG - coloque aqui seu SHEET_ID se mudar ====== */
 const SHEET_ID = '1CZZgYJiZic9pyFFTdyldm_gVwn2K-zSGY9uhFJ5Nz6Q';
@@ -219,48 +203,40 @@ const GIDS = {
   retirada: '585404986',   // aba LOTES RETIRADA
   programacao: '1183141602'// aba PROGRAMAÇÃO
 };
-
 // Configuração do intervalo de atualização automática (em milissegundos)
 // 300000 = 5 minutos (5 * 60 * 1000)
 const AUTO_UPDATE_INTERVAL = 300000;
-
 /* colunas que ficam ocultas em exibição (aparecem em detalhes) - normalizadas */
 const HIDDEN_COLS = ['nfp','royalties','safra'];
-
 /* colunas removidas (normalizadas) de todas as tabelas */
 const REMOVED_COMMON = ['localizacao','idorigemymvk1'];
-
 /* colunas removidas especificamente da Programação (normalizadas) */
 const REMOVED_PROGRAMACAO = [
   'observacoes','ordem','notafiscal','dacte','mdfe','conftipocam','agendamento',
   'descarga','comprovantededescarga','horarioprev','classificacaodestino','chaveid',
   'frete', 'statusagendamento', 'datadedescarga', 'notafiscal' // Adicionadas conforme solicitação
 ];
-
 /* Normaliza cabeçalho: remove acento, espaços e pontuação */
 function normalizeHeader(h){
   if(h === undefined || h === null) return '';
   return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
 }
-
 /* Normaliza texto: remove acentos — reutilizável para status */
 function normalizeText(text) {
   if(text === undefined || text === null) return '';
   return String(text).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 }
-
 /* Parse CSV tolerante (trata vírgulas dentro de aspas)
    Retorna { arrays: [ [col1,col2,...], ... ], headersOrig: [], headersNorm: [], objects: [ {normKey: value}, ... ] }
 */
 function parseCSV(text){
   if(!text) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
-  const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+  const lines = text.split(/\r?
+/).filter(l => l.trim() !== '');
   if(lines.length === 0) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
-
   const parsed = lines.map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g,'').trim()));
   const headersOrig = parsed.shift().map(h => h||'');
   const headersNorm = headersOrig.map(h => normalizeHeader(h));
-
   const objects = parsed.map(cells => {
     const obj = {};
     headersNorm.forEach((key, idx) => {
@@ -268,10 +244,8 @@ function parseCSV(text){
     });
     return obj;
   });
-
   return {arrays: parsed, headersOrig, headersNorm, objects};
 }
-
 /* fetch CSV via gviz - retorna parseCSV result */
 async function fetchSheetByGid(gid){
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`;
@@ -280,7 +254,6 @@ async function fetchSheetByGid(gid){
   const text = await r.text();
   return parseCSV(text);
 }
-
 /* util: parse number tolerant */
 function parseNumber(val){
   if(val === undefined || val === null) return NaN;
@@ -288,7 +261,6 @@ function parseNumber(val){
   const n = parseFloat(s.replace(/[^\d\.\-]/g,''));
   return isNaN(n) ? NaN : n;
 }
-
 /* util: parse date only (dd/mm/yyyy ou yyyy-mm-dd) -> Date (00:00:00) or null */
 function parseDateOnly(s){
   if(!s) return null;
@@ -314,7 +286,6 @@ function parseDateOnly(s){
   if(!isNaN(dt.getTime())) return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
   return null;
 }
-
 /* encontra header normalizado que contenha um dos padrões */
 function findHeaderKey(headersNorm, patterns){
   for(const p of patterns){
@@ -339,7 +310,6 @@ function findHeaderKey(headersNorm, patterns){
   if(f) return f;
   return null;
 }
-
 /* Formata número como moeda brasileira */
 function formatCurrencyBRL(value) {
   if (isNaN(value)) return value;
@@ -348,15 +318,12 @@ function formatCurrencyBRL(value) {
     currency: 'BRL'
   }).format(value);
 }
-
 /* Formata o status da programação com cores específicas — CORRIGIDA */
 function formatStatusProgramacao(status) {
   let className = 'status-programacao';
   let text = status;
-  
   // Normalizar o status para comparação (remover acentos)
   const statusNorm = normalizeText(status);
-  
   if (statusNorm.includes('carregado')) {
     className += ' status-carregado';
   } else if (statusNorm.includes('embarque') || statusNorm.includes('no embarque')) {
@@ -369,10 +336,8 @@ function formatStatusProgramacao(status) {
     // Status padrão (cinza)
     className += ' status-aberto';
   }
-  
   return `<span class="${className}">${escapeHtml(text)}</span>`;
 }
-
 /* build table HTML: rowsArrays = array of arrays; rowsObjects = array of objects keyed by normalized headers */
 function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts){
   // opts: {hiddenNorm:[], removedNorm:[], numericKey: 'somenorm', forceColsNorm:[], currencyCols:[], statusCol: ''}
@@ -382,22 +347,18 @@ function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts)
   const forceInclude = opts.forceInclude || [];
   const currencyCols = opts.currencyCols || [];
   const statusCol = opts.statusCol || '';
-
   // visible columns: headersNorm minus removed
   const visible = headersNorm.filter(h => !removedNorm.includes(h));
   // display columns exclude hidden
   let displayCols = visible.filter(h => !hiddenNorm.includes(h));
-
   // ensure forced columns appear first
   forceInclude.forEach(fc => {
     if(visible.includes(fc) && !displayCols.includes(fc)) displayCols.unshift(fc);
     else if(visible.includes(fc)) displayCols = [fc, ...displayCols.filter(x => x !== fc)];
   });
-
   if(displayCols.length === 0){
     return '<div class="empty">Sem colunas para exibir.</div>';
   }
-
   // construct header titles using originals
   let html = '<table><thead><tr>';
   displayCols.forEach(h => {
@@ -407,7 +368,6 @@ function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts)
   });
   if(numericKey) html += '<th>Status</th>';
   html += '</tr></thead><tbody>';
-
   rowsObjects.forEach((obj, i) => {
     const arr = rowsArrays[i] || [];
     const n = numericKey ? parseNumber( obj[numericKey] || arr[numericKeyIndex(headersNorm, numericKey)] || '0' ) : NaN;
@@ -416,7 +376,6 @@ function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts)
       // prefer object value, fallback to array by index if available
       const idx = headersNorm.indexOf(h);
       let value = (obj[h] !== undefined && obj[h] !== '') ? obj[h] : (arr[idx] !== undefined ? arr[idx] : '');
-      
       // Formatar como moeda se for uma coluna de moeda
       if(currencyCols.includes(h)) {
         const numValue = parseNumber(value);
@@ -424,7 +383,6 @@ function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts)
           value = formatCurrencyBRL(numValue);
         }
       }
-      
       // Formatar status da programação
       if(h === statusCol) {
         value = formatStatusProgramacao(value);
@@ -436,29 +394,22 @@ function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts)
     if(numericKey) html += `<td>${n>0?'<span class="status status-aberto">ABERTO</span>':'<span class="status status-fechado">FECHADO</span>'}</td>`;
     html += '</tr>';
   });
-
   html += '</tbody></table>';
   return html;
 }
-
 // helper: get index of normalized key (or -1)
 function numericKeyIndex(headersNorm, key){ return headersNorm.indexOf(key); }
-
 function escapeHtml(s){
   if(s === undefined || s === null) return '';
   return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'<','>':'>','"':'&quot;',"'":'&#x27;','/':'&#x2F;'}[c]));
 }
-
 /* Contar status da programação — CORRIGIDA */
 function countStatusProgramacao(rowsObjects, statusCol) {
   let carregado = 0, embarque = 0, transito = 0, contratar = 0;
-  
   if(!statusCol) return {carregado, embarque, transito, contratar};
-  
   rowsObjects.forEach(obj => {
     const status = obj[statusCol] || '';
     const statusNorm = normalizeText(status); // Normaliza removendo acentos
-    
     if (statusNorm.includes('carregado')) {
       carregado++;
     } else if (statusNorm.includes('embarque') || statusNorm.includes('no embarque')) {
@@ -469,42 +420,32 @@ function countStatusProgramacao(rowsObjects, statusCol) {
       contratar++;
     }
   });
-  
   return {carregado, embarque, transito, contratar};
 }
-
 /* Extrair produto do texto (última parte após o último traço) */
 function extractProduto(text) {
   if(!text) return '';
   // Dividir por traços e pegar a última parte
   const parts = text.split('-');
   if(parts.length === 0) return '';
-  
   // Pegar a última parte e remover espaços
   let produto = parts[parts.length - 1].trim().toLowerCase();
-  
   // Remover possíveis números ou caracteres especiais no final
   produto = produto.replace(/[0-9\.\,\(\)\[\]]/g, '').trim();
-  
   return produto;
 }
-
 /* Extrair cliente e destino da coluna C (INFORMAÇÕES DO DESTINO) */
 function extractClienteDestino(text) {
   if(!text || text.trim() === '') return {cliente: '', destino: '', isValid: false};
-  
   const parts = text.split(' - ').map(part => part.trim());
   if(parts.length < 4) return {cliente: '', destino: '', isValid: false};
-  
   // O cliente é geralmente a segunda parte (índice 1)
   let cliente = '';
   let destino = '';
-  
   // Tentar identificar o cliente
   if(parts.length >= 2) {
     cliente = parts[1];
   }
-  
   // Identificar o destino (geralmente a quarta parte ou terceira)
   if(parts.length >= 4) {
     // Se a terceira parte for igual à segunda, o destino é a quarta parte
@@ -513,60 +454,45 @@ function extractClienteDestino(text) {
     } else {
       destino = parts[2];
     }
-    
     // Remover estado se estiver presente (ex: "MARAU - RS" -> "MARAU")
     if(destino.includes(' - ')) {
       destino = destino.split(' - ')[0];
     }
   }
-  
   // Verificar se conseguimos extrair informações válidas
   const isValid = cliente !== '' && destino !== '' && cliente !== 'undefined' && destino !== 'undefined';
-  
   return {cliente: cliente.trim(), destino: destino.trim(), isValid};
 }
-
 /* Extrair número do contrato da coluna C (primeiro número antes do primeiro traço) */
 function extractNumeroContrato(text) {
   if(!text) return '';
   const parts = text.split(' - ');
   if(parts.length === 0) return '';
-  
   // Pegar a primeira parte (antes do primeiro traço)
   let numeroContrato = parts[0].trim();
-  
   // Remover possíveis caracteres não numéricos
   numeroContrato = numeroContrato.replace(/\D/g, '');
-  
   return numeroContrato;
 }
-
 /* Extrair peso da coluna I da Programação (último número após o último traço, converter para KG) */
 function extractPesoProgramacao(text) {
   if(!text) return 0;
-  
   // Dividir por traços e pegar a última parte
   const parts = text.split('-');
   if(parts.length === 0) return 0;
-  
   // Pegar a última parte
   let ultimaParte = parts[parts.length - 1].trim();
-  
   // Extrair número (pode estar no formato "51 TON" ou "51TON")
   const match = ultimaParte.match(/(\d+\.?\d*)/);
   if(!match) return 0;
-  
   let toneladas = parseFloat(match[1]);
   if(isNaN(toneladas)) return 0;
-  
   // Converter para KG (1 tonelada = 1000 kg)
   return toneladas * 1000;
 }
-
 /* Calcular totais por produto - CORRIGIDA para considerar apenas registros com informações de destino */
 function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, destinoColIndex) {
   let soja = 0, milho = 0, sorgo = 0;
-  
   rowsObjects.forEach(obj => {
     // Verificar se tem informações na coluna C (destino)
     let destinoText = '';
@@ -575,13 +501,10 @@ function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, des
         destinoText = obj[destinoColIndex];
       }
     }
-    
     // Extrair informações do destino
     const {isValid} = extractClienteDestino(destinoText);
-    
     // Só considerar se tiver informações válidas de destino
     if(!isValid) return;
-    
     // Pegar o valor da coluna de produto (coluna B - índice 1)
     let produtoText = '';
     if(produtoColIndex !== -1) {
@@ -589,10 +512,8 @@ function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, des
         produtoText = obj[produtoColIndex];
       }
     }
-    
     // Extrair o produto
     const produto = extractProduto(produtoText);
-    
     // Pegar o peso (coluna J - índice 9)
     let pesoText = '';
     if(pesoColIndex !== -1) {
@@ -600,10 +521,8 @@ function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, des
         pesoText = obj[pesoColIndex];
       }
     }
-    
     const peso = parseNumber(pesoText);
     if(isNaN(peso)) return;
-    
     // Somar ao produto correspondente
     if(produto.includes('soja')) {
       soja += peso;
@@ -613,69 +532,23 @@ function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, des
       sorgo += peso;
     }
   });
-  
   return {soja, milho, sorgo};
 }
-
-/* Agrupar por Contrato - LÓGICA CORRIGIDA */
+/* Agrupar por Contrato - LÓGICA CORRIGIDA PARA PESO PENDENTE CONTRATO */
 async function groupByContract(rowsProg, destinoColIndex, produtoColIndex, pesoColIndex, placaColIndex, statusColIndex, rowsEntrega, headersNormEnt) {
   const grupos = {};
-  
-  // Primeiro, criar um mapa de contratos da aba de Entrega (coluna B = índice 1, coluna I = índice 8)
+  // Criar um mapa de contratos da aba de Entrega (coluna B = índice 1, coluna I = índice 8)
   const contratoMap = {};
   rowsEntrega.forEach(row => {
     if(Array.isArray(row) && row.length > 8) {
       const numContrato = row[1] ? String(row[1]).trim() : '';
       const saldoEnt = parseNumber(row[8]); // SALDO ENT. (KG)
-      
       if(numContrato && !isNaN(saldoEnt) && saldoEnt > 0) {
         contratoMap[numContrato] = saldoEnt;
       }
     }
   });
-  
-  // Criar um mapa para somar os pesos previstos por contrato (quando peso real estiver vazio)
-  const pesosPrevistosPorContrato = {};
-  
-  // Primeiro, calcular a soma dos pesos previstos para cada contrato
-  rowsProg.forEach(obj => {
-    // Extrair número do contrato da coluna C
-    let destinoText = '';
-    if(destinoColIndex !== -1) {
-      if(Array.isArray(obj) && obj[destinoColIndex] !== undefined) {
-        destinoText = obj[destinoColIndex];
-      }
-    }
-    
-    const numContrato = extractNumeroContrato(destinoText);
-    if(!numContrato) return;
-    
-    // Pegar peso real da coluna J (índice 9)
-    let pesoRealText = '';
-    if(Array.isArray(obj) && obj[9] !== undefined) {
-      pesoRealText = obj[9];
-    }
-    const pesoReal = parseNumber(pesoRealText) || 0;
-    
-    // Só considerar o peso previsto se o peso real estiver vazio
-    if(pesoReal === 0) {
-      // Pegar peso previsto da coluna I (índice 8)
-      let configVeiculoText = '';
-      if(Array.isArray(obj) && obj[8] !== undefined) {
-        configVeiculoText = obj[8];
-      }
-      const pesoPrevisto = extractPesoProgramacao(configVeiculoText);
-      
-      if(pesoPrevisto > 0) {
-        if(!pesosPrevistosPorContrato[numContrato]) {
-          pesosPrevistosPorContrato[numContrato] = 0;
-        }
-        pesosPrevistosPorContrato[numContrato] += pesoPrevisto;
-      }
-    }
-  });
-  
-  // Agora, processar cada linha da Programação para criar os cards
+  // Processar cada linha da Programação para criar os cards
   rowsProg.forEach(obj => {
     // Extrair cliente e destino da coluna C (índice 2)
     let destinoText = '';
@@ -684,18 +557,13 @@ async function groupByContract(rowsProg, destinoColIndex, produtoColIndex, pesoC
         destinoText = obj[destinoColIndex];
       }
     }
-    
     const {cliente, destino, isValid} = extractClienteDestino(destinoText);
-    
     // Extrair número do contrato da coluna C (primeiro número antes do primeiro traço)
     const numContrato = extractNumeroContrato(destinoText);
-    
     // Só processar se tivermos um número de contrato válido
     if(!numContrato) return;
-    
     // Criar chave única para o contrato
     const key = `contrato_${numContrato}`;
-    
     // Extrair produto da coluna B (índice 1)
     let produtoText = '';
     if(produtoColIndex !== -1) {
@@ -704,14 +572,12 @@ async function groupByContract(rowsProg, destinoColIndex, produtoColIndex, pesoC
       }
     }
     const produto = extractProduto(produtoText);
-    
     // Pegar peso real da coluna J (índice 9)
     let pesoRealText = '';
     if(Array.isArray(obj) && obj[9] !== undefined) {
       pesoRealText = obj[9];
     }
     const pesoReal = parseNumber(pesoRealText) || 0;
-    
     // Pegar placa da coluna H (índice 7)
     let placa = '';
     if(placaColIndex !== -1) {
@@ -719,7 +585,6 @@ async function groupByContract(rowsProg, destinoColIndex, produtoColIndex, pesoC
         placa = obj[placaColIndex];
       }
     }
-    
     // Pegar status da coluna STATUS (índice a ser determinado)
     let status = '';
     if(statusColIndex !== -1) {
@@ -727,11 +592,9 @@ async function groupByContract(rowsProg, destinoColIndex, produtoColIndex, pesoC
         status = obj[statusColIndex];
       }
     }
-    
     // Normalizar status para comparação
     const statusNorm = normalizeText(status);
     const isCarregado = statusNorm.includes('carregado');
-    
     // Inicializar grupo se não existir
     if(!grupos[key]) {
       grupos[key] = {
@@ -750,13 +613,11 @@ async function groupByContract(rowsProg, destinoColIndex, produtoColIndex, pesoC
         count: 0
       };
     }
-    
     // Atualizar valores gerais
     grupos[key].totalPeso += pesoReal;
     if(placa && placa.trim() !== '') {
       grupos[key].placas.add(placa.trim());
     }
-    
     // Separar por status
     if(isCarregado) {
       grupos[key].totalPesoCarregado += pesoReal;
@@ -769,23 +630,13 @@ async function groupByContract(rowsProg, destinoColIndex, produtoColIndex, pesoC
         grupos[key].placasPendentes.add(placa.trim());
       }
     }
-    
-    // Calcular peso pendente do contrato
+    // Buscar o peso pendente do contrato na aba de Entrega
     if(contratoMap[numContrato]) {
       grupos[key].pesoTotalContrato = contratoMap[numContrato];
-      
-      // Calcular peso pendente do contrato
-      // Peso pendente = Saldo do Contrato - Soma dos Pesos Previstos (para cargas sem peso real)
-      const pesoPrevistoTotal = pesosPrevistosPorContrato[numContrato] || 0;
-      grupos[key].pesoPendenteContrato = contratoMap[numContrato] - pesoPrevistoTotal;
-      
-      // Garantir que não seja negativo
-      grupos[key].pesoPendenteContrato = Math.max(0, grupos[key].pesoPendenteContrato);
+      grupos[key].pesoPendenteContrato = contratoMap[numContrato];
     }
-    
     grupos[key].count++;
   });
-  
   // Converter para array e formatar
   return Object.values(grupos).map(grupo => ({
     ...grupo,
@@ -802,7 +653,6 @@ async function groupByContract(rowsProg, destinoColIndex, produtoColIndex, pesoC
     placasPendentes: Array.from(grupo.placasPendentes)
   })).sort((a, b) => b.pesoTotalContrato - a.pesoTotalContrato); // Ordenar por peso do contrato decrescente
 }
-
 /* Atualizar o texto da última atualização */
 function updateLastUpdateTime() {
   const now = new Date();
@@ -813,19 +663,16 @@ function updateLastUpdateTime() {
     <span>Última atualização: ${timeString} - ${dateString}</span>
   `;
 }
-
 /* Formata número com separadores de milhar */
 function formatNumber(value) {
   if(isNaN(value)) return '0';
   return new Intl.NumberFormat('pt-BR').format(Math.round(value));
 }
-
 /* Gerar HTML para os cards de clientes (agora por contrato) */
 function buildClientesHTML(clientes) {
   if(clientes.length === 0) {
     return '<div class="empty">Nenhum contrato encontrado para hoje.</div>';
   }
-  
   let html = '';
   clientes.forEach(cliente => {
     // Definir cor do produto
@@ -837,7 +684,6 @@ function buildClientesHTML(clientes) {
     } else if(cliente.produto.includes('sorgo')) {
       corProduto = '#6b7280'; // Cinza para Sorgo
     }
-    
     html += `
       <div class="cliente-card">
         <h3 class="cliente-name">Contrato: ${escapeHtml(cliente.contrato)}</h3>
@@ -867,10 +713,8 @@ function buildClientesHTML(clientes) {
       </div>
     `;
   });
-  
   return html;
 }
-
 /* Atualizar o resumo de clientes */
 function updateClientesSummary(clientes) {
   const totalContratos = clientes.length;
@@ -878,12 +722,10 @@ function updateClientesSummary(clientes) {
   const totalPeso = clientes.reduce((sum, cliente) => sum + cliente.totalPeso, 0);
   const totalCaminhoesCarregados = clientes.reduce((sum, cliente) => sum + cliente.totalCaminhoesCarregados, 0);
   const totalCaminhoesPendentes = clientes.reduce((sum, cliente) => sum + cliente.totalCaminhoesPendentes, 0);
-  
   document.getElementById('clientesSummary').innerHTML = `
     ${totalContratos} contratos • ${totalCaminhoesCarregados} carregados • ${totalCaminhoesPendentes} pendentes • ${formatNumber(totalPeso)} KG
   `;
 }
-
 /* --- Main load function --- */
 async function loadAll(isAutoUpdate = false){
   try{
@@ -891,27 +733,21 @@ async function loadAll(isAutoUpdate = false){
     if(isAutoUpdate) {
       document.body.classList.add('updating');
     }
-    
     // ===== PROGRAMAÇÃO (agora em primeiro lugar) =====
     const prog = await fetchSheetByGid(GIDS.programacao);
     const rowsArrProg = prog.arrays;
     const headersOrigProg = prog.headersOrig;
     const headersNormProg = prog.headersNorm;
     const objsProg = prog.objects;
-
     // Encontrar a coluna "STATUS"
     const statusKey = headersNormProg.find(h => h.includes('status') && !h.includes('agendamento')) || null;
     const statusIndex = headersNormProg.indexOf(statusKey);
-    
     // Encontrar a coluna "FRETE EMPRESA"
     const freteEmpresaKey = headersNormProg.find(h => h.includes('freteempresa') || h.includes('frete') && h.includes('empresa')) || null;
-
     // find date key (fallback index 0)
     const dateKeyProg = findHeaderKey(headersNormProg, ['data','dataprogramacao','dataprog','dataentrega']) || headersNormProg[0] || null;
     const dateIndexProg = 0;
-
     const today = new Date(); const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
-
     const rowsArrProgFiltered = [];
     const rowsObjProgFiltered = [];
     for(let i=0;i<rowsArrProg.length;i++){
@@ -927,17 +763,14 @@ async function loadAll(isAutoUpdate = false){
         rowsObjProgFiltered.push(obj);
       }
     }
-
     // Buscar dados da aba de Entrega para cálculo de peso pendente de contrato
     const ent = await fetchSheetByGid(GIDS.entrega);
     const rowsArrEnt = ent.arrays;
     const headersOrigEnt = ent.headersOrig;
     const headersNormEnt = ent.headersNorm;
     const objsEnt = ent.objects;
-
     // Identificar a penúltima coluna para remoção
     let removedProg = [...REMOVED_COMMON.map(normalizeHeader), ...REMOVED_PROGRAMACAO.map(normalizeHeader)];
-    
     // Se tivermos colunas suficientes, remover a penúltima
     if(headersNormProg.length > 1) {
       // Encontrar a penúltima coluna visível (não removida)
@@ -947,25 +780,21 @@ async function loadAll(isAutoUpdate = false){
         removedProg.push(penultimaCol);
       }
     }
-
     // Contar status para os cards
     const statusCounts = countStatusProgramacao(rowsObjProgFiltered, statusKey);
     document.getElementById('count-carregado').textContent = statusCounts.carregado;
     document.getElementById('count-embarque').textContent = statusCounts.embarque;
     document.getElementById('count-transito').textContent = statusCounts.transito;
     document.getElementById('count-contratar').textContent = statusCounts.contratar;
-
     // Calcular totais por produto (coluna B = índice 1, coluna J = índice 9, coluna C = índice 2)
     const produtosTotais = calculateProdutosTotais(rowsArrProgFiltered, 1, 9, 2);
     document.getElementById('count-soja').textContent = formatNumber(produtosTotais.soja);
     document.getElementById('count-milho').textContent = formatNumber(produtosTotais.milho);
     document.getElementById('count-sorgo').textContent = formatNumber(produtosTotais.sorgo);
-
     // Agrupar por contrato com cálculo de peso pendente de contrato
     const clientes = await groupByContract(rowsArrProgFiltered, 2, 1, 9, 7, statusIndex, rowsArrEnt, headersNormEnt);
     document.getElementById('clientesContainer').innerHTML = buildClientesHTML(clientes);
     updateClientesSummary(clientes);
-
     // Build programacao table: remove removedProg columns, format status and currency
     const tableProgHTML = buildTableHTML(rowsArrProgFiltered, rowsObjProgFiltered, headersOrigProg, headersNormProg, {
       hiddenNorm: HIDDEN_COLS.map(normalizeHeader),
@@ -974,51 +803,39 @@ async function loadAll(isAutoUpdate = false){
       currencyCols: freteEmpresaKey ? [freteEmpresaKey] : [],
       statusCol: statusKey
     });
-
     document.getElementById('programacaoContent').innerHTML = tableProgHTML || '<div class="empty">Nenhuma programação para hoje.</div>';
-    
     // ===== LOTES DE ENTREGA =====
     // Procurar pela coluna "INFORMAÇÕES DESTINO"
     const infoDestinoKey = headersNormEnt.find(h => h.includes('informacoesdestino') || h.includes('informacaodestino') || h.includes('destino'));
-    
     // Procurar pela coluna "ID DESTINO"
     const idDestinoKey = headersNormEnt.find(h => h.includes('iddestino') || h.includes('id_destino'));
-    
     // Procurar pela coluna "SITUAÇÃO ENT"
     const situacaoEntKey = headersNormEnt.find(h => h.includes('situacaoent') || h.includes('situacao') || h.includes('situacaoentrega'));
-    
     // Procurar por possíveis colunas de contrato existentes
     const existingContratoKeys = headersNormEnt.filter(h => h.includes('contrato') || h.includes('ncontrato') || h.includes('numerocontrato'));
-    
     // Saldo Entrega (coluna I index 8) - also try to find header
     const saldoKeyEnt = findHeaderKey(headersNormEnt, ['saldoent','saldoentrega','saldoentkg']) || null;
     const saldoIndexEnt = 8;
-
     // Criar uma nova chave para o número do contrato
     const contratoKey = 'numero_contrato';
-    
     // Define as colunas que serão removidas do Lotes de Entrega
     const removedEnt = [...REMOVED_COMMON.map(normalizeHeader)];
-    
     // Adicionar INFORMAÇÕES DESTINO, ID DESTINO e SITUAÇÃO ENT às colunas removidas
     if(infoDestinoKey) removedEnt.push(infoDestinoKey);
     if(idDestinoKey) removedEnt.push(idDestinoKey);
     if(situacaoEntKey) removedEnt.push(situacaoEntKey);
-    
     // Remover todas as colunas existentes de contrato para evitar duplicação
     existingContratoKeys.forEach(key => {
       if(!removedEnt.includes(key)) {
         removedEnt.push(key);
       }
     });
-
     // build filtered rows: only saldo > 0
     const rowsObjEntFiltered = [];
     const rowsArrEntFiltered = [];
     for(let i=0;i<rowsArrEnt.length;i++){
       const arr = rowsArrEnt[i];
       let obj = {...objsEnt[i]} || {}; // Criar cópia para não modificar o original
-      
       // Extrair número do contrato de "INFORMAÇÕES DESTINO"
       let contratoNumero = '';
       if(infoDestinoKey && obj[infoDestinoKey]) {
@@ -1035,10 +852,8 @@ async function loadAll(isAutoUpdate = false){
           contratoNumero = arr[1];
         }
       }
-      
       // Adicionar o número do contrato ao objeto
       obj[contratoKey] = contratoNumero;
-
       // get saldo: prefer normalized header, else fallback to index 8
       let saldoVal = '';
       if(saldoKeyEnt && obj[saldoKeyEnt] !== undefined && obj[saldoKeyEnt] !== '') saldoVal = obj[saldoKeyEnt];
@@ -1049,48 +864,38 @@ async function loadAll(isAutoUpdate = false){
         rowsArrEntFiltered.push(arr);
       }
     }
-
     // Adicionar a nova coluna de contrato aos cabeçalhos
     if(!headersNormEnt.includes(contratoKey)) {
       headersNormEnt.push(contratoKey);
       headersOrigEnt.push('Nº CONTRATO');
     }
-
     // define removed and hidden for entrega
     const hiddenEnt = HIDDEN_COLS.map(normalizeHeader);
-
     // Forçar inclusão da coluna de contrato
     const forceIncludeEnt = [contratoKey];
-
     const tableEntHTML = buildTableHTML(rowsArrEntFiltered, rowsObjEntFiltered, headersOrigEnt, headersNormEnt, {
       hiddenNorm: hiddenEnt,
       removedNorm: removedEnt,
       numericKey: saldoKeyEnt || headersNormEnt[saldoIndexEnt] || '',
       forceInclude: forceIncludeEnt
     });
-
     document.getElementById('entregaContent').innerHTML = tableEntHTML || '<div class="empty">Nenhum lote de entrega em aberto.</div>';
-
     // ===== LOTES DE RETIRADA =====
     const ret = await fetchSheetByGid(GIDS.retirada);
     const rowsArrRet = ret.arrays;
     const headersOrigRet = ret.headersOrig;
     const headersNormRet = ret.headersNorm;
     const objsRet = ret.objects;
-
     // Remove INFORMAÇÕES ORIGEM from display: normalized key might be like 'informacoesdaorigem' etc
     const removedRet = [...REMOVED_COMMON.map(normalizeHeader)];
     // Also remove 'informacoesdaorigem' by trying to detect headers containing 'origem' or exact phrase
     const possOrigem = headersNormRet.find(h => h.includes('origem') && (h.includes('informacao') || h.includes('informacoes')));
     if(possOrigem) removedRet.push(possOrigem);
-
     // Hidden columns: nfp, royalties, safra (normalized)
     const hiddenRet = HIDDEN_COLS.map(normalizeHeader);
-
     // saldo retirada key detection fallback index (J -> index 9)
     const saldoKeyRet = findHeaderKey(headersNormRet, ['saldoret','saldoretkg','saldoretirada']) || null;
     const saldoIndexRet = 9;
-
     const rowsObjRetFiltered = [];
     const rowsArrRetFiltered = [];
     for(let i=0;i<rowsArrRet.length;i++){
@@ -1106,27 +911,21 @@ async function loadAll(isAutoUpdate = false){
         rowsArrRetFiltered.push(arr);
       }
     }
-
     const tableRetHTML = buildTableHTML(rowsArrRetFiltered, rowsObjRetFiltered, headersOrigRet, headersNormRet, {
       hiddenNorm: hiddenRet,
       removedNorm: removedRet,
       numericKey: saldoKeyRet || headersNormRet[saldoIndexRet] || ''
     });
-
     document.getElementById('retiradaContent').innerHTML = tableRetHTML || '<div class="empty">Nenhum lote de retirada em aberto.</div>';
-    
     // Inicialmente colapsar todas as seções
     document.getElementById('content-entrega').classList.add('collapsed');
     document.getElementById('content-retirada').classList.add('collapsed');
     document.getElementById('content-programacao').classList.add('collapsed');
-    
     document.getElementById('toggle-entrega').classList.add('collapsed');
     document.getElementById('toggle-retirada').classList.add('collapsed');
     document.getElementById('toggle-programacao').classList.add('collapsed');
-    
     // Atualizar o texto da última atualização
     updateLastUpdateTime();
-    
     // Remover classe de atualização
     document.body.classList.remove('updating');
   }
@@ -1136,38 +935,30 @@ async function loadAll(isAutoUpdate = false){
     document.getElementById('retiradaContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
     document.getElementById('programacaoContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
     document.getElementById('clientesContainer').innerHTML = '<div class="empty">Erro ao carregar dados dos contratos (ver console).</div>';
-    
     // Atualizar o texto da última atualização mesmo em caso de erro
     document.getElementById('lastUpdate').innerHTML = `
       <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
       <span>Erro na atualização - ${new Date().toLocaleTimeString('pt-BR')}</span>
     `;
-    
     document.body.classList.remove('updating');
   }
 }
-
 /* Toggle sections */
 function setupToggleHandlers() {
   document.getElementById('toggle-entrega').addEventListener('click', function() {
     toggleSection('entrega');
   });
-  
   document.getElementById('toggle-retirada').addEventListener('click', function() {
     toggleSection('retirada');
   });
-  
   document.getElementById('toggle-programacao').addEventListener('click', function() {
     toggleSection('programacao');
   });
 }
-
 function toggleSection(sectionId) {
   const content = document.getElementById(`content-${sectionId}`);
   const header = document.getElementById(`toggle-${sectionId}`);
-  
   const isCollapsed = content.classList.contains('collapsed');
-  
   if(isCollapsed) {
     content.classList.remove('collapsed');
     header.classList.remove('collapsed');
@@ -1176,37 +967,30 @@ function toggleSection(sectionId) {
     header.classList.add('collapsed');
   }
 }
-
 /* Configurar atualização automática */
 let autoUpdateInterval;
-
 function startAutoUpdate() {
   // Executar imediatamente ao carregar
   loadAll(true);
-  
   // Configurar intervalo para atualizações subsequentes (5 minutos)
   autoUpdateInterval = setInterval(() => {
     loadAll(true);
   }, AUTO_UPDATE_INTERVAL);
 }
-
 function stopAutoUpdate() {
   if(autoUpdateInterval) {
     clearInterval(autoUpdateInterval);
     autoUpdateInterval = null;
   }
 }
-
 /* init */
 document.getElementById('btnRefresh').addEventListener('click', () => {
   loadAll(false); // Atualização manual
 });
-
 // Setup toggle handlers and start auto update after DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
   setupToggleHandlers();
   startAutoUpdate();
-  
   // Adicionar evento de visibilidade para pausar/recuperar atualizações
   document.addEventListener('visibilitychange', function() {
     if(document.hidden) {
