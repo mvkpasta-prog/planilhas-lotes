@@ -526,6 +526,43 @@ function extractClienteDestino(text) {
   return {cliente: cliente.trim(), destino: destino.trim(), isValid};
 }
 
+/* Extrair número do contrato da coluna C (primeiro número antes do primeiro traço) */
+function extractNumeroContrato(text) {
+  if(!text) return '';
+  const parts = text.split(' - ');
+  if(parts.length === 0) return '';
+  
+  // Pegar a primeira parte (antes do primeiro traço)
+  let numeroContrato = parts[0].trim();
+  
+  // Remover possíveis caracteres não numéricos
+  numeroContrato = numeroContrato.replace(/\D/g, '');
+  
+  return numeroContrato;
+}
+
+/* Extrair peso da coluna I da Programação (último número após o último traço, converter para KG) */
+function extractPesoProgramacao(text) {
+  if(!text) return 0;
+  
+  // Dividir por traços e pegar a última parte
+  const parts = text.split('-');
+  if(parts.length === 0) return 0;
+  
+  // Pegar a última parte
+  let ultimaParte = parts[parts.length - 1].trim();
+  
+  // Extrair número (pode estar no formato "32 TON" ou "32TON")
+  const match = ultimaParte.match(/(\d+\.?\d*)/);
+  if(!match) return 0;
+  
+  let toneladas = parseFloat(match[1]);
+  if(isNaN(toneladas)) return 0;
+  
+  // Converter para KG (1 tonelada = 1000 kg)
+  return toneladas * 1000;
+}
+
 /* Calcular totais por produto - CORRIGIDA para considerar apenas registros com informações de destino */
 function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, destinoColIndex) {
   let soja = 0, milho = 0, sorgo = 0;
@@ -580,11 +617,25 @@ function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, des
   return {soja, milho, sorgo};
 }
 
-/* Agrupar clientes e destinos com separação por status - CORRIGIDA */
-function groupClientesDestinos(rowsObjects, destinoColIndex, produtoColIndex, pesoColIndex, placaColIndex, statusColIndex) {
+/* Agrupar clientes e destinos com separação por status e cálculo de peso pendente de contrato */
+async function groupClientesDestinosWithContractWeight(rowsProg, destinoColIndex, produtoColIndex, pesoColIndex, placaColIndex, statusColIndex, rowsEntrega) {
   const grupos = {};
   
-  rowsObjects.forEach(obj => {
+  // Primeiro, criar um mapa de contratos da aba de Entrega (coluna B = índice 1, coluna I = índice 8)
+  const contratoMap = {};
+  rowsEntrega.forEach(row => {
+    if(Array.isArray(row) && row.length > 8) {
+      const numContrato = row[1] ? String(row[1]).trim() : '';
+      const pesoTotalContrato = parseNumber(row[8]);
+      
+      if(numContrato && !isNaN(pesoTotalContrato)) {
+        contratoMap[numContrato] = pesoTotalContrato;
+      }
+    }
+  });
+  
+  // Processar cada linha da Programação
+  rowsProg.forEach(obj => {
     // Extrair cliente e destino da coluna C (índice 2)
     let destinoText = '';
     if(destinoColIndex !== -1) {
@@ -598,8 +649,7 @@ function groupClientesDestinos(rowsObjects, destinoColIndex, produtoColIndex, pe
     // Só processar se tiver informações válidas de cliente e destino
     if(!isValid || !cliente || !destino) return;
     
-    // Criar chave única para cliente + destino (isso garante que mesmo cliente com destinos diferentes fiquem em cards separados)
-    // Usando um separador que não deve aparecer nos nomes para garantir unicidade
+    // Criar chave única para cliente + destino
     const key = `${cliente}###${destino}`;
     
     // Extrair produto da coluna B (índice 1)
@@ -611,14 +661,24 @@ function groupClientesDestinos(rowsObjects, destinoColIndex, produtoColIndex, pe
     }
     const produto = extractProduto(produtoText);
     
-    // Pegar peso da coluna J (índice 9)
+    // Extrair número do contrato da coluna C (primeiro número antes do primeiro traço)
+    const numContrato = extractNumeroContrato(destinoText);
+    
+    // Pegar peso da coluna I da Programação (configuração de veículo)
+    let configVeiculoText = '';
+    if(Array.isArray(obj) && obj[8] !== undefined) { // Coluna I = índice 8
+      configVeiculoText = obj[8];
+    }
+    const pesoProgramacao = extractPesoProgramacao(configVeiculoText);
+    
+    // Pegar peso da coluna J (índice 9) - peso real carregado
     let pesoText = '';
     if(pesoColIndex !== -1) {
       if(Array.isArray(obj) && obj[pesoColIndex] !== undefined) {
         pesoText = obj[pesoColIndex];
       }
     }
-    const peso = parseNumber(pesoText) || 0;
+    const pesoCarregado = parseNumber(pesoText) || 0;
     
     // Pegar placa da coluna H (índice 7)
     let placa = '';
@@ -649,6 +709,8 @@ function groupClientesDestinos(rowsObjects, destinoColIndex, produtoColIndex, pe
         totalPeso: 0,
         totalPesoCarregado: 0,
         totalPesoPendente: 0,
+        pesoTotalContrato: 0,
+        pesoPendenteContrato: 0,
         placas: new Set(),
         placasCarregadas: new Set(),
         placasPendentes: new Set(),
@@ -657,22 +719,31 @@ function groupClientesDestinos(rowsObjects, destinoColIndex, produtoColIndex, pe
     }
     
     // Atualizar valores gerais
-    grupos[key].totalPeso += peso;
+    grupos[key].totalPeso += pesoCarregado;
     if(placa && placa.trim() !== '') {
       grupos[key].placas.add(placa.trim());
     }
     
     // Separar por status
     if(isCarregado) {
-      grupos[key].totalPesoCarregado += peso;
+      grupos[key].totalPesoCarregado += pesoCarregado;
       if(placa && placa.trim() !== '') {
         grupos[key].placasCarregadas.add(placa.trim());
       }
     } else {
-      grupos[key].totalPesoPendente += peso;
+      grupos[key].totalPesoPendente += pesoCarregado;
       if(placa && placa.trim() !== '') {
         grupos[key].placasPendentes.add(placa.trim());
       }
+    }
+    
+    // Se tivermos o número do contrato, calcular o peso pendente do contrato
+    if(numContrato && contratoMap[numContrato]) {
+      grupos[key].pesoTotalContrato = contratoMap[numContrato];
+      // O peso pendente do contrato é o total do contrato menos o peso já carregado
+      grupos[key].pesoPendenteContrato = contratoMap[numContrato] - grupos[key].totalPesoCarregado;
+      // Garantir que não seja negativo
+      grupos[key].pesoPendenteContrato = Math.max(0, grupos[key].pesoPendenteContrato);
     }
     
     grupos[key].count++;
@@ -684,6 +755,8 @@ function groupClientesDestinos(rowsObjects, destinoColIndex, produtoColIndex, pe
     totalPeso: Math.round(grupo.totalPeso),
     totalPesoCarregado: Math.round(grupo.totalPesoCarregado),
     totalPesoPendente: Math.round(grupo.totalPesoPendente),
+    pesoTotalContrato: Math.round(grupo.pesoTotalContrato),
+    pesoPendenteContrato: Math.round(grupo.pesoPendenteContrato),
     totalCaminhoes: grupo.placas.size,
     totalCaminhoesCarregados: grupo.placasCarregadas.size,
     totalCaminhoesPendentes: grupo.placasPendentes.size,
@@ -751,8 +824,8 @@ function buildClientesHTML(clientes) {
           <span class="info-value">${formatNumber(cliente.totalPesoCarregado)} KG</span>
         </div>
         <div class="cliente-info">
-          <span class="info-label">Peso Pendente:</span>
-          <span class="info-value">${formatNumber(cliente.totalPesoPendente)} KG</span>
+          <span class="info-label">Peso Pendente Contrato:</span>
+          <span class="info-value">${formatNumber(cliente.pesoPendenteContrato)} KG</span>
         </div>
       </div>
     `;
@@ -818,6 +891,10 @@ async function loadAll(isAutoUpdate = false){
       }
     }
 
+    // Buscar dados da aba de Entrega para cálculo de peso pendente de contrato
+    const ent = await fetchSheetByGid(GIDS.entrega);
+    const rowsArrEnt = ent.arrays;
+
     // Identificar a penúltima coluna para remoção
     let removedProg = [...REMOVED_COMMON.map(normalizeHeader), ...REMOVED_PROGRAMACAO.map(normalizeHeader)];
     
@@ -844,8 +921,8 @@ async function loadAll(isAutoUpdate = false){
     document.getElementById('count-milho').textContent = formatNumber(produtosTotais.milho);
     document.getElementById('count-sorgo').textContent = formatNumber(produtosTotais.sorgo);
 
-    // Agrupar clientes e destinos (coluna C = índice 2, coluna B = índice 1, coluna J = índice 9, coluna H = índice 7, coluna STATUS = índice statusIndex)
-    const clientes = groupClientesDestinos(rowsArrProgFiltered, 2, 1, 9, 7, statusIndex);
+    // Agrupar clientes e destinos com cálculo de peso pendente de contrato
+    const clientes = await groupClientesDestinosWithContractWeight(rowsArrProgFiltered, 2, 1, 9, 7, statusIndex, rowsArrEnt);
     document.getElementById('clientesContainer').innerHTML = buildClientesHTML(clientes);
     updateClientesSummary(clientes);
 
@@ -861,11 +938,44 @@ async function loadAll(isAutoUpdate = false){
     document.getElementById('programacaoContent').innerHTML = tableProgHTML || '<div class="empty">Nenhuma programação para hoje.</div>';
     
     // ===== LOTES DE ENTREGA =====
-    const ent = await fetchSheetByGid(GIDS.entrega);
-    const rowsArrEnt = ent.arrays;      // array of arrays
-    const headersOrigEnt = ent.headersOrig;
-    const headersNormEnt = ent.headersNorm;
-    const objsEnt = ent.objects;
+    const rowsArrEntFiltered = [];
+    const rowsObjEntFiltered = [];
+    for(let i=0;i<rowsArrEnt.length;i++){
+      const arr = rowsArrEnt[i];
+      let obj = {...ent.objects[i]} || {};
+      
+      // Extrair número do contrato de "INFORMAÇÕES DESTINO"
+      let contratoNumero = '';
+      const infoDestinoKey = headersNormEnt.find(h => h.includes('informacoesdestino') || h.includes('informacaodestino') || h.includes('destino'));
+      if(infoDestinoKey && obj[infoDestinoKey]) {
+        const valorDestino = obj[infoDestinoKey];
+        if(valorDestino.includes('-')) {
+          contratoNumero = valorDestino.split('-')[0].trim();
+        } else {
+          contratoNumero = valorDestino;
+        }
+      } else {
+        // Fallback: tentar pegar da coluna B (índice 1)
+        if(arr[1] !== undefined) {
+          contratoNumero = arr[1];
+        }
+      }
+      
+      // Adicionar o número do contrato ao objeto
+      obj['numero_contrato'] = contratoNumero;
+
+      // get saldo: prefer normalized header, else fallback to index 8
+      let saldoVal = '';
+      const saldoKeyEnt = findHeaderKey(headersNormEnt, ['saldoent','saldoentrega','saldoentkg']) || null;
+      const saldoIndexEnt = 8;
+      if(saldoKeyEnt && obj[saldoKeyEnt] !== undefined && obj[saldoKeyEnt] !== '') saldoVal = obj[saldoKeyEnt];
+      else if(arr[saldoIndexEnt] !== undefined) saldoVal = arr[saldoIndexEnt];
+      const n = parseNumber(saldoVal || '0');
+      if(!isNaN(n) && n > 0){
+        rowsObjEntFiltered.push(obj);
+        rowsArrEntFiltered.push(arr);
+      }
+    }
 
     // Procurar pela coluna "INFORMAÇÕES DESTINO"
     const infoDestinoKey = headersNormEnt.find(h => h.includes('informacoesdestino') || h.includes('informacaodestino') || h.includes('destino'));
@@ -900,44 +1010,6 @@ async function loadAll(isAutoUpdate = false){
         removedEnt.push(key);
       }
     });
-
-    // build filtered rows: only saldo > 0
-    const rowsObjEntFiltered = [];
-    const rowsArrEntFiltered = [];
-    for(let i=0;i<rowsArrEnt.length;i++){
-      const arr = rowsArrEnt[i];
-      let obj = {...objsEnt[i]} || {}; // Criar cópia para não modificar o original
-      
-      // Extrair número do contrato de "INFORMAÇÕES DESTINO"
-      let contratoNumero = '';
-      if(infoDestinoKey && obj[infoDestinoKey]) {
-        // Extrair o número antes do primeiro traço
-        const valorDestino = obj[infoDestinoKey];
-        if(valorDestino.includes('-')) {
-          contratoNumero = valorDestino.split('-')[0].trim();
-        } else {
-          contratoNumero = valorDestino;
-        }
-      } else {
-        // Fallback: tentar pegar da coluna B (índice 1)
-        if(arr[1] !== undefined) {
-          contratoNumero = arr[1];
-        }
-      }
-      
-      // Adicionar o número do contrato ao objeto
-      obj[contratoKey] = contratoNumero;
-
-      // get saldo: prefer normalized header, else fallback to index 8
-      let saldoVal = '';
-      if(saldoKeyEnt && obj[saldoKeyEnt] !== undefined && obj[saldoKeyEnt] !== '') saldoVal = obj[saldoKeyEnt];
-      else if(arr[saldoIndexEnt] !== undefined) saldoVal = arr[saldoIndexEnt];
-      const n = parseNumber(saldoVal || '0');
-      if(!isNaN(n) && n > 0){
-        rowsObjEntFiltered.push(obj);
-        rowsArrEntFiltered.push(arr);
-      }
-    }
 
     // Adicionar a nova coluna de contrato aos cabeçalhos
     if(!headersNormEnt.includes(contratoKey)) {
