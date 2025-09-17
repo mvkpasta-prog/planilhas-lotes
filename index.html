@@ -552,7 +552,7 @@ function extractPesoProgramacao(text) {
   // Pegar a última parte
   let ultimaParte = parts[parts.length - 1].trim();
   
-  // Extrair número (pode estar no formato "32 TON" ou "32TON")
+  // Extrair número (pode estar no formato "51 TON" ou "51TON")
   const match = ultimaParte.match(/(\d+\.?\d*)/);
   if(!match) return 0;
   
@@ -618,7 +618,7 @@ function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, des
 }
 
 /* Agrupar clientes e destinos com separação por status e cálculo de peso pendente de contrato */
-async function groupClientesDestinosWithContractWeight(rowsProg, destinoColIndex, produtoColIndex, pesoColIndex, placaColIndex, statusColIndex, rowsEntrega) {
+async function groupClientesDestinosWithContractWeight(rowsProg, destinoColIndex, produtoColIndex, pesoColIndex, placaColIndex, statusColIndex, rowsEntrega, headersNormEnt) {
   const grupos = {};
   
   // Primeiro, criar um mapa de contratos da aba de Entrega (coluna B = índice 1, coluna I = índice 8)
@@ -626,10 +626,10 @@ async function groupClientesDestinosWithContractWeight(rowsProg, destinoColIndex
   rowsEntrega.forEach(row => {
     if(Array.isArray(row) && row.length > 8) {
       const numContrato = row[1] ? String(row[1]).trim() : '';
-      const pesoTotalContrato = parseNumber(row[8]);
+      const saldoEnt = parseNumber(row[8]); // SALDO ENT. (KG)
       
-      if(numContrato && !isNaN(pesoTotalContrato)) {
-        contratoMap[numContrato] = pesoTotalContrato;
+      if(numContrato && !isNaN(saldoEnt)) {
+        contratoMap[numContrato] = saldoEnt;
       }
     }
   });
@@ -664,21 +664,19 @@ async function groupClientesDestinosWithContractWeight(rowsProg, destinoColIndex
     // Extrair número do contrato da coluna C (primeiro número antes do primeiro traço)
     const numContrato = extractNumeroContrato(destinoText);
     
-    // Pegar peso da coluna I da Programação (configuração de veículo)
+    // Pegar peso previsto da coluna I da Programação (configuração de veículo)
     let configVeiculoText = '';
     if(Array.isArray(obj) && obj[8] !== undefined) { // Coluna I = índice 8
       configVeiculoText = obj[8];
     }
-    const pesoProgramacao = extractPesoProgramacao(configVeiculoText);
+    const pesoPrevisto = extractPesoProgramacao(configVeiculoText);
     
-    // Pegar peso da coluna J (índice 9) - peso real carregado
-    let pesoText = '';
-    if(pesoColIndex !== -1) {
-      if(Array.isArray(obj) && obj[pesoColIndex] !== undefined) {
-        pesoText = obj[pesoColIndex];
-      }
+    // Pegar peso real da coluna J (índice 9)
+    let pesoRealText = '';
+    if(Array.isArray(obj) && obj[9] !== undefined) { // Coluna J = índice 9
+      pesoRealText = obj[9];
     }
-    const pesoCarregado = parseNumber(pesoText) || 0;
+    const pesoReal = parseNumber(pesoRealText) || 0;
     
     // Pegar placa da coluna H (índice 7)
     let placa = '';
@@ -719,29 +717,43 @@ async function groupClientesDestinosWithContractWeight(rowsProg, destinoColIndex
     }
     
     // Atualizar valores gerais
-    grupos[key].totalPeso += pesoCarregado;
+    grupos[key].totalPeso += pesoReal;
     if(placa && placa.trim() !== '') {
       grupos[key].placas.add(placa.trim());
     }
     
     // Separar por status
     if(isCarregado) {
-      grupos[key].totalPesoCarregado += pesoCarregado;
+      grupos[key].totalPesoCarregado += pesoReal;
       if(placa && placa.trim() !== '') {
         grupos[key].placasCarregadas.add(placa.trim());
       }
     } else {
-      grupos[key].totalPesoPendente += pesoCarregado;
+      grupos[key].totalPesoPendente += pesoReal;
       if(placa && placa.trim() !== '') {
         grupos[key].placasPendentes.add(placa.trim());
       }
     }
     
-    // Se tivermos o número do contrato, calcular o peso pendente do contrato
+    // Calcular peso pendente do contrato
+    // Só considerar o peso previsto se o peso real estiver vazio (0)
+    let pesoAConsiderar = 0;
+    if(pesoReal === 0 && pesoPrevisto > 0) {
+      pesoAConsiderar = pesoPrevisto;
+    }
+    
+    // Se tivermos o número do contrato e ele existir no mapa de contratos
     if(numContrato && contratoMap[numContrato]) {
       grupos[key].pesoTotalContrato = contratoMap[numContrato];
-      // O peso pendente do contrato é o total do contrato menos o peso já carregado
-      grupos[key].pesoPendenteContrato = contratoMap[numContrato] - grupos[key].totalPesoCarregado;
+      
+      // Calcular peso pendente do contrato
+      // Peso pendente = SALDO ENT. (KG) - peso já considerado (peso real ou previsto)
+      let pesoJaConsiderado = pesoReal;
+      if(pesoReal === 0 && pesoPrevisto > 0) {
+        pesoJaConsiderado = pesoPrevisto;
+      }
+      
+      grupos[key].pesoPendenteContrato = contratoMap[numContrato] - pesoJaConsiderado;
       // Garantir que não seja negativo
       grupos[key].pesoPendenteContrato = Math.max(0, grupos[key].pesoPendenteContrato);
     }
@@ -925,7 +937,7 @@ async function loadAll(isAutoUpdate = false){
     document.getElementById('count-sorgo').textContent = formatNumber(produtosTotais.sorgo);
 
     // Agrupar clientes e destinos com cálculo de peso pendente de contrato
-    const clientes = await groupClientesDestinosWithContractWeight(rowsArrProgFiltered, 2, 1, 9, 7, statusIndex, rowsArrEnt);
+    const clientes = await groupClientesDestinosWithContractWeight(rowsArrProgFiltered, 2, 1, 9, 7, statusIndex, rowsArrEnt, headersNormEnt);
     document.getElementById('clientesContainer').innerHTML = buildClientesHTML(clientes);
     updateClientesSummary(clientes);
 
