@@ -894,6 +894,9 @@ async function loadAll(isAutoUpdate = false){
     // Buscar dados da aba de Entrega para cálculo de peso pendente de contrato
     const ent = await fetchSheetByGid(GIDS.entrega);
     const rowsArrEnt = ent.arrays;
+    const headersOrigEnt = ent.headersOrig;
+    const headersNormEnt = ent.headersNorm;
+    const objsEnt = ent.objects;
 
     // Identificar a penúltima coluna para remoção
     let removedProg = [...REMOVED_COMMON.map(normalizeHeader), ...REMOVED_PROGRAMACAO.map(normalizeHeader)];
@@ -938,45 +941,6 @@ async function loadAll(isAutoUpdate = false){
     document.getElementById('programacaoContent').innerHTML = tableProgHTML || '<div class="empty">Nenhuma programação para hoje.</div>';
     
     // ===== LOTES DE ENTREGA =====
-    const rowsArrEntFiltered = [];
-    const rowsObjEntFiltered = [];
-    for(let i=0;i<rowsArrEnt.length;i++){
-      const arr = rowsArrEnt[i];
-      let obj = {...ent.objects[i]} || {};
-      
-      // Extrair número do contrato de "INFORMAÇÕES DESTINO"
-      let contratoNumero = '';
-      const infoDestinoKey = headersNormEnt.find(h => h.includes('informacoesdestino') || h.includes('informacaodestino') || h.includes('destino'));
-      if(infoDestinoKey && obj[infoDestinoKey]) {
-        const valorDestino = obj[infoDestinoKey];
-        if(valorDestino.includes('-')) {
-          contratoNumero = valorDestino.split('-')[0].trim();
-        } else {
-          contratoNumero = valorDestino;
-        }
-      } else {
-        // Fallback: tentar pegar da coluna B (índice 1)
-        if(arr[1] !== undefined) {
-          contratoNumero = arr[1];
-        }
-      }
-      
-      // Adicionar o número do contrato ao objeto
-      obj['numero_contrato'] = contratoNumero;
-
-      // get saldo: prefer normalized header, else fallback to index 8
-      let saldoVal = '';
-      const saldoKeyEnt = findHeaderKey(headersNormEnt, ['saldoent','saldoentrega','saldoentkg']) || null;
-      const saldoIndexEnt = 8;
-      if(saldoKeyEnt && obj[saldoKeyEnt] !== undefined && obj[saldoKeyEnt] !== '') saldoVal = obj[saldoKeyEnt];
-      else if(arr[saldoIndexEnt] !== undefined) saldoVal = arr[saldoIndexEnt];
-      const n = parseNumber(saldoVal || '0');
-      if(!isNaN(n) && n > 0){
-        rowsObjEntFiltered.push(obj);
-        rowsArrEntFiltered.push(arr);
-      }
-    }
-
     // Procurar pela coluna "INFORMAÇÕES DESTINO"
     const infoDestinoKey = headersNormEnt.find(h => h.includes('informacoesdestino') || h.includes('informacaodestino') || h.includes('destino'));
     
@@ -1010,6 +974,44 @@ async function loadAll(isAutoUpdate = false){
         removedEnt.push(key);
       }
     });
+
+    // build filtered rows: only saldo > 0
+    const rowsObjEntFiltered = [];
+    const rowsArrEntFiltered = [];
+    for(let i=0;i<rowsArrEnt.length;i++){
+      const arr = rowsArrEnt[i];
+      let obj = {...objsEnt[i]} || {}; // Criar cópia para não modificar o original
+      
+      // Extrair número do contrato de "INFORMAÇÕES DESTINO"
+      let contratoNumero = '';
+      if(infoDestinoKey && obj[infoDestinoKey]) {
+        // Extrair o número antes do primeiro traço
+        const valorDestino = obj[infoDestinoKey];
+        if(valorDestino.includes('-')) {
+          contratoNumero = valorDestino.split('-')[0].trim();
+        } else {
+          contratoNumero = valorDestino;
+        }
+      } else {
+        // Fallback: tentar pegar da coluna B (índice 1)
+        if(arr[1] !== undefined) {
+          contratoNumero = arr[1];
+        }
+      }
+      
+      // Adicionar o número do contrato ao objeto
+      obj[contratoKey] = contratoNumero;
+
+      // get saldo: prefer normalized header, else fallback to index 8
+      let saldoVal = '';
+      if(saldoKeyEnt && obj[saldoKeyEnt] !== undefined && obj[saldoKeyEnt] !== '') saldoVal = obj[saldoKeyEnt];
+      else if(arr[saldoIndexEnt] !== undefined) saldoVal = arr[saldoIndexEnt];
+      const n = parseNumber(saldoVal || '0');
+      if(!isNaN(n) && n > 0){
+        rowsObjEntFiltered.push(obj);
+        rowsArrEntFiltered.push(arr);
+      }
+    }
 
     // Adicionar a nova coluna de contrato aos cabeçalhos
     if(!headersNormEnt.includes(contratoKey)) {
