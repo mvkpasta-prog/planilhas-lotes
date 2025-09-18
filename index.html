@@ -16,6 +16,7 @@
     --produto-soja: #10b981; /* Verde para Soja */
     --produto-milho: #fbbf24; /* Amarelo para Milho */
     --produto-sorgo: #6b7280; /* Cinza para Sorgo */
+    --produto-total: #8b5cf6; /* Roxo para Total */
   }
   *{box-sizing:border-box}
   body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:12px}
@@ -47,6 +48,7 @@
   .produto-soja{border-top-color: var(--produto-soja);}
   .produto-milho{border-top-color: var(--produto-milho);}
   .produto-sorgo{border-top-color: var(--produto-sorgo);}
+  .produto-total{border-top-color: var(--produto-total);}
   /* Seção de Clientes e Destinos */
   .clientes-section{margin-bottom:24px}
   .clientes-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
@@ -125,48 +127,41 @@
       <div class="status-card status-card-carregado">
         <h3>CARREGADO</h3>
         <div class="count" id="count-carregado">0</div>
-        <div>Veículos</div>
       </div>
       <div class="status-card status-card-embarque">
         <h3>NO EMBARQUE</h3>
         <div class="count" id="count-embarque">0</div>
-        <div>Veículos</div>
       </div>
       <div class="status-card status-card-transito">
         <h3>EM TRÂNSITO</h3>
         <div class="count" id="count-transito">0</div>
-        <div>Veículos</div>
       </div>
       <div class="status-card status-card-contratar">
         <h3>CONTRATAR</h3>
         <div class="count" id="count-contratar">0</div>
-        <div>Veículos</div>
       </div>
     </div>
-    <!-- Cards de Produtos -->
+    <!-- Cards de Produtos + Total -->
     <div class="produto-cards">
       <div class="produto-card produto-soja">
         <h3>SOJA</h3>
-        <div class="count" id="count-soja">0</div>
-        <div>KG</div>
+        <div class="count" id="count-soja">0 KG</div>
       </div>
       <div class="produto-card produto-milho">
         <h3>MILHO</h3>
-        <div class="count" id="count-milho">0</div>
-        <div>KG</div>
+        <div class="count" id="count-milho">0 KG</div>
       </div>
       <div class="produto-card produto-sorgo">
         <h3>SORGO</h3>
-        <div class="count" id="count-sorgo">0</div>
-        <div>KG</div>
+        <div class="count" id="count-sorgo">0 KG</div>
+      </div>
+      <div class="produto-card produto-total">
+        <h3>TOTAL EMBARCADO</h3>
+        <div class="count" id="count-total">0 KG</div>
       </div>
     </div>
-    <!-- Seção de Clientes e Destinos -->
+    <!-- Seção de Clientes e Destinos (sem título nem resumo) -->
     <div class="clientes-section">
-      <div class="clientes-header">
-        <h2 class="clientes-title">🚚 Clientes e Destinos</h2>
-        <div class="clientes-summary" id="clientesSummary">Carregando...</div>
-      </div>
       <div class="clientes-container" id="clientesContainer">
         <!-- Os cards de clientes serão inseridos aqui dinamicamente -->
       </div>
@@ -578,8 +573,7 @@ function buildClientesHTML(clientes) {
     let saldoEntregaAjustado = cliente.saldoEntrega || 0;
     if(cliente.pesoEmTransitoEmbarque && !isNaN(cliente.pesoEmTransitoEmbarque)) {
       saldoEntregaAjustado -= cliente.pesoEmTransitoEmbarque;
-      // REMOVIDO: não mais forçar a zero se negativo
-      // if(saldoEntregaAjustado < 0) saldoEntregaAjustado = 0;
+      // Permitir saldo negativo
     }
     
     // Formatar saldo de entrega ajustado (pode ser negativo)
@@ -614,25 +608,9 @@ function buildClientesHTML(clientes) {
   return html;
 }
 
-/* Atualizar o resumo de clientes */
+/* Atualizar o resumo de clientes - REMOVIDO conforme solicitação */
 function updateClientesSummary(clientes) {
-  const totalContratos = clientes.length;
-  const totalCaminhoes = clientes.reduce((sum, cliente) => sum + (cliente.totalCaminhoes||0), 0);
-  const totalPeso = clientes.reduce((sum, cliente) => sum + (cliente.totalPeso||0), 0);
-  const totalCaminhoesCarregados = clientes.reduce((sum, cliente) => sum + (cliente.totalCaminhoesCarregados||0), 0);
-  const totalCaminhoesPendentes = clientes.reduce((sum, cliente) => sum + (cliente.totalCaminhoesPendentes||0), 0);
-  // Somar saldo de entrega total ajustado (pode ser negativo)
-  const totalSaldoEntregaAjustado = clientes.reduce((sum, cliente) => {
-    let saldoAjustado = (cliente.saldoEntrega || 0);
-    if(cliente.pesoEmTransitoEmbarque && !isNaN(cliente.pesoEmTransitoEmbarque)) {
-      saldoAjustado -= cliente.pesoEmTransitoEmbarque;
-      // REMOVIDO: não mais forçar a zero se negativo
-    }
-    return sum + saldoAjustado;
-  }, 0);
-  document.getElementById('clientesSummary').innerHTML = `
-    ${totalContratos} contratos • ${totalCaminhoesCarregados} carregados • ${totalCaminhoesPendentes} pendentes • ${formatNumber(totalPeso)} KG • Saldo: ${formatNumber(totalSaldoEntregaAjustado)} KG
-  `;
+  // Função intencionalmente deixada vazia - não exibimos mais o resumo
 }
 
 /* --- FUNÇÃO QUE AGRUPA POR CONTRATO --- */
@@ -924,9 +902,13 @@ async function loadAll(isAutoUpdate = false){
     document.getElementById('count-contratar').textContent = statusCounts.contratar;
     // Calcular totais por produto (coluna B = índice 1, coluna J = índice 9, coluna C = índice 2)
     const produtosTotais = calculateProdutosTotais(rowsArrProgFiltered, 1, 9, 2);
-    document.getElementById('count-soja').textContent = formatNumber(produtosTotais.soja);
-    document.getElementById('count-milho').textContent = formatNumber(produtosTotais.milho);
-    document.getElementById('count-sorgo').textContent = formatNumber(produtosTotais.sorgo);
+    // Atualizar cards de produto com "KG" ao lado
+    document.getElementById('count-soja').textContent = `${formatNumber(produtosTotais.soja)} KG`;
+    document.getElementById('count-milho').textContent = `${formatNumber(produtosTotais.milho)} KG`;
+    document.getElementById('count-sorgo').textContent = `${formatNumber(produtosTotais.sorgo)} KG`;
+    // Calcular e exibir TOTAL EMBARCADO
+    const totalEmbarcado = produtosTotais.soja + produtosTotais.milho + produtosTotais.sorgo;
+    document.getElementById('count-total').textContent = `${formatNumber(totalEmbarcado)} KG`;
     // Agrupar por contrato (usa rowsArrProgFiltered) - agora passando o índice da coluna I (8)
     // Primeiro: calcular peso em trânsito/embarque considerando TODAS as datas
     const clientesComPesoFuturo = await groupByContract(rowsArrProg, 2, 7, statusIndex, true);
@@ -946,7 +928,7 @@ async function loadAll(isAutoUpdate = false){
     });
     // Atualizar DOM: cards e resumo
     document.getElementById('clientesContainer').innerHTML = buildClientesHTML(clientesParaHoje);
-    updateClientesSummary(clientesParaHoje);
+    updateClientesSummary(clientesParaHoje); // Esta função está vazia agora
     // Build programacao table: remove removedProg columns, format status and currency
     let removedProg = [...REMOVED_COMMON.map(normalizeHeader), ...REMOVED_PROGRAMACAO.map(normalizeHeader)];
     // Se tivermos colunas suficientes, remover a penúltima
