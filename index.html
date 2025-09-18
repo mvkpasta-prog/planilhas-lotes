@@ -231,8 +231,7 @@ function normalizeText(text) {
 */
 function parseCSV(text){
   if(!text) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
-  const lines = text.split(/\r?
-/).filter(l => l.trim() !== '');
+  const lines = text.split(/\r?\n/).filter(l => l.trim() !== ''); // Corrigido: expressão regular válida
   if(lines.length === 0) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
   const parsed = lines.map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g,'').trim()));
   const headersOrig = parsed.shift().map(h => h||'');
@@ -534,26 +533,6 @@ function formatNumber(value) {
   if(isNaN(value)) return '0';
   return new Intl.NumberFormat('pt-BR').format(Math.round(value));
 }
-/* NOVA FUNÇÃO: Extrair peso da coluna I (ex: "LS - 6 EIXOS - 32 TON") */
-function extractWeightFromColumnI(text) {
-  if(!text || text.trim() === '') return 0;
-  // Dividir por traços e pegar a última parte
-  const parts = text.split('-');
-  if(parts.length === 0) return 0;
-  
-  // Pegar a última parte
-  let lastPart = parts[parts.length - 1].trim();
-  
-  // Extrair o número da última parte (antes de "TON" ou qualquer outra unidade)
-  const match = lastPart.match(/(\d+)/);
-  if(match && match[1]) {
-    const tons = parseInt(match[1], 10);
-    // Converter para KG (1 ton = 1000 kg)
-    return tons * 1000;
-  }
-  
-  return 0;
-}
 /* Gerar HTML para os cards de clientes (agora por contrato) */
 function buildClientesHTML(clientes) {
   if(clientes.length === 0) {
@@ -571,17 +550,8 @@ function buildClientesHTML(clientes) {
     } else if(produtoUp.includes('SORGO')) {
       corProduto = '#6b7280'; // Cinza para Sorgo
     }
-    
-    // Calcular o saldo ajustado (subtrair peso de veículos em trânsito/embarque)
-    let saldoEntregaAjustado = cliente.saldoEntrega || 0;
-    if(cliente.pesoEmTransitoEmbarque && !isNaN(cliente.pesoEmTransitoEmbarque)) {
-      saldoEntregaAjustado -= cliente.pesoEmTransitoEmbarque;
-      if(saldoEntregaAjustado < 0) saldoEntregaAjustado = 0; // Não permitir saldo negativo
-    }
-    
-    // Formatar saldo de entrega ajustado
-    const saldoEntregaDisplay = !isNaN(saldoEntregaAjustado) ? `${formatNumber(saldoEntregaAjustado)} KG` : '0 KG';
-    
+    // Formatar saldo de entrega (se existir)
+    const saldoEntregaDisplay = cliente.saldoEntrega && !isNaN(cliente.saldoEntrega) ? `${formatNumber(cliente.saldoEntrega)} KG` : '0 KG';
     html += `
       <div class="cliente-card">
         <h3 class="cliente-name">Contrato: ${escapeHtml(cliente.contrato)}</h3>
@@ -604,11 +574,6 @@ function buildClientesHTML(clientes) {
           <span class="info-label">Saldo Entrega:</span>
           <span class="info-value">${escapeHtml(saldoEntregaDisplay)}</span>
         </div>
-        ${cliente.pesoEmTransitoEmbarque && cliente.pesoEmTransitoEmbarque > 0 ? 
-          `<div class="cliente-info" style="margin-top: 6px; font-size: 12px; color: #ef4444;">
-            <span class="info-label">Peso em Trânsito/Embarque:</span>
-            <span class="info-value">${formatNumber(cliente.pesoEmTransitoEmbarque)} KG</span>
-          </div>` : ''}
       </div>
     `;
   });
@@ -621,21 +586,14 @@ function updateClientesSummary(clientes) {
   const totalPeso = clientes.reduce((sum, cliente) => sum + (cliente.totalPeso||0), 0);
   const totalCaminhoesCarregados = clientes.reduce((sum, cliente) => sum + (cliente.totalCaminhoesCarregados||0), 0);
   const totalCaminhoesPendentes = clientes.reduce((sum, cliente) => sum + (cliente.totalCaminhoesPendentes||0), 0);
-  // Somar saldo de entrega total ajustado
-  const totalSaldoEntregaAjustado = clientes.reduce((sum, cliente) => {
-    let saldoAjustado = (cliente.saldoEntrega || 0);
-    if(cliente.pesoEmTransitoEmbarque && !isNaN(cliente.pesoEmTransitoEmbarque)) {
-      saldoAjustado -= cliente.pesoEmTransitoEmbarque;
-      if(saldoAjustado < 0) saldoAjustado = 0;
-    }
-    return sum + saldoAjustado;
-  }, 0);
+  // opcional: somar saldo de entrega total
+  const totalSaldoEntrega = clientes.reduce((sum, cliente) => sum + ((cliente.saldoEntrega && !isNaN(cliente.saldoEntrega)) ? cliente.saldoEntrega : 0), 0);
   document.getElementById('clientesSummary').innerHTML = `
-    ${totalContratos} contratos • ${totalCaminhoesCarregados} carregados • ${totalCaminhoesPendentes} pendentes • ${formatNumber(totalPeso)} KG • Saldo: ${formatNumber(totalSaldoEntregaAjustado)} KG
+    ${totalContratos} contratos • ${totalCaminhoesCarregados} carregados • ${totalCaminhoesPendentes} pendentes • ${formatNumber(totalPeso)} KG • Saldo: ${formatNumber(totalSaldoEntrega)} KG
   `;
 }
 /* --- FUNÇÃO QUE AGRUPA POR CONTRATO --- */
-async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusColIndex, pesoColunaIIndex) {
+async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusColIndex) {
   const grupos = {};
   // Processar cada linha da Programação
   rowsProg.forEach(arr => {
@@ -673,9 +631,6 @@ async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusC
     }
     const statusNorm = normalizeText(status);
     const isCarregado = statusNorm.includes('carregado');
-    const isEmbarque = statusNorm.includes('embarque') || statusNorm.includes('no embarque');
-    const isTransito = statusNorm.includes('transito') || statusNorm.includes('em transito');
-    
     // Inicializar grupo se não existir
     if(!grupos[key]) {
       grupos[key] = {
@@ -689,8 +644,7 @@ async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusC
         placas: new Set(),
         placasCarregadas: new Set(),
         placasPendentes: new Set(),
-        count: 0,
-        pesoEmTransitoEmbarque: 0 // Novo campo para armazenar peso em trânsito/embarque
+        count: 0
       };
     }
     // Atualizar valores gerais
@@ -711,16 +665,6 @@ async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusC
       }
     }
     grupos[key].count++;
-    
-    // Se estiver em trânsito ou no embarque, extrair peso da coluna I e somar
-    if(isEmbarque || isTransito) {
-      let textoColunaI = '';
-      if(pesoColunaIIndex !== -1 && Array.isArray(arr) && arr[pesoColunaIIndex] !== undefined) {
-        textoColunaI = arr[pesoColunaIIndex];
-      }
-      const pesoExtraido = extractWeightFromColumnI(textoColunaI);
-      grupos[key].pesoEmTransitoEmbarque += pesoExtraido;
-    }
   });
   // Converter para array e formatar
   return Object.values(grupos).map(grupo => ({
@@ -733,8 +677,7 @@ async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusC
     totalCaminhoesPendentes: grupo.placasPendentes.size,
     placas: Array.from(grupo.placas),
     placasCarregadas: Array.from(grupo.placasCarregadas),
-    placasPendentes: Array.from(grupo.placasPendentes),
-    pesoEmTransitoEmbarque: Math.round(grupo.pesoEmTransitoEmbarque) // Arredondar para exibição
+    placasPendentes: Array.from(grupo.placasPendentes)
   })).sort((a, b) => b.totalPeso - a.totalPeso); // Ordenar por peso total decrescente
 }
 /* --- Main load function --- */
@@ -912,8 +855,8 @@ async function loadAll(isAutoUpdate = false){
     document.getElementById('count-soja').textContent = formatNumber(produtosTotais.soja);
     document.getElementById('count-milho').textContent = formatNumber(produtosTotais.milho);
     document.getElementById('count-sorgo').textContent = formatNumber(produtosTotais.sorgo);
-    // Agrupar por contrato (usa rowsArrProgFiltered) - agora passando o índice da coluna I (8)
-    const clientes = await groupByContract(rowsArrProgFiltered, 2, 7, statusIndex, 8);
+    // Agrupar por contrato (usa rowsArrProgFiltered)
+    const clientes = await groupByContract(rowsArrProgFiltered, 2, 7, statusIndex);
     // --- AQUI: AMARRAR O SALDO DA ABA ENTREGA AO CONTRATO DOS CARDS ---
     // Note: groupByContract cria cliente.contrato já apenas com dígitos (mesma normalização)
     clientes.forEach(c => {
