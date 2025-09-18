@@ -56,6 +56,7 @@
   .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all 0.3s ease}
   .cliente-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
   .cliente-name{font-weight:700;font-size:15px;color:var(--text);margin:0 0 6px 0}
+  .cliente-contrato{font-weight:600;color:var(--primary);margin:0 0 8px 0;font-size:14px}
   .cliente-destino{font-weight:600;color:var(--accent);margin:0 0 10px 0;font-size:13px}
   .cliente-info{display:flex;justify-content:space-between;margin-bottom:6px;align-items:center}
   .info-label{font-weight:600;color:var(--muted);font-size:12px}
@@ -577,20 +578,17 @@ function buildClientesHTML(clientes) {
     let saldoEntregaAjustado = cliente.saldoEntrega || 0;
     if(cliente.pesoEmTransitoEmbarque && !isNaN(cliente.pesoEmTransitoEmbarque)) {
       saldoEntregaAjustado -= cliente.pesoEmTransitoEmbarque;
-      if(saldoEntregaAjustado < 0) saldoEntregaAjustado = 0; // Não permitir saldo negativo
+      // REMOVIDO: não mais forçar a zero se negativo
+      // if(saldoEntregaAjustado < 0) saldoEntregaAjustado = 0;
     }
     
-    // Formatar saldo de entrega ajustado
+    // Formatar saldo de entrega ajustado (pode ser negativo)
     const saldoEntregaDisplay = !isNaN(saldoEntregaAjustado) ? `${formatNumber(saldoEntregaAjustado)} KG` : '0 KG';
     
     html += `
       <div class="cliente-card">
-        <h3 class="cliente-name">Contrato: ${escapeHtml(cliente.contrato)}</h3>
-        <div class="cliente-destino">${escapeHtml(cliente.cliente)} - ${escapeHtml(cliente.destino)}</div>
-        <div class="cliente-info">
-          <span class="info-label">Produto:</span>
-          <span class="cliente-produto" style="background-color: ${corProduto}; color: white;">${escapeHtml(cliente.produto)}</span>
-        </div>
+        <h3 class="cliente-name">${escapeHtml(cliente.cliente)} - ${escapeHtml(cliente.destino)}</h3>
+        <div class="cliente-contrato">Contrato: ${escapeHtml(cliente.contrato)} <span class="cliente-produto" style="background-color: ${corProduto}; color: white; margin-left: 8px;">${escapeHtml(cliente.produto)}</span></div>
         <div class="caminhoes-info">
           <div class="caminhoes-separados">
             <span class="status-carregado-tag">Carregados: ${cliente.totalCaminhoesCarregados}</span>
@@ -602,7 +600,7 @@ function buildClientesHTML(clientes) {
           <span class="info-value">${formatNumber(cliente.totalPesoCarregado)} KG</span>
         </div>
         <div class="cliente-info" style="margin-top: 6px;">
-          <span class="info-label">Saldo Entrega:</span>
+          <span class="info-label">Saldo a entregar:</span>
           <span class="info-value">${escapeHtml(saldoEntregaDisplay)}</span>
         </div>
         ${cliente.pesoEmTransitoEmbarque && cliente.pesoEmTransitoEmbarque > 0 ? 
@@ -623,12 +621,12 @@ function updateClientesSummary(clientes) {
   const totalPeso = clientes.reduce((sum, cliente) => sum + (cliente.totalPeso||0), 0);
   const totalCaminhoesCarregados = clientes.reduce((sum, cliente) => sum + (cliente.totalCaminhoesCarregados||0), 0);
   const totalCaminhoesPendentes = clientes.reduce((sum, cliente) => sum + (cliente.totalCaminhoesPendentes||0), 0);
-  // Somar saldo de entrega total ajustado
+  // Somar saldo de entrega total ajustado (pode ser negativo)
   const totalSaldoEntregaAjustado = clientes.reduce((sum, cliente) => {
     let saldoAjustado = (cliente.saldoEntrega || 0);
     if(cliente.pesoEmTransitoEmbarque && !isNaN(cliente.pesoEmTransitoEmbarque)) {
       saldoAjustado -= cliente.pesoEmTransitoEmbarque;
-      if(saldoAjustado < 0) saldoAjustado = 0;
+      // REMOVIDO: não mais forçar a zero se negativo
     }
     return sum + saldoAjustado;
   }, 0);
