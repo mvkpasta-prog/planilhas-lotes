@@ -638,10 +638,23 @@ function updateClientesSummary(clientes) {
 }
 
 /* --- FUNÇÃO QUE AGRUPA POR CONTRATO --- */
-async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusColIndex) {
+async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusColIndex, includeFutureDates = false) {
   const grupos = {};
-  // Processar cada linha da Programação
-  rowsProg.forEach(arr => {
+  // Se includeFutureDates for false, filtramos apenas por data de hoje
+  let rowsToProcess = rowsProg;
+  if (!includeFutureDates) {
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+    const dateIndexProg = 0; // assumindo que a data está na primeira coluna
+    rowsToProcess = rowsProg.filter(arr => {
+      let dtVal = '';
+      if(arr && arr[dateIndexProg] !== undefined) dtVal = arr[dateIndexProg];
+      const dt = parseDateOnly(dtVal);
+      return dt && dt.getTime() === todayStart;
+    });
+  }
+  // Processar cada linha
+  rowsToProcess.forEach(arr => {
     // Extrair informações da coluna C (índice fornecido)
     let destinoText = '';
     if(destinoColIndex !== -1) {
@@ -917,17 +930,25 @@ async function loadAll(isAutoUpdate = false){
     document.getElementById('count-milho').textContent = formatNumber(produtosTotais.milho);
     document.getElementById('count-sorgo').textContent = formatNumber(produtosTotais.sorgo);
     // Agrupar por contrato (usa rowsArrProgFiltered) - agora passando o índice da coluna I (8)
-    const clientes = await groupByContract(rowsArrProgFiltered, 2, 7, statusIndex);
+    // Primeiro: calcular peso em trânsito/embarque considerando TODAS as datas
+    const clientesComPesoFuturo = await groupByContract(rowsArrProg, 2, 7, statusIndex, true);
+    // Segundo: agrupar apenas para hoje (para exibição)
+    const clientesParaHoje = await groupByContract(rowsArrProgFiltered, 2, 7, statusIndex, false);
     // --- AQUI: AMARRAR O SALDO DA ABA ENTREGA AO CONTRATO DOS CARDS ---
     // Note: groupByContract cria cliente.contrato já apenas com dígitos (mesma normalização)
-    clientes.forEach(c => {
+    clientesParaHoje.forEach(c => {
       // normalizar chave tal qual fizemos ao criar saldoPorContrato
       const key = String(c.contrato || '').replace(/\D/g,'').trim() || String(c.contrato||'').trim();
       c.saldoEntrega = saldoPorContrato[key] || 0;
+      // Buscar o peso em trânsito/embarque calculado com todas as datas
+      const clienteFuturo = clientesComPesoFuturo.find(cf => cf.contrato === c.contrato);
+      if(clienteFuturo) {
+        c.pesoEmTransitoEmbarque = clienteFuturo.pesoEmTransitoEmbarque || 0;
+      }
     });
     // Atualizar DOM: cards e resumo
-    document.getElementById('clientesContainer').innerHTML = buildClientesHTML(clientes);
-    updateClientesSummary(clientes);
+    document.getElementById('clientesContainer').innerHTML = buildClientesHTML(clientesParaHoje);
+    updateClientesSummary(clientesParaHoje);
     // Build programacao table: remove removedProg columns, format status and currency
     let removedProg = [...REMOVED_COMMON.map(normalizeHeader), ...REMOVED_PROGRAMACAO.map(normalizeHeader)];
     // Se tivermos colunas suficientes, remover a penúltima
