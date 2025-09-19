@@ -248,8 +248,8 @@ function normalizeText(text) {
 */
 function parseCSV(text){
   if(!text) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
-  const lines = text.split(/\r?
-/).filter(l => l.trim() !== ''); // Corrigido
+  // Corrigido: Expressão regular válida para dividir linhas
+  const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
   if(lines.length === 0) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
   const parsed = lines.map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g,'').trim()));
   const headersOrig = parsed.shift().map(h => h||'');
