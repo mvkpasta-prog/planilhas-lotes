@@ -16,39 +16,63 @@
     --produto-soja: #10b981; /* Verde para Soja */
     --produto-milho: #fbbf24; /* Amarelo para Milho */
     --produto-sorgo: #6b7280; /* Cinza para Sorgo */
-    --produto-total: #8b5cf6; /* Roxo para Total */
   }
   *{box-sizing:border-box}
   body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:12px}
-  header{background:linear-gradient(90deg,var(--primary),var(--accent));color:white;padding:12px;border-radius:8px;margin-bottom:16px;text-align:center;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px}
+  header{
+    background:linear-gradient(90deg,var(--primary),var(--accent));
+    color:white;
+    padding:12px;
+    border-radius:8px;
+    margin-bottom:16px;
+    text-align:center;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    position: relative;
+  }
+  .header-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .last-update-top {
+    font-size: 12px;
+    color: rgba(255,255,255,0.9);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .last-update-top i {
+    animation: spin 2s linear infinite;
+  }
+  @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
   .wrap{max-width:1400px;margin:0 auto;width:100%}
   .actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px}
   .btn{background:var(--primary);color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px}
   .btn:hover{opacity:.95}
-  .last-update{color:var(--muted);font-size:12px;display:flex;align-items:center;gap:6px}
-  .last-update i{font-size:14px;animation:spin 2s linear infinite}
-  @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-  .updating .last-update i{animation:spin 1s linear infinite}
-  /* Cards de Status no topo - versão compacta */
+  .updating .last-update-top i{animation:spin 1s linear infinite}
+  /* Cards de Status no topo - versão compacta (ligeiramente menores) */
   .status-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
-  .status-card{background:var(--card);border-radius:8px;padding:12px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:160px;text-align:center;transition:all 0.3s ease}
+  .status-card{background:var(--card);border-radius:8px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:150px;text-align:center;transition:all 0.3s ease}
   .status-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
   .status-card h3{margin:0 0 6px 0;font-size:14px;color:var(--text);font-weight:600}
-  .status-card .count{font-size:24px;font-weight:700;margin:6px 0}
+  .status-card .count{font-size:22px;font-weight:700;margin:6px 0}
   .status-card-carregado{border-top:3px solid var(--status-carregado);}
   .status-card-embarque{border-top:3px solid var(--status-embarque);}
   .status-card-transito{border-top:3px solid var(--status-transito);}
   .status-card-contratar{border-top:3px solid var(--status-contratar);}
-  /* Cards de Produtos - versão compacta */
+  /* Cards de Produtos - versão compacta (ligeiramente menores) */
   .produto-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
-  .produto-card{background:var(--card);border-radius:8px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:150px;text-align:center;transition:all 0.3s ease;border-top:3px solid transparent}
+  .produto-card{background:var(--card);border-radius:8px;padding:8px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:140px;text-align:center;transition:all 0.3s ease;border-top:3px solid transparent}
   .produto-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
   .produto-card h3{margin:0 0 4px 0;font-size:13px;color:var(--text);font-weight:600}
-  .produto-card .count{font-size:20px;font-weight:700;margin:4px 0}
+  .produto-card .count{font-size:18px;font-weight:700;margin:4px 0}
   .produto-soja{border-top-color: var(--produto-soja);}
   .produto-milho{border-top-color: var(--produto-milho);}
   .produto-sorgo{border-top-color: var(--produto-sorgo);}
-  .produto-total{border-top-color: var(--produto-total);}
   /* Seção de Clientes e Destinos */
   .clientes-section{margin-bottom:24px}
   .clientes-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
@@ -57,8 +81,7 @@
   .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px}
   .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all 0.3s ease}
   .cliente-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
-  .cliente-name{font-weight:700;font-size:15px;color:var(--text);margin:0 0 6px 0}
-  .cliente-contrato{font-weight:600;color:var(--primary);margin:0 0 8px 0;font-size:14px}
+  .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 6px 0} /* AUMENTADO DE 15px para 16px */
   .cliente-destino{font-weight:600;color:var(--accent);margin:0 0 10px 0;font-size:13px}
   .cliente-info{display:flex;justify-content:space-between;margin-bottom:6px;align-items:center}
   .info-label{font-weight:600;color:var(--muted);font-size:12px}
@@ -109,19 +132,18 @@
 </style>
 </head>
 <body>
-  <!-- Cabeçalho com imagem PNG do GitHub -->
+  <!-- Cabeçalho com imagem PNG do GitHub e última atualização -->
   <header>
-    <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height: 22px; vertical-align: middle; margin-right: 8px;">
-    Controle de Lotes — Entrega & Retirada
+    <div class="header-title">
+      <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height: 22px; vertical-align: middle; margin-right: 8px;">
+      Controle de Lotes — Entrega & Retirada
+    </div>
+    <div class="last-update-top" id="lastUpdateTop">
+      <i class="fas fa-circle-notch"></i>
+      <span>Atualizando...</span>
+    </div>
   </header>
   <div class="wrap">
-    <div class="actions">
-      <button id="btnRefresh" class="btn"><i class="fas fa-sync-alt"></i> Atualizar</button>
-      <div class="last-update" id="lastUpdate">
-        <i class="fas fa-circle-notch"></i>
-        <span>Atualizando...</span>
-      </div>
-    </div>
     <!-- Cards de Status -->
     <div class="status-cards">
       <div class="status-card status-card-carregado">
@@ -141,7 +163,7 @@
         <div class="count" id="count-contratar">0</div>
       </div>
     </div>
-    <!-- Cards de Produtos + Total -->
+    <!-- Cards de Produtos -->
     <div class="produto-cards">
       <div class="produto-card produto-soja">
         <h3>SOJA</h3>
@@ -154,10 +176,6 @@
       <div class="produto-card produto-sorgo">
         <h3>SORGO</h3>
         <div class="count" id="count-sorgo">0 KG</div>
-      </div>
-      <div class="produto-card produto-total">
-        <h3>TOTAL EMBARCADO</h3>
-        <div class="count" id="count-total">0 KG</div>
       </div>
     </div>
     <!-- Seção de Clientes e Destinos (sem título nem resumo) -->
@@ -227,7 +245,7 @@ function normalizeText(text) {
 */
 function parseCSV(text){
   if(!text) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
-  const lines = text.split(/\r?\n/).filter(l => l.trim() !== ''); // Corrigido: expressão regular válida
+  const lines = text.split(/\r?\n/).filter(l => l.trim() !== ''); // Corrigido
   if(lines.length === 0) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
   const parsed = lines.map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g,'').trim()));
   const headersOrig = parsed.shift().map(h => h||'');
@@ -514,13 +532,13 @@ function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, des
   });
   return {soja, milho, sorgo};
 }
-/* Atualizar o texto da última atualização */
+/* Atualizar o texto da última atualização (no topo) */
 function updateLastUpdateTime() {
   const now = new Date();
   const timeString = now.toLocaleTimeString('pt-BR');
   const dateString = now.toLocaleDateString('pt-BR');
-  document.getElementById('lastUpdate').innerHTML = `
-    <i class="fas fa-check-circle" style="color: #10b981;"></i>
+  document.getElementById('lastUpdateTop').innerHTML = `
+    <i class="fas fa-check-circle" style="color: rgba(255,255,255,0.9);"></i>
     <span>Última atualização: ${timeString} - ${dateString}</span>
   `;
 }
@@ -906,9 +924,6 @@ async function loadAll(isAutoUpdate = false){
     document.getElementById('count-soja').textContent = `${formatNumber(produtosTotais.soja)} KG`;
     document.getElementById('count-milho').textContent = `${formatNumber(produtosTotais.milho)} KG`;
     document.getElementById('count-sorgo').textContent = `${formatNumber(produtosTotais.sorgo)} KG`;
-    // Calcular e exibir TOTAL EMBARCADO
-    const totalEmbarcado = produtosTotais.soja + produtosTotais.milho + produtosTotais.sorgo;
-    document.getElementById('count-total').textContent = `${formatNumber(totalEmbarcado)} KG`;
     // Agrupar por contrato (usa rowsArrProgFiltered) - agora passando o índice da coluna I (8)
     // Primeiro: calcular peso em trânsito/embarque considerando TODAS as datas
     const clientesComPesoFuturo = await groupByContract(rowsArrProg, 2, 7, statusIndex, true);
@@ -968,9 +983,9 @@ async function loadAll(isAutoUpdate = false){
     document.getElementById('retiradaContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
     document.getElementById('programacaoContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
     document.getElementById('clientesContainer').innerHTML = '<div class="empty">Erro ao carregar dados dos contratos (ver console).</div>';
-    document.getElementById('lastUpdate').innerHTML = `
-      <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
-      <span>Erro na atualização - ${new Date().toLocaleTimeString('pt-BR')}</span>
+    document.getElementById('lastUpdateTop').innerHTML = `
+      <i class="fas fa-exclamation-triangle" style="color: rgba(255,255,255,0.9);"></i>
+      <span>Erro na atualização</span>
     `;
     document.body.classList.remove('updating');
   }
@@ -1016,9 +1031,6 @@ function stopAutoUpdate() {
   }
 }
 /* init */
-document.getElementById('btnRefresh').addEventListener('click', () => {
-  loadAll(false); // Atualização manual
-});
 // Setup toggle handlers and start auto update after DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
   setupToggleHandlers();
