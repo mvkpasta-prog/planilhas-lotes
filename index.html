@@ -248,7 +248,8 @@ function normalizeText(text) {
 */
 function parseCSV(text){
   if(!text) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
-  const lines = text.split(/\r?\n/).filter(l => l.trim() !== ''); // Corrigido
+  const lines = text.split(/\r?
+/).filter(l => l.trim() !== ''); // Corrigido
   if(lines.length === 0) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
   const parsed = lines.map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g,'').trim()));
   const headersOrig = parsed.shift().map(h => h||'');
@@ -550,17 +551,14 @@ function formatNumber(value) {
   if(isNaN(value)) return '0';
   return new Intl.NumberFormat('pt-BR').format(Math.round(value));
 }
-
 /* NOVA FUNÇÃO: Extrair peso da coluna I (ex: "LS - 6 EIXOS - 32 TON") */
 function extractWeightFromColumnI(text) {
   if(!text || text.trim() === '') return 0;
   // Dividir por traços e pegar a última parte
   const parts = text.split('-');
   if(parts.length === 0) return 0;
-  
   // Pegar a última parte
   let lastPart = parts[parts.length - 1].trim();
-  
   // Extrair o número da última parte (antes de "TON" ou qualquer outra unidade)
   const match = lastPart.match(/(\d+)/);
   if(match && match[1]) {
@@ -568,11 +566,9 @@ function extractWeightFromColumnI(text) {
     // Converter para KG (1 ton = 1000 kg)
     return tons * 1000;
   }
-  
   return 0;
 }
-
-/* Gerar HTML para os cards de clientes (agora por contrato) */
+/* Gerar HTML para os cards de clientes (agora por contrato) - ATUALIZADA PARA INCLUIR VALOR MÉDIO DO FRETE */
 function buildClientesHTML(clientes) {
   if(clientes.length === 0) {
     return '<div class="empty">Nenhum contrato encontrado para hoje.</div>';
@@ -589,16 +585,17 @@ function buildClientesHTML(clientes) {
     } else if(produtoUp.includes('SORGO')) {
       corProduto = '#6b7280'; // Cinza para Sorgo
     }
-    
     // Calcular o saldo ajustado (subtrair peso de veículos em trânsito/embarque)
     let saldoEntregaAjustado = cliente.saldoEntrega || 0;
     if(cliente.pesoEmTransitoEmbarque && !isNaN(cliente.pesoEmTransitoEmbarque)) {
       saldoEntregaAjustado -= cliente.pesoEmTransitoEmbarque;
       // Permitir saldo negativo
     }
-    
     // Formatar saldo de entrega ajustado (pode ser negativo)
     const saldoEntregaDisplay = !isNaN(saldoEntregaAjustado) ? `${formatNumber(saldoEntregaAjustado)} KG` : '0 KG';
+    
+    // Formatar valor médio do frete
+    const valorMedioFrete = !isNaN(cliente.valorMedioFrete) ? formatCurrencyBRL(cliente.valorMedioFrete) : 'N/A';
     
     html += `
       <div class="cliente-card">
@@ -618,6 +615,10 @@ function buildClientesHTML(clientes) {
           <span class="info-label">Saldo a entregar:</span>
           <span class="info-value">${escapeHtml(saldoEntregaDisplay)}</span>
         </div>
+        <div class="cliente-info" style="margin-top: 6px;">
+          <span class="info-label">Valor Médio Frete:</span>
+          <span class="info-value">${valorMedioFrete}</span>
+        </div>
         ${cliente.pesoEmTransitoEmbarque && cliente.pesoEmTransitoEmbarque > 0 ? 
           `<div class="cliente-info" style="margin-top: 6px; font-size: 12px; color: #ef4444;">
             <span class="info-label">Peso em Trânsito/Embarque:</span>
@@ -628,14 +629,12 @@ function buildClientesHTML(clientes) {
   });
   return html;
 }
-
 /* Atualizar o resumo de clientes - REMOVIDO conforme solicitação */
 function updateClientesSummary(clientes) {
   // Função intencionalmente deixada vazia - não exibimos mais o resumo
 }
-
 /* --- FUNÇÃO QUE AGRUPA POR CONTRATO --- */
-async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusColIndex, includeFutureDates = false) {
+async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusColIndex, freteColIndex, includeFutureDates = false) {
   const grupos = {};
   // Se includeFutureDates for false, filtramos apenas por data de hoje
   let rowsToProcess = rowsProg;
@@ -688,7 +687,6 @@ async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusC
     const isCarregado = statusNorm.includes('carregado');
     const isEmbarque = statusNorm.includes('embarque') || statusNorm.includes('no embarque');
     const isTransito = statusNorm.includes('transito') || statusNorm.includes('em transito');
-    
     // Inicializar grupo se não existir
     if(!grupos[key]) {
       grupos[key] = {
@@ -703,7 +701,9 @@ async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusC
         placasCarregadas: new Set(),
         placasPendentes: new Set(),
         count: 0,
-        pesoEmTransitoEmbarque: 0 // Novo campo para armazenar peso em trânsito/embarque
+        pesoEmTransitoEmbarque: 0, // Novo campo para armazenar peso em trânsito/embarque
+        valoresFrete: [], // Array para armazenar os valores de frete para cálculo da média
+        valorMedioFrete: 0 // Valor médio do frete
       };
     }
     // Atualizar valores gerais
@@ -724,7 +724,6 @@ async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusC
       }
     }
     grupos[key].count++;
-    
     // Se estiver em trânsito ou no embarque, extrair peso da coluna I e somar
     if(isEmbarque || isTransito) {
       let textoColunaI = '';
@@ -734,23 +733,44 @@ async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusC
       const pesoExtraido = extractWeightFromColumnI(textoColunaI);
       grupos[key].pesoEmTransitoEmbarque += pesoExtraido;
     }
+    // Extrair e calcular valor do frete da coluna E (índice 4)
+    if(freteColIndex !== -1) {
+      let freteText = '';
+      if(Array.isArray(arr) && arr[freteColIndex] !== undefined) {
+        freteText = arr[freteColIndex];
+      }
+      const freteValue = parseNumber(freteText);
+      if(!isNaN(freteValue) && freteValue > 0) {
+        // Calcular valor real do frete: dividir por 0.92
+        const freteReal = freteValue / 0.92;
+        grupos[key].valoresFrete.push(freteReal);
+      }
+    }
   });
   // Converter para array e formatar
-  return Object.values(grupos).map(grupo => ({
-    ...grupo,
-    totalPeso: Math.round(grupo.totalPeso),
-    totalPesoCarregado: Math.round(grupo.totalPesoCarregado),
-    totalPesoPendente: Math.round(grupo.totalPesoPendente),
-    totalCaminhoes: grupo.placas.size,
-    totalCaminhoesCarregados: grupo.placasCarregadas.size,
-    totalCaminhoesPendentes: grupo.placasPendentes.size,
-    placas: Array.from(grupo.placas),
-    placasCarregadas: Array.from(grupo.placasCarregadas),
-    placasPendentes: Array.from(grupo.placasPendentes),
-    pesoEmTransitoEmbarque: Math.round(grupo.pesoEmTransitoEmbarque) // Arredondar para exibição
-  })).sort((a, b) => b.totalPeso - a.totalPeso); // Ordenar por peso total decrescente
+  return Object.values(grupos).map(grupo => {
+    // Calcular valor médio do frete
+    let valorMedioFrete = 0;
+    if(grupo.valoresFrete.length > 0) {
+      const somaFrete = grupo.valoresFrete.reduce((acc, val) => acc + val, 0);
+      valorMedioFrete = somaFrete / grupo.valoresFrete.length;
+    }
+    return {
+      ...grupo,
+      totalPeso: Math.round(grupo.totalPeso),
+      totalPesoCarregado: Math.round(grupo.totalPesoCarregado),
+      totalPesoPendente: Math.round(grupo.totalPesoPendente),
+      totalCaminhoes: grupo.placas.size,
+      totalCaminhoesCarregados: grupo.placasCarregadas.size,
+      totalCaminhoesPendentes: grupo.placasPendentes.size,
+      placas: Array.from(grupo.placas),
+      placasCarregadas: Array.from(grupo.placasCarregadas),
+      placasPendentes: Array.from(grupo.placasPendentes),
+      pesoEmTransitoEmbarque: Math.round(grupo.pesoEmTransitoEmbarque), // Arredondar para exibição
+      valorMedioFrete: valorMedioFrete // Adicionar valor médio do frete
+    };
+  }).sort((a, b) => b.totalPeso - a.totalPeso); // Ordenar por peso total decrescente
 }
-
 /* --- Main load function --- */
 async function loadAll(isAutoUpdate = false){
   try{
@@ -766,6 +786,8 @@ async function loadAll(isAutoUpdate = false){
     // Encontrar a coluna "STATUS"
     const statusKey = headersNormProg.find(h => h.includes('status') && !h.includes('agendamento')) || null;
     const statusIndex = headersNormProg.indexOf(statusKey);
+    // Encontrar a coluna de frete (coluna E - índice 4)
+    const freteIndex = 4; // Coluna E = índice 4
     // find date key (fallback index 0)
     const dateKeyProg = findHeaderKey(headersNormProg, ['data','dataprogramacao','dataprog','dataentrega']) || headersNormProg[0] || null;
     const dateIndexProg = 0;
@@ -930,11 +952,11 @@ async function loadAll(isAutoUpdate = false){
     // Calcular e exibir TOTAL EMBARCADO
     const totalEmbarcado = produtosTotais.soja + produtosTotais.milho + produtosTotais.sorgo;
     document.getElementById('count-total').textContent = `${formatNumber(totalEmbarcado)} KG`;
-    // Agrupar por contrato (usa rowsArrProgFiltered) - agora passando o índice da coluna I (8)
+    // Agrupar por contrato (usa rowsArrProgFiltered) - agora passando o índice da coluna de frete (4)
     // Primeiro: calcular peso em trânsito/embarque considerando TODAS as datas
-    const clientesComPesoFuturo = await groupByContract(rowsArrProg, 2, 7, statusIndex, true);
+    const clientesComPesoFuturo = await groupByContract(rowsArrProg, 2, 7, statusIndex, freteIndex, true);
     // Segundo: agrupar apenas para hoje (para exibição)
-    const clientesParaHoje = await groupByContract(rowsArrProgFiltered, 2, 7, statusIndex, false);
+    const clientesParaHoje = await groupByContract(rowsArrProgFiltered, 2, 7, statusIndex, freteIndex, false);
     // --- AQUI: AMARRAR O SALDO DA ABA ENTREGA AO CONTRATO DOS CARDS ---
     // Note: groupByContract cria cliente.contrato já apenas com dígitos (mesma normalização)
     clientesParaHoje.forEach(c => {
@@ -945,6 +967,7 @@ async function loadAll(isAutoUpdate = false){
       const clienteFuturo = clientesComPesoFuturo.find(cf => cf.contrato === c.contrato);
       if(clienteFuturo) {
         c.pesoEmTransitoEmbarque = clienteFuturo.pesoEmTransitoEmbarque || 0;
+        c.valorMedioFrete = clienteFuturo.valorMedioFrete || 0;
       }
     });
     // Atualizar DOM: cards e resumo
