@@ -634,7 +634,7 @@ function updateClientesSummary(clientes) {
   // Função intencionalmente deixada vazia - não exibimos mais o resumo
 }
 /* --- FUNÇÃO QUE AGRUPA POR CONTRATO --- */
-async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusColIndex, freteColIndex, includeFutureDates = false) {
+async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusColIndex, freteColIndex, transportadoraColIndex, includeFutureDates = false) {
   const grupos = {};
   // Se includeFutureDates for false, filtramos apenas por data de hoje
   let rowsToProcess = rowsProg;
@@ -733,16 +733,31 @@ async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusC
       const pesoExtraido = extractWeightFromColumnI(textoColunaI);
       grupos[key].pesoEmTransitoEmbarque += pesoExtraido;
     }
-    // Extrair e calcular valor do frete da coluna E (índice 4)
-    if(freteColIndex !== -1) {
+    // Extrair e calcular valor do frete da coluna E (índice 4) - AGORA COM VERIFICAÇÃO DE TRANSPORTADORA
+    if(freteColIndex !== -1 && transportadoraColIndex !== -1) {
       let freteText = '';
+      let transportadoraText = '';
+      
       if(Array.isArray(arr) && arr[freteColIndex] !== undefined) {
         freteText = arr[freteColIndex];
       }
+      
+      if(Array.isArray(arr) && arr[transportadoraColIndex] !== undefined) {
+        transportadoraText = arr[transportadoraColIndex];
+      }
+      
       const freteValue = parseNumber(freteText);
       if(!isNaN(freteValue) && freteValue > 0) {
-        // Calcular valor real do frete: dividir por 0.92
-        const freteReal = freteValue / 0.92;
+        let freteReal = freteValue;
+        
+        // Verificar se a transportadora NÃO é MVK (case-insensitive)
+        const isMVK = normalizeText(transportadoraText).includes('mvk');
+        
+        // Aplicar o cálculo (/0.92) apenas se NÃO for MVK
+        if(!isMVK) {
+          freteReal = freteValue / 0.92;
+        }
+        
         grupos[key].valoresFrete.push(freteReal);
       }
     }
@@ -788,6 +803,8 @@ async function loadAll(isAutoUpdate = false){
     const statusIndex = headersNormProg.indexOf(statusKey);
     // Encontrar a coluna de frete (coluna E - índice 4)
     const freteIndex = 4; // Coluna E = índice 4
+    // Encontrar a coluna de transportadora (coluna F - índice 5)
+    const transportadoraIndex = 5; // Coluna F = índice 5
     // find date key (fallback index 0)
     const dateKeyProg = findHeaderKey(headersNormProg, ['data','dataprogramacao','dataprog','dataentrega']) || headersNormProg[0] || null;
     const dateIndexProg = 0;
@@ -952,11 +969,11 @@ async function loadAll(isAutoUpdate = false){
     // Calcular e exibir TOTAL EMBARCADO
     const totalEmbarcado = produtosTotais.soja + produtosTotais.milho + produtosTotais.sorgo;
     document.getElementById('count-total').textContent = `${formatNumber(totalEmbarcado)} KG`;
-    // Agrupar por contrato (usa rowsArrProgFiltered) - agora passando o índice da coluna de frete (4)
+    // Agrupar por contrato (usa rowsArrProgFiltered) - agora passando o índice da coluna de frete (4) e transportadora (5)
     // Primeiro: calcular peso em trânsito/embarque considerando TODAS as datas
-    const clientesComPesoFuturo = await groupByContract(rowsArrProg, 2, 7, statusIndex, freteIndex, true);
+    const clientesComPesoFuturo = await groupByContract(rowsArrProg, 2, 7, statusIndex, freteIndex, transportadoraIndex, true);
     // Segundo: agrupar apenas para hoje (para exibição)
-    const clientesParaHoje = await groupByContract(rowsArrProgFiltered, 2, 7, statusIndex, freteIndex, false);
+    const clientesParaHoje = await groupByContract(rowsArrProgFiltered, 2, 7, statusIndex, freteIndex, transportadoraIndex, false);
     // --- AQUI: AMARRAR O SALDO DA ABA ENTREGA AO CONTRATO DOS CARDS ---
     // Note: groupByContract cria cliente.contrato já apenas com dígitos (mesma normalização)
     clientesParaHoje.forEach(c => {
