@@ -16,6 +16,7 @@
     --produto-soja: #10b981; /* Verde para Soja */
     --produto-milho: #fbbf24; /* Amarelo para Milho */
     --produto-sorgo: #6b7280; /* Cinza para Sorgo */
+    --produto-total: #8b5cf6; /* Roxo para Total */
   }
   *{box-sizing:border-box}
   body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:12px}
@@ -49,11 +50,11 @@
     animation: spin 2s linear infinite;
   }
   @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+  .updating .last-update-top i{animation:spin 1s linear infinite}
   .wrap{max-width:1400px;margin:0 auto;width:100%}
   .actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px}
   .btn{background:var(--primary);color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px}
   .btn:hover{opacity:.95}
-  .updating .last-update-top i{animation:spin 1s linear infinite}
   /* Cards de Status no topo - versão compacta (ligeiramente menores) */
   .status-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
   .status-card{background:var(--card);border-radius:8px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:150px;text-align:center;transition:all 0.3s ease}
@@ -73,11 +74,9 @@
   .produto-soja{border-top-color: var(--produto-soja);}
   .produto-milho{border-top-color: var(--produto-milho);}
   .produto-sorgo{border-top-color: var(--produto-sorgo);}
+  .produto-total{border-top-color: var(--produto-total);}
   /* Seção de Clientes e Destinos */
   .clientes-section{margin-bottom:24px}
-  .clientes-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-  .clientes-title{color:var(--primary);font-weight:700;font-size:18px}
-  .clientes-summary{color:var(--muted);font-size:14px}
   .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px}
   .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all 0.3s ease}
   .cliente-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
@@ -163,7 +162,7 @@
         <div class="count" id="count-contratar">0</div>
       </div>
     </div>
-    <!-- Cards de Produtos -->
+    <!-- Cards de Produtos + Total EMBARCADO -->
     <div class="produto-cards">
       <div class="produto-card produto-soja">
         <h3>SOJA</h3>
@@ -176,6 +175,10 @@
       <div class="produto-card produto-sorgo">
         <h3>SORGO</h3>
         <div class="count" id="count-sorgo">0 KG</div>
+      </div>
+      <div class="produto-card produto-total">
+        <h3>TOTAL EMBARCADO</h3>
+        <div class="count" id="count-total">0 KG</div>
       </div>
     </div>
     <!-- Seção de Clientes e Destinos (sem título nem resumo) -->
@@ -924,6 +927,9 @@ async function loadAll(isAutoUpdate = false){
     document.getElementById('count-soja').textContent = `${formatNumber(produtosTotais.soja)} KG`;
     document.getElementById('count-milho').textContent = `${formatNumber(produtosTotais.milho)} KG`;
     document.getElementById('count-sorgo').textContent = `${formatNumber(produtosTotais.sorgo)} KG`;
+    // Calcular e exibir TOTAL EMBARCADO
+    const totalEmbarcado = produtosTotais.soja + produtosTotais.milho + produtosTotais.sorgo;
+    document.getElementById('count-total').textContent = `${formatNumber(totalEmbarcado)} KG`;
     // Agrupar por contrato (usa rowsArrProgFiltered) - agora passando o índice da coluna I (8)
     // Primeiro: calcular peso em trânsito/embarque considerando TODAS as datas
     const clientesComPesoFuturo = await groupByContract(rowsArrProg, 2, 7, statusIndex, true);
