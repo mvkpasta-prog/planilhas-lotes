@@ -131,7 +131,6 @@
 </style>
 </head>
 <body>
-  <!-- Cabeçalho com imagem PNG do GitHub e última atualização -->
   <header>
     <div class="header-title">
       <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height: 22px; vertical-align: middle; margin-right: 8px;">
@@ -143,7 +142,6 @@
     </div>
   </header>
   <div class="wrap">
-    <!-- Cards de Status -->
     <div class="status-cards">
       <div class="status-card status-card-carregado">
         <h3>CARREGADO</h3>
@@ -162,7 +160,6 @@
         <div class="count" id="count-contratar">0</div>
       </div>
     </div>
-    <!-- Cards de Produtos + Total EMBARCADO -->
     <div class="produto-cards">
       <div class="produto-card produto-soja">
         <h3>SOJA</h3>
@@ -181,13 +178,10 @@
         <div class="count" id="count-total">0 KG</div>
       </div>
     </div>
-    <!-- Seção de Clientes e Destinos (sem título nem resumo) -->
     <div class="clientes-section">
       <div class="clientes-container" id="clientesContainer">
-        <!-- Os cards de clientes serão inseridos aqui dinamicamente -->
-      </div>
+        </div>
     </div>
-    <!-- Programação (agora em primeiro lugar) -->
     <div class="section-header" id="toggle-programacao">
       <span>🗓 Programação</span>
       <i class="fas fa-chevron-down toggle-icon"></i>
@@ -195,7 +189,6 @@
     <div class="section-content card" id="content-programacao">
       <div id="programacaoContent" class="table-wrap"></div>
     </div>
-    <!-- Lotes de Entrega -->
     <div class="section-header" id="toggle-entrega">
       <span>🚚 Lotes de Entrega</span>
       <i class="fas fa-chevron-down toggle-icon"></i>
@@ -203,7 +196,6 @@
     <div class="section-content card" id="content-entrega">
       <div id="entregaContent" class="table-wrap"></div>
     </div>
-    <!-- Lotes de Retirada -->
     <div class="section-header" id="toggle-retirada">
       <span>📦 Lotes de Retirada</span>
       <i class="fas fa-chevron-down toggle-icon"></i>
@@ -747,14 +739,18 @@ async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusC
       }
       
       const freteValue = parseNumber(freteText);
+      // Ajuste: Só processa frete se ele for um número válido e a transportadora não for MVK.
+      // E também só se a transportadora não estiver vazia.
       if(!isNaN(freteValue) && freteValue > 0) {
         let freteReal = freteValue;
         
-        // Verificar se a transportadora NÃO é MVK (case-insensitive)
+        // Verificar se a transportadora NÃO é MVK (case-insensitive e não vazia)
         const isMVK = normalizeText(transportadoraText).includes('mvk');
+        const isTransportadoraEmpty = transportadoraText.trim() === '';
         
-        // Aplicar o cálculo (/0.92) apenas se NÃO for MVK
-        if(!isMVK) {
+        // Aplicar o cálculo (/0.92) apenas se NÃO for MVK e o campo estiver preenchido
+        // O valor 0.92 é usado para encontrar o valor do frete antes da dedução de 8% de impostos.
+        if(!isMVK && !isTransportadoraEmpty) {
           freteReal = freteValue / 0.92;
         }
         
@@ -984,7 +980,6 @@ async function loadAll(isAutoUpdate = false){
       const clienteFuturo = clientesComPesoFuturo.find(cf => cf.contrato === c.contrato);
       if(clienteFuturo) {
         c.pesoEmTransitoEmbarque = clienteFuturo.pesoEmTransitoEmbarque || 0;
-        c.valorMedioFrete = clienteFuturo.valorMedioFrete || 0;
       }
     });
     // Atualizar DOM: cards e resumo
