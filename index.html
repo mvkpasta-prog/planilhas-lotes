@@ -465,9 +465,18 @@ function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts)
 }
 // helper: get index of normalized key (or -1)
 function numericKeyIndex(headersNorm, key){ return headersNorm.indexOf(key); }
+/* util: helper to escape HTML entities */
 function escapeHtml(s){
   if(s === undefined || s === null) return '';
-  return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'<','>':'>','"':'&quot;',"'":'&#x2F;'}[c]));
+  // CORREÇÃO NA RAIZ: A chave para '/' estava faltando, causando a injeção de "undefined".
+  return String(s).replace(/[&<>"'\/]/g, c => ({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;',
+    '/':'&#x2F;' // CORREÇÃO PRINCIPAL
+  }[c]));
 }
 /* Contar status da programação — CORRIGIDA */
 function countStatusProgramacao(rowsObjects, statusCol) {
