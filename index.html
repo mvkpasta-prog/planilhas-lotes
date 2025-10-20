@@ -67,7 +67,7 @@
   .status-card-contratar{border-top:3px solid var(--status-contratar);}
   /* Cards de Produtos - versão compacta (ligeiramente menores) */
   .produto-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
-  .produto-card{background:var(--card);border-radius:8px;padding:8px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:140px;text-align:center;transition:all 0.3s ease;border-top:3px solid transparent}
+  .produto-card{background:var(--card);border-radius:8px;padding:8px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:140px;text-align:center;transition:all 0.3s ease;border-top:3px solid transparent; cursor: pointer;} /* Adicionado cursor: pointer; */
   .produto-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
   .produto-card h3{margin:0 0 4px 0;font-size:13px;color:var(--text);font-weight:600}
   .produto-card .count{font-size:18px;font-weight:700;margin:4px 0}
@@ -173,7 +173,7 @@
         <h3>SORGO</h3>
         <div class="count" id="count-sorgo">0 KG</div>
       </div>
-      <div class="produto-card produto-total">
+      <div class="produto-card produto-total" id="card-total-embarcado">
         <h3>TOTAL EMBARCADO</h3>
         <div class="count" id="count-total">0 KG</div>
       </div>
@@ -225,6 +225,9 @@ const REMOVED_PROGRAMACAO = [
   'descarga','comprovantededescarga','horarioprev','classificacaodestino','chaveid',
   'frete', 'statusagendamento', 'datadedescarga', 'notafiscal' // Adicionadas conforme solicitação
 ];
+/* Variável global para armazenar os totais de produto para o resumo */
+let globalProdutosTotais = { soja: 0, milho: 0, sorgo: 0, total: 0 };
+
 /* Normaliza cabeçalho: remove acento, espaços e pontuação */
 function normalizeHeader(h){
   if(h === undefined || h === null) return '';
@@ -487,12 +490,13 @@ function extractContratoInfo(text) {
 /* Calcular totais por produto - ADICIONADA DE VOLTA */
 function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, destinoColIndex) {
   let soja = 0, milho = 0, sorgo = 0;
-  rowsObjects.forEach(obj => {
-    // Verificar se tem informações na coluna C (destino)
+  // A programação usa rowsArrays: rowsArrProgFiltered
+  rowsObjects.forEach(arr => {
+    // Verificar se tem informações na coluna C (destino) - índice 2
     let destinoText = '';
     if(destinoColIndex !== -1) {
-      if(Array.isArray(obj) && obj[destinoColIndex] !== undefined) {
-        destinoText = obj[destinoColIndex];
+      if(Array.isArray(arr) && arr[destinoColIndex] !== undefined) {
+        destinoText = arr[destinoColIndex];
       }
     }
     // Extrair informações do destino usando a nova função
@@ -502,8 +506,8 @@ function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, des
     // Pegar o valor da coluna de produto (coluna B - índice 1)
     let produtoText = '';
     if(produtoColIndex !== -1) {
-      if(Array.isArray(obj) && obj[produtoColIndex] !== undefined) {
-        produtoText = obj[produtoColIndex];
+      if(Array.isArray(arr) && arr[produtoColIndex] !== undefined) {
+        produtoText = arr[produtoColIndex];
       }
     }
     // Extrair o produto
@@ -511,8 +515,8 @@ function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, des
     // Pegar o peso (coluna J - índice 9)
     let pesoText = '';
     if(pesoColIndex !== -1) {
-      if(Array.isArray(obj) && obj[pesoColIndex] !== undefined) {
-        pesoText = obj[pesoColIndex];
+      if(Array.isArray(arr) && arr[pesoColIndex] !== undefined) {
+        pesoText = arr[pesoColIndex];
       }
     }
     const peso = parseNumber(pesoText);
@@ -782,6 +786,51 @@ async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusC
     };
   }).sort((a, b) => b.totalPeso - a.totalPeso); // Ordenar por peso total decrescente
 }
+
+/* --- NOVO: Função para obter a saudação correta --- */
+function getSaudacao() {
+  const hora = new Date().getHours();
+  if (hora >= 5 && hora < 12) {
+    return 'Bom dia';
+  } else if (hora >= 12 && hora < 18) {
+    return 'Boa tarde';
+  } else {
+    return 'Boa noite';
+  }
+}
+
+/* --- NOVO: Função para formatar a mensagem de resumo --- */
+function formatResumoMessage(soja, milho, sorgo, total) {
+  const saudacao = getSaudacao();
+  const sojaKg = formatNumber(soja);
+  const milhoKg = formatNumber(milho);
+  // O sorgo não foi pedido no formato, mas o total inclui, vamos listá-lo se houver
+  const sorgoLine = sorgo > 0 ? `Sorgo: ${formatNumber(sorgo)} kg\n` : '';
+  const totalKg = formatNumber(total);
+
+  return `${saudacao} \nEmbarque encerrado 🌱 🌽\nSoja: ${sojaKg} kg\nMilho: ${milhoKg} kg\n${sorgoLine}Total embarcado: ${totalKg} kg\nBom descanso a todos 🙌🏻`;
+}
+
+/* --- NOVO: Handler para o clique no card de total embarcado --- */
+function handleTotalCardClick() {
+  const { soja, milho, sorgo, total } = globalProdutosTotais;
+  const message = formatResumoMessage(soja, milho, sorgo, total);
+
+  // Tenta copiar para a área de transferência
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(message).then(() => {
+      alert(`Mensagem copiada para a área de transferência:\n\n${message}`);
+    }).catch(err => {
+      // Falha na cópia, exibe no alert para cópia manual
+      console.error('Falha ao copiar:', err);
+      alert(`Falha ao copiar. Copie a mensagem manualmente:\n\n${message}`);
+    });
+  } else {
+    // navigator.clipboard não disponível, exibe no alert para cópia manual
+    alert(`Copie a mensagem manualmente:\n\n${message}`);
+  }
+}
+
 /* --- Main load function --- */
 async function loadAll(isAutoUpdate = false){
   try{
@@ -958,12 +1007,17 @@ async function loadAll(isAutoUpdate = false){
     document.getElementById('count-contratar').textContent = statusCounts.contratar;
     // Calcular totais por produto (coluna B = índice 1, coluna J = índice 9, coluna C = índice 2)
     const produtosTotais = calculateProdutosTotais(rowsArrProgFiltered, 1, 9, 2);
+    // Armazenar no objeto global para a funcionalidade de clique
+    globalProdutosTotais.soja = produtosTotais.soja;
+    globalProdutosTotais.milho = produtosTotais.milho;
+    globalProdutosTotais.sorgo = produtosTotais.sorgo;
+    // Calcular e exibir TOTAL EMBARCADO
+    const totalEmbarcado = produtosTotais.soja + produtosTotais.milho + produtosTotais.sorgo;
+    globalProdutosTotais.total = totalEmbarcado; // Armazenar o total
     // Atualizar cards de produto com "KG" ao lado
     document.getElementById('count-soja').textContent = `${formatNumber(produtosTotais.soja)} KG`;
     document.getElementById('count-milho').textContent = `${formatNumber(produtosTotais.milho)} KG`;
     document.getElementById('count-sorgo').textContent = `${formatNumber(produtosTotais.sorgo)} KG`;
-    // Calcular e exibir TOTAL EMBARCADO
-    const totalEmbarcado = produtosTotais.soja + produtosTotais.milho + produtosTotais.sorgo;
     document.getElementById('count-total').textContent = `${formatNumber(totalEmbarcado)} KG`;
     // Agrupar por contrato (usa rowsArrProgFiltered) - agora passando o índice da coluna de frete (4) e transportadora (5)
     // Primeiro: calcular peso em trânsito/embarque considerando TODAS as datas
@@ -1075,6 +1129,8 @@ function stopAutoUpdate() {
 // Setup toggle handlers and start auto update after DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
   setupToggleHandlers();
+  // NOVO: Adicionar handler de clique ao card "TOTAL EMBARCADO"
+  document.getElementById('card-total-embarcado').addEventListener('click', handleTotalCardClick);
   startAutoUpdate();
   // Adicionar evento de visibilidade para pausar/recuperar atualizações
   document.addEventListener('visibilitychange', function() {
