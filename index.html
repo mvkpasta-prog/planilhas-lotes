@@ -46,11 +46,9 @@
     align-items:center;
     gap: 6px;
   }
-  .last-update-top i {
-    animation: spin 2s linear infinite;
-  }
-  @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-  .updating .last-update-top i{animation:spin 1s linear infinite}
+  /* Removido o CSS de animação para o spinner */
+  .updating .last-update-top i{ /* A classe updating não tem mais efeito de rotação */ }
+  
   .wrap{max-width:1400px;margin:0 auto;width:100%}
   .actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px}
   .btn{background:var(--primary);color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px}
@@ -137,8 +135,7 @@
       Controle de Lotes — Entrega & Retirada
     </div>
     <div class="last-update-top" id="lastUpdateTop">
-      <i class="fas fa-circle-notch"></i>
-      <span>Atualizando...</span>
+      <i class="fas fa-hourglass-half"></i> <span>Atualizando...</span>
     </div>
   </header>
   <div class="wrap">
@@ -618,7 +615,7 @@ function buildClientesHTML(clientes) {
         ${cliente.pesoEmTransitoEmbarque && cliente.pesoEmTransitoEmbarque > 0 ? 
           `<div class="cliente-info" style="margin-top: 6px; font-size: 12px; color: #ef4444;">
             <span class="info-label">Peso em Trânsito/Embarque:</span>
-            <span class="info-value">${formatNumber(cliente.pesoEmTransitoEmbarque)} KG</span>
+            <span class="info-value">${formatNumber(cliente.pesoEmTransitoEmbarque)} KG
           </div>` : ''}
       </div>
     `;
@@ -857,6 +854,11 @@ function handleTotalCardClick() {
 async function loadAll(isAutoUpdate = false){
   try{
     if(isAutoUpdate) {
+      // NOVO: Adicionar o ícone de ampulheta (loading) no início da atualização
+      document.getElementById('lastUpdateTop').innerHTML = `
+        <i class="fas fa-hourglass-half" style="color: rgba(255,255,255,0.9);"></i>
+        <span>Atualizando...</span>
+      `;
       document.body.classList.add('updating');
     }
     // ===== PROGRAMAÇÃO (agora em primeiro lugar) =====
