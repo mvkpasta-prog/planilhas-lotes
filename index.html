@@ -20,7 +20,7 @@
   }
   *{box-sizing:border-box}
   body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:12px}
-  /* Estilo do Logo MVK como Background/Watermark */
+  /* NOVO: Estilo do Logo MVK como Background/Watermark */
   body::before {
     content: '';
     position: fixed; /* Fixar no viewport */
@@ -92,91 +92,9 @@
   /* Seção de Clientes e Destinos */
   .clientes-section{margin-bottom:24px}
   .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px}
-  /* NOVO: Estilos do FLIP CARD */
-  .cliente-card{
-    background: none; /* Removido o background do container */
-    border-radius: 8px;
-    box-shadow: none; /* Removido a sombra do container */
-    padding: 0; /* Removido o padding do container */
-    flex:1;
-    min-width:300px;
-    cursor: pointer; /* Indica que o card é interativo */
-    position: relative;
-    height: 100%; /* Manter altura para o flip */
-    min-height: 250px; /* Altura mínima para o flip */
-    perspective: 1000px; /* Para o efeito 3D */
-  }
-  .cliente-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 12px rgba(0,0,0,0.08);
-  }
-  .cliente-card.is-flipped:hover {
-      transform: none; /* Não levanta quando está virado */
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15); /* Sombra um pouco maior para indicar que está "ativo" */
-  }
-  /* Container interno que de fato gira */
-  .card-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    text-align: center;
-    transition: transform 0.8s;
-    transform-style: preserve-3d;
-  }
-  /* Rotação para o estado "virado" */
-  .cliente-card.is-flipped .card-inner {
-    transform: rotateY(180deg);
-  }
-  /* Faces do Card */
-  .card-front, .card-back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    -webkit-backface-visibility: hidden; /* Oculta a face de trás ao girar */
-    backface-visibility: hidden;
-    background: var(--card); /* Fundo do card */
-    border-radius: 8px;
-    padding: 14px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.06); /* Sombra nas faces */
-    top: 0;
-    left: 0;
-    text-align: left; /* Alinhamento do conteúdo */
-    /* Remove a transição de posição na face, mas permite o clique no botão */
-    transition: all 0.3s ease;
-  }
-  /* Posição inicial da face de trás */
-  .card-back {
-    transform: rotateY(180deg);
-    font-size: 13px;
-  }
-  /* Botão de Trigger do Flip */
-  .flip-trigger {
-    position: absolute;
-    bottom: 8px;
-    right: 8px;
-    background: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    cursor: pointer;
-    z-index: 10;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.3s;
-  }
-  .flip-trigger:hover {
-    background: var(--accent);
-  }
-  /* Esconder o trigger na face que não está visível */
-  .cliente-card.is-flipped .card-front .flip-trigger { display: none; }
-  .cliente-card:not(.is-flipped) .card-back .flip-trigger { display: none; }
-  
-  /* Estilos do Conteúdo Antigo (ajustados para as faces) */
-  .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 6px 0} 
+  .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all 0.3s ease}
+  .cliente-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
+  .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 6px 0} /* AUMENTADO DE 15px para 16px */
   .cliente-destino{font-weight:600;color:var(--accent);margin:0 0 10px 0;font-size:13px}
   .cliente-info{display:flex;justify-content:space-between;margin-bottom:6px;align-items:center}
   .info-label{font-weight:600;color:var(--muted);font-size:12px}
@@ -220,7 +138,7 @@
   @media (max-width:600px){
     body{padding:8px}
     .section-header{padding:10px;font-size:14px}
-    .cliente-card{min-width:100%;padding:0} /* Removido padding para o flip */
+    .cliente-card{min-width:100%;padding:12px}
     .status-card{min-width:140px;padding:10px}
     .produto-card{min-width:130px;padding:8px}
   }
@@ -659,13 +577,13 @@ function extractWeightFromColumnI(text) {
   }
   return 0;
 }
-/* Gerar HTML para os cards de clientes (agora por contrato) - ATUALIZADA PARA O FLIP */
+/* Gerar HTML para os cards de clientes (agora por contrato) - ATUALIZADA PARA INCLUIR VALOR MÉDIO DO FRETE */
 function buildClientesHTML(clientes) {
   if(clientes.length === 0) {
     return '<div class="empty">Nenhum contrato encontrado para hoje.</div>';
   }
   let html = '';
-  clientes.forEach((cliente, index) => { // Adicionado index para ID
+  clientes.forEach(cliente => {
     // Definir cor do produto
     let corProduto = '#6b7280'; // Cinza padrão
     const produtoUp = (cliente.produto || '').toUpperCase();
@@ -676,16 +594,20 @@ function buildClientesHTML(clientes) {
     } else if(produtoUp.includes('SORGO')) {
       corProduto = '#6b7280'; // Cinza para Sorgo
     }
-    // Saldo ajustado para exibição
+    // Calcular o saldo ajustado (subtrair peso de veículos em trânsito/embarque)
     let saldoEntregaAjustado = cliente.saldoEntrega || 0;
     if(cliente.pesoEmTransitoEmbarque && !isNaN(cliente.pesoEmTransitoEmbarque)) {
       saldoEntregaAjustado -= cliente.pesoEmTransitoEmbarque;
+      // Permitir saldo negativo
     }
+    // Formatar saldo de entrega ajustado (pode ser negativo)
     const saldoEntregaDisplay = !isNaN(saldoEntregaAjustado) ? `${formatNumber(saldoEntregaAjustado)} KG` : '0 KG';
+    
+    // Formatar valor médio do frete
     const valorMedioFrete = !isNaN(cliente.valorMedioFrete) ? formatCurrencyBRL(cliente.valorMedioFrete) : 'N/A';
-
-    // Conteúdo da Face da Frente
-    const frontContent = `
+    
+    html += `
+      <div class="cliente-card">
         <h3 class="cliente-name">${escapeHtml(cliente.cliente)} - ${escapeHtml(cliente.destino)}</h3>
         <div class="cliente-contrato">Contrato: ${escapeHtml(cliente.contrato)} <span class="cliente-produto" style="background-color: ${corProduto}; color: white; margin-left: 8px;">${escapeHtml(cliente.produto)}</span></div>
         <div class="caminhoes-info">
@@ -706,53 +628,11 @@ function buildClientesHTML(clientes) {
           <span class="info-label">Valor Médio Frete:</span>
           <span class="info-value">${valorMedioFrete}</span>
         </div>
-        ${cliente.pesoEmTransitoEmbarque && cliente.pesoEmTransitoEmbarque > 0 ?
+        ${cliente.pesoEmTransitoEmbarque && cliente.pesoEmTransitoEmbarque > 0 ? 
           `<div class="cliente-info" style="margin-top: 6px; font-size: 12px; color: #ef4444;">
             <span class="info-label">Peso em Trânsito/Embarque:</span>
-            <span class="info-value">${formatNumber(cliente.pesoEmTransitoEmbarque)} KG</span>
+            <span class="info-value">${formatNumber(cliente.pesoEmTransitoEmbarque)} KG
           </div>` : ''}
-        <button class="flip-trigger" title="Ver Placas"><i class="fas fa-truck"></i></button>
-    `;
-
-    // Conteúdo da Face de Trás (Placas e Detalhes)
-    const placasCarregadasList = cliente.placasCarregadas.length > 0
-        ? `<strong>Carregadas (${cliente.placasCarregadas.length}):</strong><br>${cliente.placasCarregadas.join(', ')}`
-        : 'Nenhuma placa carregada.';
-    const placasPendentesList = cliente.placasPendentes.length > 0
-        ? `<strong>Pendentes (${cliente.placasPendentes.length}):</strong><br>${cliente.placasPendentes.join(', ')}`
-        : 'Nenhuma placa pendente.';
-    
-    // Saldo de Entrega original (se houver necessidade de diferenciação)
-    const saldoEntregaOriginal = !isNaN(cliente.saldoEntrega) ? `${formatNumber(cliente.saldoEntrega)} KG` : '0 KG';
-    const pesoEmTransitoMsg = cliente.pesoEmTransitoEmbarque > 0 
-        ? `<div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #eee;"><strong>⚠️ Peso em Trânsito/Embarque:</strong> ${formatNumber(cliente.pesoEmTransitoEmbarque)} KG</div>`
-        : '';
-
-    const backContent = `
-        <h3 class="cliente-name" style="margin-bottom: 4px;">Detalhes do Contrato</h3>
-        <div class="cliente-contrato" style="font-size: 14px;">Contrato: ${escapeHtml(cliente.contrato)}</div>
-        <div style="font-size: 13px; margin-top: 10px;">
-          <p style="margin: 0 0 5px 0;"><strong>Saldo Original:</strong> ${saldoEntregaOriginal}</p>
-          ${pesoEmTransitoMsg}
-          <div style="margin-top: 15px;">
-            <p style="margin: 0 0 10px 0;">${placasCarregadasList}</p>
-            <p style="margin: 0;">${placasPendentesList}</p>
-          </div>
-        </div>
-        <button class="flip-trigger" title="Voltar ao Resumo"><i class="fas fa-info"></i></button>
-    `;
-
-    // Estrutura final com classes de flip e a função de clique
-    html += `
-      <div class="cliente-card" id="card-${index}">
-        <div class="card-inner">
-          <div class="card-front">
-            ${frontContent}
-          </div>
-          <div class="card-back">
-            ${backContent}
-          </div>
-        </div>
       </div>
     `;
   });
@@ -986,11 +866,6 @@ function handleTotalCardClick() {
   }
 }
 
-/* --- NOVO: Função para o efeito de flip --- */
-function toggleFlip(element) {
-  element.classList.toggle('is-flipped');
-}
-
 /* --- Main load function --- */
 async function loadAll(isAutoUpdate = false){
   try{
@@ -1204,18 +1079,6 @@ async function loadAll(isAutoUpdate = false){
     // Atualizar DOM: cards e resumo
     document.getElementById('clientesContainer').innerHTML = buildClientesHTML(clientesParaHoje);
     updateClientesSummary(clientesParaHoje); // Esta função está vazia agora
-    
-    // NOVO: Adicionar listeners para o flip nos botões de trigger APÓS CONSTRUIR O HTML
-    document.querySelectorAll('.cliente-card .flip-trigger').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.stopPropagation(); // Evita que o clique no botão ative outros listeners
-            const card = this.closest('.cliente-card');
-            if(card) {
-                toggleFlip(card);
-            }
-        });
-    });
-    
     // Build programacao table: remove removedProg columns, format status and currency
     let removedProg = [...REMOVED_COMMON.map(normalizeHeader), ...REMOVED_PROGRAMACAO.map(normalizeHeader)];
     // Se tivermos colunas suficientes, remover a penúltima
