@@ -49,11 +49,13 @@
     justify-content:space-between;
     gap:8px;
     position: relative;
+    flex-wrap: wrap; /* Adicionado para responsividade */
   }
   .header-title {
     display: flex;
     align-items: center;
     gap: 8px;
+    min-width: 200px; /* Garante que o título não suma */
   }
   .last-update-top {
     font-size: 12px;
@@ -63,10 +65,27 @@
     gap: 6px;
   }
   .wrap{max-width:1400px;margin:0 auto;width:100%}
-  /* Seção para o botão de voltar */
-  .actions{display:flex;justify-content:flex-start;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px}
-  .btn{background:var(--primary);color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px; text-decoration: none; display: flex; align-items: center; gap: 6px;}
-  .btn:hover{opacity:.95}
+  /* NOVO: Estilo para o botão no header */
+  .header-btn {
+    background: #fff; /* Fundo branco */
+    color: var(--primary); /* Texto na cor primária */
+    border: none;
+    padding: 6px 10px; /* Um pouco menor que o btn padrão */
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 13px; /* Fonte ligeiramente menor */
+    text-decoration: none; /* Remover sublinhado do link */
+    transition: background 0.2s ease, opacity 0.2s ease;
+    white-space: nowrap; /* Não quebrar a linha */
+    display: flex; 
+    align-items: center; 
+    gap: 6px;
+  }
+  .header-btn:hover {
+    background: var(--bg); /* Ligeiro cinza claro no hover */
+    opacity: 0.95;
+  }
   /* Cards de Status no topo - versão compacta (ligeiramente menores) */
   .status-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
   .status-card{background:var(--card);border-radius:8px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:150px;text-align:center;transition:all 0.3s ease}
@@ -177,15 +196,47 @@
       color: var(--text);
   }
   h2{color:var(--primary);margin:6px 0 12px 0;font-size:18px}
-  @media (max-width:900px){
-    .clientes-container{grid-template-columns:1fr}
-    .cliente-card{min-width:260px}
+  .toggle-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .toggle-btn:hover {
+    opacity: 0.9;
+  }
+  .toggle-btn i {
+      margin-right: 5px;
   }
   @media (max-width:600px){
     body{padding:8px}
     .cliente-card{min-width:100%;padding:12px}
-    .status-card{min-width:140px;padding:10px}
-    .produto-card{min-width:130px;padding:8px}
+    header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .header-btn {
+      width: 100%;
+      justify-content: center;
+      order: 2;
+    }
+    .header-title {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .last-update-top {
+        order: 3;
+    }
   }
 </style>
 </head>
@@ -195,16 +246,15 @@
       <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height: 22px; vertical-align: middle; margin-right: 8px;">
       Controle de Lotes — Resumo de Retirada
     </div>
+    <a href="index.html" class="header-btn" title="Voltar para a página de Embarques">
+        <i class="fas fa-arrow-left"></i> Voltar para Embarques
+    </a>
     <div class="last-update-top" id="lastUpdateTop">
       <i class="fas fa-hourglass-half"></i> <span>Atualizando...</span>
     </div>
   </header>
   <div class="wrap">
     
-    <div class="actions">
-        <a href="index.html" class="btn"><i class="fas fa-arrow-left"></i> Voltar para Embarques</a>
-    </div>
-
     <div class="status-cards">
       <div class="status-card status-card-carregado">
         <h3>RETIRADA ABERTA</h3>
@@ -243,8 +293,16 @@
     </div>
     
     <div class="clientes-section">
-      <h2 style="margin-top: 0;">📍 Resumo por Local de Embarque</h2>
-      <input type="text" id="filterInput" placeholder="Filtrar por Local de Embarque ou Cliente..." style="width: 100%; padding: 10px; margin-bottom: 16px; border: 1px solid #ccc; border-radius: 6px;">
+      <h2 style="margin-top: 0;">
+        <span id="resumoTitle">📍 Resumo por Local de Embarque</span>
+      </h2>
+      <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+        <input type="text" id="filterInput" placeholder="Filtrar por Local ou Cliente..." style="flex-grow: 1; min-width: 200px; padding: 10px; border: 1px solid #ccc; border-radius: 6px;">
+        <button class="toggle-btn" id="toggleViewBtn" onclick="toggleView()">
+            <i class="fas fa-sync-alt"></i> Mudar para Clientes
+        </button>
+      </div>
+
       <div class="clientes-container" id="clientesContainer">
           </div>
     </div>
@@ -267,28 +325,22 @@ const GIDS = {
 };
 // Configuração do intervalo de atualização automática (em milissegundos)
 const AUTO_UPDATE_INTERVAL = 300000;
-/* colunas removidas (normalizadas) de todas as tabelas (mantidas para groupBy) */
-const REMOVED_COMMON = ['localizacao','idorigemymvk1', 'numero_contrato', 'safra', 'royalties']; 
 
-/* Variável global para armazenar os totais de produto para o resumo */
+/* Variáveis globais para armazenar os dados e o estado da visualização */
 let globalProdutosTotais = { soja: 0, milho: 0, sorgo: 0, total: 0 };
-
-/* Variável global para armazenar o resumo por local para filtro e modal */
-let globalResumoLocal = [];
+let globalResumoData = { local: [], cliente: [] };
+let currentView = 'local'; // 'local' ou 'cliente'
 
 /* --- FUNÇÕES UTILITÁRIAS MANTIDAS --- */
 
-/* Normaliza cabeçalho: remove acento, espaços e pontuação */
 function normalizeHeader(h){
   if(h === undefined || h === null) return '';
   return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
 }
-/* Normaliza texto: remove acentos — reutilizável para status e filtro */
 function normalizeText(text) {
   if(text === undefined || text === null) return '';
   return String(text).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 }
-/* Parse CSV tolerante (trata vírgulas dentro de aspas) */
 function parseCSV(text){
   if(!text) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
   const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
@@ -305,7 +357,6 @@ function parseCSV(text){
   });
   return {arrays: parsed, headersOrig, headersNorm, objects};
 }
-/* fetch CSV via gviz - retorna parseCSV result */
 async function fetchSheetByGid(gid){
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`;
   const r = await fetch(url);
@@ -313,110 +364,125 @@ async function fetchSheetByGid(gid){
   const text = await r.text();
   return parseCSV(text);
 }
-/* util: parse number tolerant */
 function parseNumber(val){
   if(val === undefined || val === null) return NaN;
   const s = String(val).replace(/\s/g,'').replace(/\./g,'').replace(/,/g,'.');
   const n = parseFloat(s.replace(/[^\d\.\-]/g,''));
   return isNaN(n) ? NaN : n;
 }
-/* Formata número com separadores de milhar */
 function formatNumber(value) {
   if(isNaN(value)) return '0';
   return new Intl.NumberFormat('pt-BR').format(Math.round(value));
 }
 function escapeHtml(s){
   if(s === undefined || s === null) return '';
+  // Garante que a string é tratada corretamente antes do escapamento
   return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x2F;'}[c]));
 }
-
-/* Extrair produto do texto (última parte após o último traço) */
 function extractProduto(text) {
   if(!text) return '';
-  return normalizeText(text); // Agora apenas normalizamos para facilitar a comparação
+  return normalizeText(text);
 }
 
-/* --- FUNÇÃO: Agrupar por Local de Embarque --- */
-async function groupByLocalEmbarque(rowsArrRet, headersNormRet) {
-  const grupos = {};
-  
-  // Mapeamento dos índices (baseado nas colunas B, C, D, E, J)
-  const contratoIndex = 1; // Coluna B
-  const localIndex = 2;    // Coluna C
-  const clienteIndex = 3;  // Coluna D
-  const produtoIndex = 4;  // Coluna E
-  const aRetirarIndex = 9; // Coluna J (Quantidade a Retirar)
-  const embarcadaIndex = 8; // Coluna I (Quantidade Embarcada)
-  
-  // Contadores gerais (para os status cards)
-  const statusContratoKey = headersNormRet.find(h => h.includes('situacao') && h.includes('contrato')) || null;
-  const statusContratoIndex = headersNormRet.indexOf(statusContratoKey);
-  const contratos = new Set();
-  const produtos = new Set();
+/* --- FUNÇÃO PRINCIPAL: Agrupar Lotes de Retirada --- */
+function groupRetiradaData(rowsArrRet, headersNormRet, groupBy) {
+    const grupos = {};
+    const localIndex = 2;
+    const clienteIndex = 3;
+    const produtoIndex = 4;
+    const aRetirarIndex = 9;
+    const embarcadaIndex = 8;
+    const contratoIndex = 1;
 
-  rowsArrRet.forEach(arr => {
-    const local = arr[localIndex] ? arr[localIndex].trim() : 'Local Desconhecido';
-    const produtoText = arr[produtoIndex] ? arr[produtoIndex].trim() : '';
-    const cliente = arr[clienteIndex] ? arr[clienteIndex].trim() : 'Cliente Desconhecido';
-    const aRetirar = parseNumber(arr[aRetirarIndex] || '0');
-    const embarcada = parseNumber(arr[embarcadaIndex] || '0');
-    const contrato = arr[contratoIndex] ? arr[contratoIndex].trim() : '';
-    const statusContrato = statusContratoIndex !== -1 ? (arr[statusContratoIndex] || '') : '';
-    const statusNorm = normalizeText(statusContrato);
+    const statusContratoKey = headersNormRet.find(h => h.includes('situacao') && h.includes('contrato')) || null;
+    const statusContratoIndex = headersNormRet.indexOf(statusContratoKey);
 
-    // Contadores de status
-    if(contrato) contratos.add(contrato);
-    if(produtoText) produtos.add(produtoText);
-    
-    if(!grupos[local]) {
-      grupos[local] = {
-        localEmbarque: local,
-        totalARetirar: 0,
-        totalEmbarcada: 0,
-        clientes: new Set(),
-        produtos: new Set(),
-        contratos: new Set(),
-        aberto: 0,
-        finalizado: 0
-      };
-    }
-    
-    // Agregação
-    grupos[local].totalARetirar += aRetirar;
-    grupos[local].totalEmbarcada += embarcada;
-    if(cliente) grupos[local].clientes.add(cliente);
-    if(produtoText) grupos[local].produtos.add(produtoText);
-    if(contrato) grupos[local].contratos.add(contrato);
-    
-    // Contar status
-    if (statusNorm.includes('aberto') || statusNorm.includes('em aberto')) {
-        grupos[local].aberto++;
-    } else if (statusNorm.includes('finalizado') || statusNorm.includes('fechado')) {
-        grupos[local].finalizado++;
-    }
-  });
+    const contratosGlobais = new Set();
+    const produtosGlobais = new Set();
 
-  const resumo = Object.values(grupos).map(grupo => ({
-    ...grupo,
-    totalARetirar: Math.round(grupo.totalARetirar),
-    totalEmbarcada: Math.round(grupo.totalEmbarcada),
-    clientes: Array.from(grupo.clientes).sort().join(', '), // Clientes como string ordenada
-    produtos: Array.from(grupo.produtos).sort().join(' / '),
-    totalContratos: grupo.contratos.size,
-    totalAbertos: grupo.aberto,
-    totalFinalizados: grupo.finalizado
-  })).sort((a, b) => b.totalARetirar - a.totalARetirar);
+    rowsArrRet.forEach(arr => {
+        const local = arr[localIndex] ? arr[localIndex].trim() : 'Local Desconhecido';
+        const cliente = arr[clienteIndex] ? arr[clienteIndex].trim() : 'Cliente Desconhecido';
+        const aRetirar = parseNumber(arr[aRetirarIndex] || '0');
+        const embarcada = parseNumber(arr[embarcadaIndex] || '0');
+        const contrato = arr[contratoIndex] ? arr[contratoIndex].trim() : '';
+        const produtoText = arr[produtoIndex] ? arr[produtoIndex].trim() : '';
+        const statusContrato = statusContratoIndex !== -1 ? (arr[statusContratoIndex] || '') : '';
+        const statusNorm = normalizeText(statusContrato);
 
-  return { resumo, totalContratos: contratos.size, totalProdutos: produtos.size };
+        if (!contrato) return; // Ignorar linhas sem contrato
+
+        const key = groupBy === 'local' ? local : cliente;
+        
+        // Contadores globais
+        contratosGlobais.add(contrato);
+        if (produtoText) produtosGlobais.add(produtoText);
+
+        if (!grupos[key]) {
+            grupos[key] = {
+                key: key,
+                totalARetirar: 0,
+                totalEmbarcada: 0,
+                clientes: new Set(),
+                locais: new Set(),
+                produtos: new Set(),
+                contratos: new Map() // Mapeia contrato para seu status
+            };
+        }
+        
+        // Agregação
+        grupos[key].totalARetirar += aRetirar;
+        grupos[key].totalEmbarcada += embarcada;
+        if (cliente) grupos[key].clientes.add(cliente);
+        if (local) grupos[key].locais.add(local);
+        if (produtoText) grupos[key].produtos.add(produtoText);
+        
+        // Armazenar status do contrato (para contagem única)
+        if (!grupos[key].contratos.has(contrato)) {
+            grupos[key].contratos.set(contrato, statusNorm);
+        }
+    });
+
+    const resumo = Object.values(grupos).map(grupo => {
+        let totalAbertos = 0;
+        let totalFinalizados = 0;
+        
+        // Contar status dos contratos únicos
+        grupo.contratos.forEach(statusNorm => {
+            if (statusNorm.includes('aberto') || statusNorm.includes('em aberto')) {
+                totalAbertos++;
+            } else if (statusNorm.includes('finalizado') || statusNorm.includes('fechado')) {
+                totalFinalizados++;
+            }
+        });
+
+        // Correção do Bug da Barra /: filtra strings vazias
+        const produtosValidos = Array.from(grupo.produtos).filter(p => p.trim() !== '');
+        const locaisValidos = Array.from(grupo.locais).filter(l => l.trim() !== '');
+
+        return {
+            ...grupo,
+            totalARetirar: Math.round(grupo.totalARetirar),
+            totalEmbarcada: Math.round(grupo.totalEmbarcada),
+            clientes: Array.from(grupo.clientes).sort().join(', '),
+            locais: locaisValidos.sort().join(' / '),
+            produtos: produtosValidos.sort().join(' / '),
+            totalContratos: grupo.contratos.size,
+            totalAbertos: totalAbertos,
+            totalFinalizados: totalFinalizados,
+            groupBy: groupBy
+        };
+    }).filter(r => r.totalARetirar > 0) // Filtra para mostrar apenas com saldo a retirar
+      .sort((a, b) => b.totalARetirar - a.totalARetirar);
+
+    return { resumo, totalContratos: contratosGlobais.size, totalProdutos: produtosGlobais.size };
 }
 
 /* --- FUNÇÃO: Calcular Totais por Produto (Retirada) --- */
 function calculateProdutosTotaisRetirada(rowsArrRet, headersNormRet) {
     let soja = 0, milho = 0, sorgo = 0;
-    
-    // Mapeamento dos índices (baseado nas colunas E e J)
-    const produtoIndex = 4;  // Coluna E
-    const aRetirarIndex = 9; // Coluna J (Quantidade a Retirar)
+    const produtoIndex = 4;
+    const aRetirarIndex = 9;
 
     rowsArrRet.forEach(arr => {
         const produtoText = arr[produtoIndex] ? arr[produtoIndex].trim() : '';
@@ -425,7 +491,6 @@ function calculateProdutosTotaisRetirada(rowsArrRet, headersNormRet) {
         
         if(isNaN(aRetirar)) return;
         
-        // Somar ao produto correspondente
         if(produtoNorm.includes('soja')) {
           soja += aRetirar;
         } else if(produtoNorm.includes('milho')) {
@@ -437,33 +502,36 @@ function calculateProdutosTotaisRetirada(rowsArrRet, headersNormRet) {
     return {soja, milho, sorgo};
 }
 
-/* Gerar HTML para os cards de resumo por Local de Embarque */
-function buildResumoLocalHTML(resumos) {
+/* Gerar HTML para os cards de resumo (Local ou Cliente) */
+function buildResumoCardsHTML(resumos) {
   if(resumos.length === 0) {
     return '<div class="empty">Nenhum lote de retirada encontrado para o filtro.</div>';
   }
   let html = '';
   resumos.forEach((resumo, index) => { 
-    // Buscar o ID correto no globalResumoLocal, pois 'index' é apenas o índice no array filtrado
-    const globalIndex = globalResumoLocal.findIndex(r => r.localEmbarque === resumo.localEmbarque && r.produtos === resumo.produtos);
+    // O ID deve ser único no array filtrado para ser usado no modal
+    const globalIndex = globalResumoData[resumo.groupBy].findIndex(r => r.key === resumo.key);
 
-    // Definir cor do produto (simples, pega o primeiro)
-    let corProduto = '#6b7280'; // Cinza padrão
+    let corProduto = '#6b7280';
     const produtoUp = (resumo.produtos || '').toUpperCase();
     if(produtoUp.includes('SOJA')) {
-      corProduto = '#10b981'; // Verde para Soja
+      corProduto = '#10b981';
     } else if(produtoUp.includes('MILHO')) {
-      corProduto = '#fbbf24'; // Amarelo para Milho
+      corProduto = '#fbbf24';
     } else if(produtoUp.includes('SORGO')) {
-      corProduto = '#6b7280'; // Cinza para Sorgo
+      corProduto = '#6b7280';
     }
     
-    // O onclick usa o index no array global (globalIndex)
+    // Título do card (Local ou Cliente)
+    const title = resumo.groupBy === 'local' ? resumo.key : resumo.key;
+    // Subtítulo (Produtos ou Locais)
+    const subtitle = resumo.groupBy === 'local' ? resumo.produtos : resumo.locais;
+
     html += `
-      <div class="cliente-card" onclick="openResumoModal(${globalIndex})">
-        <h3 class="cliente-name">${escapeHtml(resumo.localEmbarque)}</h3>
+      <div class="cliente-card" onclick="openResumoModal(${globalIndex}, '${resumo.groupBy}')">
+        <h3 class="cliente-name">${escapeHtml(title)}</h3>
         <div class="cliente-contrato">
-            <span class="cliente-produto" style="background-color: ${corProduto}; color: white; margin-left: 0;">${escapeHtml(resumo.produtos)}</span>
+            <span class="cliente-produto" style="background-color: ${corProduto}; color: white; margin-left: 0;">${escapeHtml(subtitle)}</span>
         </div>
         <div class="cliente-info" style="margin-top: 12px;">
           <span class="info-label">Contratos Abertos:</span>
@@ -487,35 +555,92 @@ function buildResumoLocalHTML(resumos) {
   return html;
 }
 
-/* Função para abrir o modal de detalhes do Local de Embarque */
-function openResumoModal(index) {
-    const resumo = globalResumoLocal[index];
+/* Renderiza os cards e atualiza o título da seção com base na view atual */
+function renderCards() {
+    const data = globalResumoData[currentView];
+    const titleSpan = document.getElementById('resumoTitle');
+    const toggleBtn = document.getElementById('toggleViewBtn');
+    const filterInput = document.getElementById('filterInput');
+
+    if (currentView === 'local') {
+        titleSpan.textContent = '📍 Resumo por Local de Embarque';
+        toggleBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Mudar para Clientes';
+        filterInput.placeholder = 'Filtrar por Local ou Cliente...';
+    } else {
+        titleSpan.textContent = '👤 Resumo por Cliente';
+        toggleBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Mudar para Local';
+        filterInput.placeholder = 'Filtrar por Cliente ou Local...';
+    }
+    
+    filterCards(); // Renderiza aplicando o filtro
+}
+
+/* Função de filtro: Local de Embarque OU Cliente */
+function filterCards() {
+    const data = globalResumoData[currentView];
+    const filterText = normalizeText(document.getElementById('filterInput').value).trim();
+    const container = document.getElementById('clientesContainer');
+    
+    if (filterText.length < 2 && filterText !== 'a' && filterText !== 'e' && filterText !== 'o') { // Filtro minimalista
+        container.innerHTML = buildResumoCardsHTML(data);
+        return;
+    }
+    
+    const filteredResumos = data.filter(resumo => {
+        const keyNorm = normalizeText(resumo.key);
+        const secondaryNorm = normalizeText(currentView === 'local' ? resumo.clientes : resumo.locais);
+
+        return keyNorm.includes(filterText) || secondaryNorm.includes(filterText);
+    });
+    
+    container.innerHTML = buildResumoCardsHTML(filteredResumos);
+}
+
+/* Alterna a visualização entre local e cliente */
+function toggleView() {
+    currentView = currentView === 'local' ? 'cliente' : 'local';
+    renderCards();
+}
+
+/* Função para abrir o modal de detalhes do Resumo */
+function openResumoModal(index, groupBy) {
+    const resumo = globalResumoData[groupBy][index];
     if (!resumo) return;
 
     const modal = document.getElementById('resumoModal');
     const modalContent = document.getElementById('modalContentBody');
     
-    // Formatando a lista de clientes para o modal
-    const clientesArray = resumo.clientes.split(', ').filter(c => c.trim() !== 'Cliente Desconhecido' && c.trim() !== '');
-    const clientesList = clientesArray.map(c => `<span>${escapeHtml(c)}</span>`).join('');
+    // Formatando a lista de Clientes ou Locais para o modal
+    const secondaryListKey = groupBy === 'local' ? 'clientes' : 'locais';
+    const secondaryListTitle = groupBy === 'local' ? 'Clientes Envolvidos' : 'Locais de Embarque Envolvidos';
+    const secondaryListArray = resumo[secondaryListKey].split(', ').filter(c => c.trim() !== 'Cliente Desconhecido' && c.trim() !== 'Local Desconhecido' && c.trim() !== '' && c.trim() !== '/');
+    const secondaryList = secondaryListArray.map(c => `<span>${escapeHtml(c)}</span>`).join('');
     
-    // Definir cor do produto (simples, pega o primeiro)
-    let corProduto = '#6b7280'; // Cinza padrão
+    let corProduto = '#6b7280';
     const produtoUp = (resumo.produtos || '').toUpperCase();
     if(produtoUp.includes('SOJA')) {
-      corProduto = '#10b981'; // Verde para Soja
+      corProduto = '#10b981';
     } else if(produtoUp.includes('MILHO')) {
-      corProduto = '#fbbf24'; // Amarelo para Milho
+      corProduto = '#fbbf24';
     } else if(produtoUp.includes('SORGO')) {
-      corProduto = '#6b7280'; // Cinza para Sorgo
+      corProduto = '#6b7280';
     }
+    
+    // Título principal do modal e subtítulo
+    const mainTitle = resumo.key;
+    const subtitleInfo = groupBy === 'local' ? resumo.produtos : resumo.produtos;
+    
+    // Lista de produtos no modal
+    const produtosArray = resumo.produtos.split(' / ').filter(p => p.trim() !== '' && p.trim() !== '/');
+    const produtosList = produtosArray.map(p => `<span class="cliente-produto" style="background-color: ${corProduto}; color: white; margin-right: 5px;">${escapeHtml(p)}</span>`).join('');
 
     modalContent.innerHTML = `
         <div class="modal-header">
-            <h3>${escapeHtml(resumo.localEmbarque)} <span class="cliente-produto" style="background-color: ${corProduto}; color: white; margin-left: 8px; padding: 4px 8px; border-radius: 5px; font-size: 11px;">${escapeHtml(resumo.produtos)}</span></h3>
+            <h3>${escapeHtml(mainTitle)}</h3>
         </div>
         <div class="modal-body">
-            <p><span class="info-label">Contratos (Total no local):</span> <span class="info-value">${resumo.totalContratos}</span></p>
+            <p><span class="info-label">Produtos Envolvidos:</span> ${produtosList}</p>
+            <p><span class="info-label">Contratos (Total no local/cliente):</span> <span class="info-value">${resumo.totalContratos}</span></p>
             <p><span class="info-label">Contratos Abertos:</span> <span class="info-value status-pendente-tag">${resumo.totalAbertos}</span></p>
             <p><span class="info-label">Contratos Finalizados:</span> <span class="info-value status-carregado-tag">${resumo.totalFinalizados}</span></p>
             
@@ -523,8 +648,8 @@ function openResumoModal(index) {
             <p><span class="info-label">Total Embarcado:</span> <span class="info-value">${formatNumber(resumo.totalEmbarcada)} KG</span></p>
             
             <div class="modal-clientes-list">
-                <h4>Clientes Envolvidos (${clientesArray.length}):</h4>
-                ${clientesList || '<span>Nenhum cliente específico encontrado.</span>'}
+                <h4>${secondaryListTitle} (${secondaryListArray.length}):</h4>
+                ${secondaryList || '<span>Nenhum encontrado.</span>'}
             </div>
         </div>
     `;
@@ -536,7 +661,6 @@ function closeModal() {
     document.getElementById('resumoModal').style.display = 'none';
 }
 
-// Configurar fechamento ao clicar fora ou na tecla ESC
 function setupModalCloseHandlers() {
     const modal = document.getElementById('resumoModal');
     modal.addEventListener('click', (e) => {
@@ -551,29 +675,6 @@ function setupModalCloseHandlers() {
     });
 }
 
-/* Função de filtro: Local de Embarque OU Cliente */
-function filterCards() {
-    const filterText = normalizeText(document.getElementById('filterInput').value).trim();
-    const container = document.getElementById('clientesContainer');
-    
-    if (filterText.length < 2) {
-        // Se o filtro for muito curto, mostra todos os cards
-        container.innerHTML = buildResumoLocalHTML(globalResumoLocal);
-        return;
-    }
-    
-    const filteredResumos = globalResumoLocal.filter(resumo => {
-        const localNorm = normalizeText(resumo.localEmbarque);
-        const clientesNorm = normalizeText(resumo.clientes); // Clientes já está em string separada por vírgula
-
-        // Verifica se o texto do filtro está no Local de Embarque ou na lista de Clientes
-        return localNorm.includes(filterText) || clientesNorm.includes(filterText);
-    });
-    
-    container.innerHTML = buildResumoLocalHTML(filteredResumos);
-}
-
-/* Atualizar o texto da última atualização (no topo) */
 function updateLastUpdateTime() {
   const now = new Date();
   const timeString = now.toLocaleTimeString('pt-BR');
@@ -599,70 +700,31 @@ async function loadAll(isAutoUpdate = false){
     const ret = await fetchSheetByGid(GIDS.retirada);
     const rowsArrRet = ret.arrays;
     const headersNormRet = ret.headersNorm;
-    const objsRet = ret.objects;
-    
-    // Filtrar apenas linhas com saldo > 0 (Apenas para o cálculo de produto a retirar)
-    const saldoKeyRet = headersNormRet.find(h => h.includes('quantidadearetirar')) || headersNormRet[9] || null; // Coluna J
-    const rowsObjRetFiltered = [];
-    const rowsArrRetFiltered = [];
-    
-    for(let i=0;i<rowsArrRet.length;i++){
-      const arr = rowsArrRet[i];
-      const obj = objsRet[i] || {};
-      
-      let saldoVal = '';
-      const saldoIndex = headersNormRet.indexOf(saldoKeyRet);
-      
-      if(saldoKeyRet && obj[saldoKeyRet] !== undefined && obj[saldoKeyRet] !== '') saldoVal = obj[saldoKeyRet];
-      else if(saldoIndex !== -1 && arr[saldoIndex] !== undefined) saldoVal = arr[saldoIndex];
-      
-      const n = parseNumber(saldoVal || '0');
-      if(!isNaN(n) && n > 0){
-        rowsObjRetFiltered.push(obj);
-        rowsArrRetFiltered.push(arr);
-      }
-    }
 
-    // ===== RESUMO POR LOCAL DE EMBARQUE =====
-    // O groupBy usa TODAS as linhas para contar abertos/fechados e total de contratos.
-    const { resumo: resumoLocal, totalContratos, totalProdutos } = await groupByLocalEmbarque(rowsArrRet, headersNormRet);
+    // Agrupamento por Local e Cliente (feito em uma única chamada de função refatorada)
+    const { resumo: resumoLocal, totalContratos, totalProdutos } = groupRetiradaData(rowsArrRet, headersNormRet, 'local');
+    const { resumo: resumoCliente } = groupRetiradaData(rowsArrRet, headersNormRet, 'cliente');
     
-    // Armazenar globalmente para filtro (apenas os resumos com saldo a retirar > 0)
-    globalResumoLocal = resumoLocal
-        .filter(r => r.totalARetirar > 0)
-        .sort((a, b) => b.totalARetirar - a.totalARetirar)
-        .map((r, i) => ({ ...r, id: i })); 
+    // Armazenar globalmente os dois resumos
+    globalResumoData.local = resumoLocal;
+    globalResumoData.cliente = resumoCliente;
     
-    // Gerar HTML, aplicando o filtro caso haja texto no campo
-    const filterText = normalizeText(document.getElementById('filterInput').value).trim();
-    if(filterText.length >= 2) {
-        filterCards(); // Re-aplica o filtro
-    } else {
-        document.getElementById('clientesContainer').innerHTML = buildResumoLocalHTML(globalResumoLocal);
-    }
+    // Renderiza a view atual
+    renderCards();
     
     // ===== CONTADORES E TOTAIS DE PRODUTO =====
     
-    // Totais de Status (Aberto/Finalizado)
-    const situacaoContratoKey = headersNormRet.find(h => h.includes('situacaocontrato')) || 'situacaocontrato';
-    const totalAberto = rowsArrRet.filter(arr => {
-        const situacaoContrato = arr[headersNormRet.indexOf(situacaoContratoKey)] || '';
-        const situacaoNorm = normalizeText(situacaoContrato);
-        return situacaoNorm.includes('aberto') || situacaoNorm.includes('em aberto');
-    }).length;
-    const totalFinalizado = rowsArrRet.filter(arr => {
-        const situacaoContrato = arr[headersNormRet.indexOf(situacaoContratoKey)] || '';
-        const situacaoNorm = normalizeText(situacaoContrato);
-        return situacaoNorm.includes('finalizado') || situacaoNorm.includes('fechado');
-    }).length;
+    // Totais de Status (Aberto/Finalizado - usando a contagem global)
+    const totalAbertoGlobal = resumoLocal.reduce((acc, curr) => acc + curr.totalAbertos, 0);
+    const totalFinalizadoGlobal = resumoLocal.reduce((acc, curr) => acc + curr.totalFinalizados, 0);
 
-    document.getElementById('count-aberto').textContent = totalAberto;
-    document.getElementById('count-finalizado').textContent = totalFinalizado;
+    document.getElementById('count-aberto').textContent = totalAbertoGlobal;
+    document.getElementById('count-finalizado').textContent = totalFinalizadoGlobal;
     document.getElementById('count-contratos').textContent = totalContratos;
     document.getElementById('count-produtos').textContent = totalProdutos;
 
-    // Calcular totais por produto (usando o array FILTRADO por saldo > 0)
-    const produtosTotais = calculateProdutosTotaisRetirada(rowsArrRetFiltered, headersNormRet);
+    // Calcular totais por produto (usando o array de todos os lotes)
+    const produtosTotais = calculateProdutosTotaisRetirada(rowsArrRet, headersNormRet);
     
     globalProdutosTotais.soja = produtosTotais.soja;
     globalProdutosTotais.milho = produtosTotais.milho;
@@ -671,7 +733,7 @@ async function loadAll(isAutoUpdate = false){
     const totalARetirar = produtosTotais.soja + produtosTotais.milho + produtosTotais.sorgo;
     globalProdutosTotais.total = totalARetirar;
     
-    // Atualizar cards de produto com "KG" ao lado
+    // Atualizar cards de produto
     document.getElementById('count-soja').textContent = `${formatNumber(produtosTotais.soja)} KG`;
     document.getElementById('count-milho').textContent = `${formatNumber(produtosTotais.milho)} KG`;
     document.getElementById('count-sorgo').textContent = `${formatNumber(produtosTotais.sorgo)} KG`;
@@ -683,7 +745,7 @@ async function loadAll(isAutoUpdate = false){
   }
   catch(err){
     console.error('Erro loadAll (Página Retirada):', err);
-    document.getElementById('clientesContainer').innerHTML = '<div class="empty">Erro ao carregar dados dos locais de embarque (ver console).</div>';
+    document.getElementById('clientesContainer').innerHTML = '<div class="empty">Erro ao carregar dados. Verifique a conexão ou as configurações da planilha (ver console).</div>';
     document.getElementById('lastUpdateTop').innerHTML = `
       <i class="fas fa-exclamation-triangle" style="color: rgba(255,255,255,0.9);"></i>
       <span>Erro na atualização</span>
@@ -692,7 +754,6 @@ async function loadAll(isAutoUpdate = false){
   }
 }
 
-/* Configurar atualização automática */
 let autoUpdateInterval;
 function startAutoUpdate() {
   loadAll(true);
@@ -701,7 +762,6 @@ function startAutoUpdate() {
   }, AUTO_UPDATE_INTERVAL);
 }
 
-// Handler de clique para copiar resumo (mantido como placeholder)
 function handleTotalCardClick() {
     alert(`Total a Retirar: ${formatNumber(globalProdutosTotais.total)} KG. Esta função pode ser personalizada.`);
 }
@@ -714,9 +774,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // Adicionar handler de clique ao card "TOTAL A RETIRAR"
   document.getElementById('card-total-retirada').addEventListener('click', handleTotalCardClick);
   
-  setupModalCloseHandlers(); // NOVO: Configura fechamento do modal
+  setupModalCloseHandlers();
   startAutoUpdate();
-  // Adicionar evento de visibilidade para pausar/recuperar atualizações
+
   document.addEventListener('visibilitychange', function() {
     if(!document.hidden) {
       loadAll(true);
