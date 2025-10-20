@@ -432,6 +432,7 @@ function groupRetiradaData(rowsArrRet, headersNormRet, groupBy) {
         const embarcada = parseNumber(arr[embarcadaIndex] || '0');
         const contrato = arr[contratoIndex] ? arr[contratoIndex].trim() : '';
         const produtoText = arr[produtoIndex] ? arr[produtoIndex].trim() : '';
+        const produtoNorm = normalizeText(produtoText); // Normalizado para agrupamento
 
         if (!contrato) return; // Ignorar linhas sem contrato
 
@@ -449,27 +450,44 @@ function groupRetiradaData(rowsArrRet, headersNormRet, groupBy) {
                 clientes: new Set(),
                 locais: new Set(),
                 produtos: new Set(),
-                contratos: new Map() // Mapeia contrato para a soma de Saldo a Retirar (Coluna J)
+                contratos: new Map(), // Mapeia contrato para a soma de Saldo a Retirar (Coluna J)
+                // NOVO: Detalhamento por produto
+                productBreakdown: {
+                    sojaARetirar: 0, milhoARetirar: 0, sorgoARetirar: 0,
+                    sojaEmbarcada: 0, milhoEmbarcada: 0, sorgoEmbarcada: 0
+                }
             };
         }
         
-        // Agregação
+        // Agregação Total
         grupos[key].totalARetirar += saldoARetirar;
         grupos[key].totalEmbarcada += embarcada;
         if (cliente) grupos[key].clientes.add(cliente);
         if (local) grupos[key].locais.add(local);
         if (produtoText) grupos[key].produtos.add(produtoText);
         
-        // NOVO: Acumular Saldo a Retirar para este Contrato único dentro do grupo
+        // Acumular Saldo a Retirar para este Contrato único dentro do grupo
         const currentSaldo = grupos[key].contratos.get(contrato) || 0;
         grupos[key].contratos.set(contrato, currentSaldo + saldoARetirar);
+        
+        // NOVO: Agregação por Produto
+        if(produtoNorm.includes('soja')) {
+            grupos[key].productBreakdown.sojaARetirar += saldoARetirar;
+            grupos[key].productBreakdown.sojaEmbarcada += embarcada;
+        } else if(produtoNorm.includes('milho')) {
+            grupos[key].productBreakdown.milhoARetirar += saldoARetirar;
+            grupos[key].productBreakdown.milhoEmbarcada += embarcada;
+        } else if(produtoNorm.includes('sorgo')) {
+            grupos[key].productBreakdown.sorgoARetirar += saldoARetirar;
+            grupos[key].productBreakdown.sorgoEmbarcada += embarcada;
+        }
     });
 
     const resumo = Object.values(grupos).map(grupo => {
         let totalAbertos = 0;
         let totalFinalizados = 0;
         
-        // NOVO CÁLCULO: Contar status baseado no Saldo a Retirar por Contrato
+        // CÁLCULO: Contar status baseado no Saldo a Retirar por Contrato
         grupo.contratos.forEach(saldoContrato => {
             if (saldoContrato <= 0) { // Saldo a Retirar <= 0 -> Finalizado
                 totalFinalizados++;
@@ -496,7 +514,16 @@ function groupRetiradaData(rowsArrRet, headersNormRet, groupBy) {
             totalContratos: grupo.contratos.size,
             totalAbertos: totalAbertos,
             totalFinalizados: totalFinalizados,
-            groupBy: groupBy
+            groupBy: groupBy,
+            // Arredondar os valores de productBreakdown
+            productBreakdown: {
+                sojaARetirar: Math.round(grupo.productBreakdown.sojaARetirar),
+                milhoARetirar: Math.round(grupo.productBreakdown.milhoARetirar),
+                sorgoARetirar: Math.round(grupo.productBreakdown.sorgoARetirar),
+                sojaEmbarcada: Math.round(grupo.productBreakdown.sojaEmbarcada),
+                milhoEmbarcada: Math.round(grupo.productBreakdown.milhoEmbarcada),
+                sorgoEmbarcada: Math.round(grupo.productBreakdown.sorgoEmbarcada)
+            }
         };
     }).filter(r => r.totalARetirar > 0 || r.totalFinalizados > 0) // Mostrar se tiver saldo ou se houver contratos finalizados
       .sort((a, b) => b.totalARetirar - a.totalARetirar);
@@ -525,7 +552,7 @@ function calculateProdutosTotaisRetirada(rowsArrRet) {
           sorgo += aRetirar;
         }
     });
-    return {soja, milho, sorgo};
+    return {soja: Math.round(soja), milho: Math.round(milho), sorgo: Math.round(sorgo)};
 }
 
 /* Gerar HTML para os cards de resumo (Local ou Cliente) */
@@ -637,6 +664,30 @@ function openResumoModal(index, groupBy) {
     
     // Lista de produtos no modal
     const produtosList = generateProductTagsHtml(resumo.produtos);
+    
+    // Detalhamento por produto
+    const productBreakdown = resumo.productBreakdown;
+
+    const aRetirarHtml = `
+        <div style="margin-top: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: var(--bg);">
+            <h4 style="margin-top: 0; font-size: 14px; color: var(--primary);"><i class="fas fa-balance-scale-right"></i> Saldo a Retirar (KG)</h4>
+            <p><span class="info-label"><i class="fas fa-seedling" style="color: var(--produto-soja);"></i> Soja:</span> <span class="info-value">${formatNumber(productBreakdown.sojaARetirar)} KG</span></p>
+            <p><span class="info-label"><i class="fas fa-sun" style="color: var(--produto-milho);"></i> Milho:</span> <span class="info-value">${formatNumber(productBreakdown.milhoARetirar)} KG</span></p>
+            <p><span class="info-label"><i class="fas fa-cubes" style="color: var(--produto-sorgo);"></i> Sorgo:</span> <span class="info-value">${formatNumber(productBreakdown.sorgoARetirar)} KG</span></p>
+            <p style="border-top: 1px dashed #ccc; padding-top: 5px; margin-top: 5px;"><span class="info-label" style="font-weight: 700; color: var(--text);">TOTAL:</span> <span class="info-value" style="font-weight: 700;">${formatNumber(resumo.totalARetirar)} KG</span></p>
+        </div>
+    `;
+
+    const embarcadaHtml = `
+        <div style="margin-top: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: var(--bg);">
+            <h4 style="margin-top: 0; font-size: 14px; color: var(--primary);"><i class="fas fa-truck-loading"></i> Quantidade Embarcada (KG)</h4>
+            <p><span class="info-label"><i class="fas fa-seedling" style="color: var(--produto-soja);"></i> Soja:</span> <span class="info-value">${formatNumber(productBreakdown.sojaEmbarcada)} KG</span></p>
+            <p><span class="info-label"><i class="fas fa-sun" style="color: var(--produto-milho);"></i> Milho:</span> <span class="info-value">${formatNumber(productBreakdown.milhoEmbarcada)} KG</span></p>
+            <p><span class="info-label"><i class="fas fa-cubes" style="color: var(--produto-sorgo);"></i> Sorgo:</span> <span class="info-value">${formatNumber(productBreakdown.sorgoEmbarcada)} KG</span></p>
+            <p style="border-top: 1px dashed #ccc; padding-top: 5px; margin-top: 5px;"><span class="info-label" style="font-weight: 700; color: var(--text);">TOTAL:</span> <span class="info-value" style="font-weight: 700;">${formatNumber(resumo.totalEmbarcada)} KG</span></p>
+        </div>
+    `;
+
 
     modalContent.innerHTML = `
         <div class="modal-header">
@@ -648,8 +699,8 @@ function openResumoModal(index, groupBy) {
             <p><span class="info-label">Contratos Abertos:</span> <span class="info-value status-pendente-tag">${resumo.totalAbertos}</span></p>
             <p><span class="info-label">Contratos Finalizados:</span> <span class="info-value status-carregado-tag">${resumo.totalFinalizados}</span></p>
             
-            <p style="margin-top: 15px;"><span class="info-label">Total a Retirar:</span> <span class="info-value">${formatNumber(resumo.totalARetirar)} KG</span></p>
-            <p><span class="info-label">Total Embarcado:</span> <span class="info-value">${formatNumber(resumo.totalEmbarcada)} KG</span></p>
+            ${aRetirarHtml} 
+            ${embarcadaHtml}
             
             <div class="modal-clientes-list">
                 <h4>${secondaryListTitle} (${secondaryListArray.length}):</h4>
@@ -679,7 +730,7 @@ function setupModalCloseHandlers() {
     });
 }
 
-// NOVO: Função para o clique no card "TOTAL A RETIRAR"
+// Função para o clique no card "TOTAL A RETIRAR"
 function handleTotalCardClick() {
     const soja = formatNumber(globalProdutosTotais.soja);
     const milho = formatNumber(globalProdutosTotais.milho);
