@@ -62,12 +62,10 @@
     align-items:center;
     gap: 6px;
   }
-  /* Removido o CSS de animação para o spinner */
-  .updating .last-update-top i{ /* A classe updating não tem mais efeito de rotação */ }
-  
   .wrap{max-width:1400px;margin:0 auto;width:100%}
-  .actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px}
-  .btn{background:var(--primary);color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px}
+  /* Seção para o botão de voltar */
+  .actions{display:flex;justify-content:flex-start;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px}
+  .btn{background:var(--primary);color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px; text-decoration: none; display: flex; align-items: center; gap: 6px;}
   .btn:hover{opacity:.95}
   /* Cards de Status no topo - versão compacta (ligeiramente menores) */
   .status-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
@@ -92,9 +90,9 @@
   /* Seção de Clientes e Destinos */
   .clientes-section{margin-bottom:24px}
   .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px}
-  .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all 0.3s ease}
+  .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all 0.3s ease; cursor: pointer;} /* Adicionado cursor: pointer */
   .cliente-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
-  .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 6px 0} /* AUMENTADO DE 15px para 16px */
+  .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 6px 0}
   .cliente-destino{font-weight:600;color:var(--accent);margin:0 0 10px 0;font-size:13px}
   .cliente-info{display:flex;justify-content:space-between;margin-bottom:6px;align-items:center}
   .info-label{font-weight:600;color:var(--muted);font-size:12px}
@@ -102,42 +100,89 @@
   .cliente-produto{padding:3px 7px;border-radius:5px;font-size:11px;font-weight:600;display:inline-block;margin-top:4px}
   .status-carregado-tag{background-color: var(--status-carregado);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
   .status-pendente-tag{background-color: var(--status-embarque);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
-  .caminhoes-info{display:flex;gap:8px;margin-top:6px;padding-top:6px;border-top:1px solid #eee}
-  .caminhoes-separados{display:flex;gap:6px;align-items:center}
-  /* Títulos expansíveis */
-  .section-header{background:linear-gradient(90deg,var(--primary),var(--accent));color:white;padding:12px;border-radius:8px;margin-bottom:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:700;transition:all 0.3s ease;font-size:15px}
-  .section-header:hover{opacity:0.95}
-  .section-header .toggle-icon{transition:transform 0.3s ease}
-  .section-header.collapsed .toggle-icon{transform:rotate(-90deg)}
-  .section-content{display:block;transition:all 0.3s ease;overflow:hidden}
-  .section-content.collapsed{display:none}
+  /* NOVO: Estilo para Modal/Popup */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: none; /* Inicia oculto */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  .modal-content {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--muted);
+  }
+  .modal-header h3 {
+      margin-top: 0;
+      font-size: 18px;
+      color: var(--primary);
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 8px;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+  }
+  .modal-body p {
+      margin: 5px 0;
+      font-size: 14px;
+  }
+  .modal-body .info-label {
+      font-weight: 600;
+      color: var(--text);
+      display: inline-block;
+      min-width: 180px; /* Aumentado para melhor alinhamento */
+  }
+  .modal-body .info-value {
+      font-weight: 400;
+      color: var(--muted);
+  }
+  .modal-clientes-list {
+      margin-top: 15px;
+      padding-top: 10px;
+      border-top: 1px dashed #ddd;
+  }
+  .modal-clientes-list h4 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: var(--accent);
+  }
+  .modal-clientes-list span {
+      display: block;
+      padding: 3px 0;
+      font-size: 13px;
+      color: var(--text);
+  }
   h2{color:var(--primary);margin:6px 0 12px 0;font-size:18px}
-  .card{background:var(--card);border-radius:8px;padding:12px;margin-bottom:16px;box-shadow:0 4px 12px rgba(16,24,40,0.06)}
-  .table-wrap{overflow-x:auto}
-  table{width:100%;border-collapse:collapse;margin:0;font-size:12px;min-width:750px}
-  th,td{border:1px solid #e6eefc;padding:8px;text-align:left;vertical-align:top}
-  th{background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff;font-weight:700;white-space:nowrap}
-  tr:nth-child(even){background:#fbfdff}
-  .status{display:inline-block;padding:5px 9px;border-radius:14px;color:#fff;font-weight:700;font-size:11px}
-  .status-aberto{background:var(--warning)}
-  .status-fechado{background:var(--success)}
-  /* Estilos para os novos status da programação */
-  .status-programacao{display:inline-block;padding:5px 10px;border-radius:14px;color:#fff;font-weight:700;font-size:11px;min-width:90px;text-align:center}
-  .status-carregado{background-color: var(--status-carregado);}
-  .status-embarque{background-color: var(--status-embarque);}
-  .status-transito{background-color: var(--status-transito);}
-  .status-contratar{background-color: var(--status-contratar);}
-  .empty{color:var(--muted);font-style:italic;padding:10px}
   @media (max-width:900px){
-    table{min-width:650px}
-    th, td{padding:6px;font-size:11px}
-    .status-cards, .produto-cards{flex-direction:column}
     .clientes-container{grid-template-columns:1fr}
     .cliente-card{min-width:260px}
   }
   @media (max-width:600px){
     body{padding:8px}
-    .section-header{padding:10px;font-size:14px}
     .cliente-card{min-width:100%;padding:12px}
     .status-card{min-width:140px;padding:10px}
     .produto-card{min-width:130px;padding:8px}
@@ -155,6 +200,11 @@
     </div>
   </header>
   <div class="wrap">
+    
+    <div class="actions">
+        <a href="index.html" class="btn"><i class="fas fa-arrow-left"></i> Voltar para Embarques</a>
+    </div>
+
     <div class="status-cards">
       <div class="status-card status-card-carregado">
         <h3>RETIRADA ABERTA</h3>
@@ -183,7 +233,7 @@
         <div class="count" id="count-milho">0 KG</div>
       </div>
       <div class="produto-card produto-sorgo">
-        <h3>SORGO A RETIRAR</h3>
+        <h3>SORGO A RETIRAR</H3>
         <div class="count" id="count-sorgo">0 KG</div>
       </div>
       <div class="produto-card produto-total" id="card-total-retirada">
@@ -193,25 +243,22 @@
     </div>
     
     <div class="clientes-section">
-      <div class="section-header" id="toggle-resumo-local">
-        <span>📍 Resumo por Local de Embarque</span>
-        <i class="fas fa-chevron-down toggle-icon"></i>
-      </div>
-      <div class="section-content card" id="content-resumo-local">
-          <div class="clientes-container" id="clientesContainer">
+      <h2 style="margin-top: 0;">📍 Resumo por Local de Embarque</h2>
+      <input type="text" id="filterInput" placeholder="Filtrar por Local de Embarque ou Cliente..." style="width: 100%; padding: 10px; margin-bottom: 16px; border: 1px solid #ccc; border-radius: 6px;">
+      <div class="clientes-container" id="clientesContainer">
           </div>
-      </div>
-    </div>
-    
-    <div class="section-header" id="toggle-retirada">
-      <span>📦 Tabela de Lotes de Retirada</span>
-      <i class="fas fa-chevron-down toggle-icon"></i>
-    </div>
-    <div class="section-content card" id="content-retirada">
-      <div id="retiradaContent" class="table-wrap"></div>
     </div>
     
   </div>
+  
+  <div id="resumoModal" class="modal-overlay">
+      <div class="modal-content">
+          <button class="modal-close" onclick="closeModal()">&times;</button>
+          <div id="modalContentBody">
+              </div>
+      </div>
+  </div>
+
 <script>
 /* ====== CONFIG - coloque aqui seu SHEET_ID se mudar ====== */
 const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
@@ -220,13 +267,14 @@ const GIDS = {
 };
 // Configuração do intervalo de atualização automática (em milissegundos)
 const AUTO_UPDATE_INTERVAL = 300000;
-/* colunas que ficam ocultas em exibição (aparecem em detalhes) - normalizadas */
-const HIDDEN_COLS = ['safra', 'royalties'];
-/* colunas removidas (normalizadas) de todas as tabelas */
-const REMOVED_COMMON = ['localizacao','idorigemymvk1', 'numero_contrato']; 
+/* colunas removidas (normalizadas) de todas as tabelas (mantidas para groupBy) */
+const REMOVED_COMMON = ['localizacao','idorigemymvk1', 'numero_contrato', 'safra', 'royalties']; 
 
 /* Variável global para armazenar os totais de produto para o resumo */
 let globalProdutosTotais = { soja: 0, milho: 0, sorgo: 0, total: 0 };
+
+/* Variável global para armazenar o resumo por local para filtro e modal */
+let globalResumoLocal = [];
 
 /* --- FUNÇÕES UTILITÁRIAS MANTIDAS --- */
 
@@ -235,7 +283,7 @@ function normalizeHeader(h){
   if(h === undefined || h === null) return '';
   return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
 }
-/* Normaliza texto: remove acentos — reutilizável para status */
+/* Normaliza texto: remove acentos — reutilizável para status e filtro */
 function normalizeText(text) {
   if(text === undefined || text === null) return '';
   return String(text).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -277,80 +325,9 @@ function formatNumber(value) {
   if(isNaN(value)) return '0';
   return new Intl.NumberFormat('pt-BR').format(Math.round(value));
 }
-/* Formata número como moeda brasileira */
-function formatCurrencyBRL(value) {
-  if (isNaN(value)) return value;
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  }).format(value);
-}
 function escapeHtml(s){
   if(s === undefined || s === null) return '';
-  return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'<','>':'>','"':'&quot;',"'":'&#x2F;'}[c]));
-}
-
-/* build table HTML: rowsArrays = array of arrays; rowsObjects = array of objects keyed by normalized headers */
-function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts){
-  const hiddenNorm = opts.hiddenNorm || [];
-  const removedNorm = opts.removedNorm || [];
-  const numericKey = opts.numericKey || '';
-  const forceInclude = opts.forceInclude || [];
-  const currencyCols = opts.currencyCols || [];
-  const statusCol = opts.statusCol || '';
-  
-  const visible = headersNorm.filter(h => !removedNorm.includes(h));
-  let displayCols = visible.filter(h => !hiddenNorm.includes(h));
-  
-  forceInclude.forEach(fc => {
-    if(visible.includes(fc) && !displayCols.includes(fc)) displayCols.unshift(fc);
-    else if(visible.includes(fc)) displayCols = [fc, ...displayCols.filter(x => x !== fc)];
-  });
-  if(displayCols.length === 0){
-    return '<div class="empty">Sem colunas para exibir.</div>';
-  }
-  
-  let html = '<table><thead><tr>';
-  displayCols.forEach(h => {
-    const idx = headersNorm.indexOf(h);
-    const title = (idx>=0 ? headersOrig[idx] : h) || h;
-    html += `<th>${escapeHtml(title)}</th>`;
-  });
-  if(numericKey) html += '<th>Status</th>';
-  html += '</tr></thead><tbody>';
-  
-  rowsObjects.forEach((obj, i) => {
-    const arr = rowsArrays[i] || [];
-    // Nota: O status de FECHADO/ABERTO não é aplicável aqui, mas a lógica foi mantida do original.
-    html += '<tr>';
-    displayCols.forEach(h => {
-      const idx = headersNorm.indexOf(h);
-      let value = (obj[h] !== undefined && obj[h] !== '') ? obj[h] : (arr[idx] !== undefined ? arr[idx] : '');
-      
-      if(currencyCols.includes(h)) {
-        const numValue = parseNumber(value);
-        if(!isNaN(numValue)) {
-          value = formatCurrencyBRL(numValue);
-        }
-      }
-      
-      if(h === statusCol) {
-        // Lógica de formatação de status de programação (não relevante para retirada, mas mantida como placeholder)
-        html += `<td>${escapeHtml(value)}</td>`;
-      } else {
-        html += `<td>${escapeHtml(value)}</td>`;
-      }
-    });
-    // Coluna Status final: aqui seria bom usar a Coluna L (situação do contrato)
-    if(numericKey) {
-        const saldoVal = arr[headersNorm.indexOf(numericKey)];
-        const n = parseNumber(saldoVal || '0');
-        html += `<td>${n > 0 ? '<span class="status status-aberto">ABERTO</span>':'<span class="status status-fechado">FINALIZADO</span>'}</td>`;
-    }
-    html += '</tr>';
-  });
-  html += '</tbody></table>';
-  return html;
+  return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x2F;'}[c]));
 }
 
 /* Extrair produto do texto (última parte após o último traço) */
@@ -359,8 +336,7 @@ function extractProduto(text) {
   return normalizeText(text); // Agora apenas normalizamos para facilitar a comparação
 }
 
-/* --- NOVA FUNÇÃO: Agrupar por Local de Embarque --- */
-/* (Baseado na planilha LOTES RETIRADA) */
+/* --- FUNÇÃO: Agrupar por Local de Embarque --- */
 async function groupByLocalEmbarque(rowsArrRet, headersNormRet) {
   const grupos = {};
   
@@ -424,8 +400,8 @@ async function groupByLocalEmbarque(rowsArrRet, headersNormRet) {
     ...grupo,
     totalARetirar: Math.round(grupo.totalARetirar),
     totalEmbarcada: Math.round(grupo.totalEmbarcada),
-    clientes: Array.from(grupo.clientes).join(', '),
-    produtos: Array.from(grupo.produtos).join(' / '),
+    clientes: Array.from(grupo.clientes).sort().join(', '), // Clientes como string ordenada
+    produtos: Array.from(grupo.produtos).sort().join(' / '),
     totalContratos: grupo.contratos.size,
     totalAbertos: grupo.aberto,
     totalFinalizados: grupo.finalizado
@@ -434,7 +410,7 @@ async function groupByLocalEmbarque(rowsArrRet, headersNormRet) {
   return { resumo, totalContratos: contratos.size, totalProdutos: produtos.size };
 }
 
-/* --- NOVA FUNÇÃO: Calcular Totais por Produto (Retirada) --- */
+/* --- FUNÇÃO: Calcular Totais por Produto (Retirada) --- */
 function calculateProdutosTotaisRetirada(rowsArrRet, headersNormRet) {
     let soja = 0, milho = 0, sorgo = 0;
     
@@ -464,10 +440,13 @@ function calculateProdutosTotaisRetirada(rowsArrRet, headersNormRet) {
 /* Gerar HTML para os cards de resumo por Local de Embarque */
 function buildResumoLocalHTML(resumos) {
   if(resumos.length === 0) {
-    return '<div class="empty">Nenhum lote de retirada com saldo em aberto.</div>';
+    return '<div class="empty">Nenhum lote de retirada encontrado para o filtro.</div>';
   }
   let html = '';
-  resumos.forEach(resumo => {
+  resumos.forEach((resumo, index) => { 
+    // Buscar o ID correto no globalResumoLocal, pois 'index' é apenas o índice no array filtrado
+    const globalIndex = globalResumoLocal.findIndex(r => r.localEmbarque === resumo.localEmbarque && r.produtos === resumo.produtos);
+
     // Definir cor do produto (simples, pega o primeiro)
     let corProduto = '#6b7280'; // Cinza padrão
     const produtoUp = (resumo.produtos || '').toUpperCase();
@@ -479,12 +458,12 @@ function buildResumoLocalHTML(resumos) {
       corProduto = '#6b7280'; // Cinza para Sorgo
     }
     
+    // O onclick usa o index no array global (globalIndex)
     html += `
-      <div class="cliente-card">
+      <div class="cliente-card" onclick="openResumoModal(${globalIndex})">
         <h3 class="cliente-name">${escapeHtml(resumo.localEmbarque)}</h3>
         <div class="cliente-contrato">
-            Clientes: ${escapeHtml(resumo.clientes)}
-            <span class="cliente-produto" style="background-color: ${corProduto}; color: white; margin-left: 8px;">${escapeHtml(resumo.produtos)}</span>
+            <span class="cliente-produto" style="background-color: ${corProduto}; color: white; margin-left: 0;">${escapeHtml(resumo.produtos)}</span>
         </div>
         <div class="cliente-info" style="margin-top: 12px;">
           <span class="info-label">Contratos Abertos:</span>
@@ -506,6 +485,92 @@ function buildResumoLocalHTML(resumos) {
     `;
   });
   return html;
+}
+
+/* Função para abrir o modal de detalhes do Local de Embarque */
+function openResumoModal(index) {
+    const resumo = globalResumoLocal[index];
+    if (!resumo) return;
+
+    const modal = document.getElementById('resumoModal');
+    const modalContent = document.getElementById('modalContentBody');
+    
+    // Formatando a lista de clientes para o modal
+    const clientesArray = resumo.clientes.split(', ').filter(c => c.trim() !== 'Cliente Desconhecido' && c.trim() !== '');
+    const clientesList = clientesArray.map(c => `<span>${escapeHtml(c)}</span>`).join('');
+    
+    // Definir cor do produto (simples, pega o primeiro)
+    let corProduto = '#6b7280'; // Cinza padrão
+    const produtoUp = (resumo.produtos || '').toUpperCase();
+    if(produtoUp.includes('SOJA')) {
+      corProduto = '#10b981'; // Verde para Soja
+    } else if(produtoUp.includes('MILHO')) {
+      corProduto = '#fbbf24'; // Amarelo para Milho
+    } else if(produtoUp.includes('SORGO')) {
+      corProduto = '#6b7280'; // Cinza para Sorgo
+    }
+
+    modalContent.innerHTML = `
+        <div class="modal-header">
+            <h3>${escapeHtml(resumo.localEmbarque)} <span class="cliente-produto" style="background-color: ${corProduto}; color: white; margin-left: 8px; padding: 4px 8px; border-radius: 5px; font-size: 11px;">${escapeHtml(resumo.produtos)}</span></h3>
+        </div>
+        <div class="modal-body">
+            <p><span class="info-label">Contratos (Total no local):</span> <span class="info-value">${resumo.totalContratos}</span></p>
+            <p><span class="info-label">Contratos Abertos:</span> <span class="info-value status-pendente-tag">${resumo.totalAbertos}</span></p>
+            <p><span class="info-label">Contratos Finalizados:</span> <span class="info-value status-carregado-tag">${resumo.totalFinalizados}</span></p>
+            
+            <p style="margin-top: 15px;"><span class="info-label">Total a Retirar:</span> <span class="info-value">${formatNumber(resumo.totalARetirar)} KG</span></p>
+            <p><span class="info-label">Total Embarcado:</span> <span class="info-value">${formatNumber(resumo.totalEmbarcada)} KG</span></p>
+            
+            <div class="modal-clientes-list">
+                <h4>Clientes Envolvidos (${clientesArray.length}):</h4>
+                ${clientesList || '<span>Nenhum cliente específico encontrado.</span>'}
+            </div>
+        </div>
+    `;
+
+    modal.style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('resumoModal').style.display = 'none';
+}
+
+// Configurar fechamento ao clicar fora ou na tecla ESC
+function setupModalCloseHandlers() {
+    const modal = document.getElementById('resumoModal');
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.style.display === 'flex') {
+            closeModal();
+        }
+    });
+}
+
+/* Função de filtro: Local de Embarque OU Cliente */
+function filterCards() {
+    const filterText = normalizeText(document.getElementById('filterInput').value).trim();
+    const container = document.getElementById('clientesContainer');
+    
+    if (filterText.length < 2) {
+        // Se o filtro for muito curto, mostra todos os cards
+        container.innerHTML = buildResumoLocalHTML(globalResumoLocal);
+        return;
+    }
+    
+    const filteredResumos = globalResumoLocal.filter(resumo => {
+        const localNorm = normalizeText(resumo.localEmbarque);
+        const clientesNorm = normalizeText(resumo.clientes); // Clientes já está em string separada por vírgula
+
+        // Verifica se o texto do filtro está no Local de Embarque ou na lista de Clientes
+        return localNorm.includes(filterText) || clientesNorm.includes(filterText);
+    });
+    
+    container.innerHTML = buildResumoLocalHTML(filteredResumos);
 }
 
 /* Atualizar o texto da última atualização (no topo) */
@@ -533,11 +598,10 @@ async function loadAll(isAutoUpdate = false){
     // ===== LOTES DE RETIRADA (FOCO ÚNICO) =====
     const ret = await fetchSheetByGid(GIDS.retirada);
     const rowsArrRet = ret.arrays;
-    const headersOrigRet = ret.headersOrig;
     const headersNormRet = ret.headersNorm;
     const objsRet = ret.objects;
     
-    // Filtrar apenas linhas com saldo > 0
+    // Filtrar apenas linhas com saldo > 0 (Apenas para o cálculo de produto a retirar)
     const saldoKeyRet = headersNormRet.find(h => h.includes('quantidadearetirar')) || headersNormRet[9] || null; // Coluna J
     const rowsObjRetFiltered = [];
     const rowsArrRetFiltered = [];
@@ -560,20 +624,34 @@ async function loadAll(isAutoUpdate = false){
     }
 
     // ===== RESUMO POR LOCAL DE EMBARQUE =====
+    // O groupBy usa TODAS as linhas para contar abertos/fechados e total de contratos.
     const { resumo: resumoLocal, totalContratos, totalProdutos } = await groupByLocalEmbarque(rowsArrRet, headersNormRet);
     
-    document.getElementById('clientesContainer').innerHTML = buildResumoLocalHTML(resumoLocal);
+    // Armazenar globalmente para filtro (apenas os resumos com saldo a retirar > 0)
+    globalResumoLocal = resumoLocal
+        .filter(r => r.totalARetirar > 0)
+        .sort((a, b) => b.totalARetirar - a.totalARetirar)
+        .map((r, i) => ({ ...r, id: i })); 
+    
+    // Gerar HTML, aplicando o filtro caso haja texto no campo
+    const filterText = normalizeText(document.getElementById('filterInput').value).trim();
+    if(filterText.length >= 2) {
+        filterCards(); // Re-aplica o filtro
+    } else {
+        document.getElementById('clientesContainer').innerHTML = buildResumoLocalHTML(globalResumoLocal);
+    }
     
     // ===== CONTADORES E TOTAIS DE PRODUTO =====
     
     // Totais de Status (Aberto/Finalizado)
+    const situacaoContratoKey = headersNormRet.find(h => h.includes('situacaocontrato')) || 'situacaocontrato';
     const totalAberto = rowsArrRet.filter(arr => {
-        const situacaoContrato = arr[headersNormRet.indexOf('situacaocontrato')] || '';
+        const situacaoContrato = arr[headersNormRet.indexOf(situacaoContratoKey)] || '';
         const situacaoNorm = normalizeText(situacaoContrato);
         return situacaoNorm.includes('aberto') || situacaoNorm.includes('em aberto');
     }).length;
     const totalFinalizado = rowsArrRet.filter(arr => {
-        const situacaoContrato = arr[headersNormRet.indexOf('situacaocontrato')] || '';
+        const situacaoContrato = arr[headersNormRet.indexOf(situacaoContratoKey)] || '';
         const situacaoNorm = normalizeText(situacaoContrato);
         return situacaoNorm.includes('finalizado') || situacaoNorm.includes('fechado');
     }).length;
@@ -583,17 +661,15 @@ async function loadAll(isAutoUpdate = false){
     document.getElementById('count-contratos').textContent = totalContratos;
     document.getElementById('count-produtos').textContent = totalProdutos;
 
-    // Calcular totais por produto
+    // Calcular totais por produto (usando o array FILTRADO por saldo > 0)
     const produtosTotais = calculateProdutosTotaisRetirada(rowsArrRetFiltered, headersNormRet);
     
-    // Armazenar no objeto global para a funcionalidade de clique (se implementada)
     globalProdutosTotais.soja = produtosTotais.soja;
     globalProdutosTotais.milho = produtosTotais.milho;
     globalProdutosTotais.sorgo = produtosTotais.sorgo;
     
-    // Calcular e exibir TOTAL A RETIRAR (apenas o saldo em aberto)
     const totalARetirar = produtosTotais.soja + produtosTotais.milho + produtosTotais.sorgo;
-    globalProdutosTotais.total = totalARetirar; // Armazenar o total
+    globalProdutosTotais.total = totalARetirar;
     
     // Atualizar cards de produto com "KG" ao lado
     document.getElementById('count-soja').textContent = `${formatNumber(produtosTotais.soja)} KG`;
@@ -601,67 +677,18 @@ async function loadAll(isAutoUpdate = false){
     document.getElementById('count-sorgo').textContent = `${formatNumber(produtosTotais.sorgo)} KG`;
     document.getElementById('count-total').textContent = `${formatNumber(totalARetirar)} KG`;
     
-    // ===== TABELA COMPLETA DE LOTES DE RETIRADA (APENAS ABERTOS) =====
-    let removedRet = [...REMOVED_COMMON.map(normalizeHeader)];
-    // Adicionar colunas de controle (NFP, Status Contrato, Status Royalties) aos headers originais, para fins de visualização
-    const situacaoContratoKey = headersNormRet.find(h => h.includes('situacaocontrato')) || null;
-    const nfpStatusKey = headersNormRet.find(h => h.includes('statusnfp')) || null;
-    const royaltiesStatusKey = headersNormRet.find(h => h.includes('statusroyalties')) || null;
-    
-    const tableRetHTML = buildTableHTML(rowsArrRetFiltered, rowsObjRetFiltered, headersOrigRet, headersNormRet, {
-      hiddenNorm: HIDDEN_COLS.map(normalizeHeader),
-      removedNorm: removedRet,
-      numericKey: saldoKeyRet, // Usar saldo para exibir status Aberto/Fechado
-      forceInclude: [
-        headersNormRet[1], headersNormRet[3], headersNormRet[4], // Contrato, Cliente, Produto
-        saldoKeyRet, headersNormRet[headersNormRet.indexOf('quantidadeembarcada')] // Saldo e Embarcado
-      ].filter(Boolean)
-    });
-
-    // Inserir tabela na seção
-    document.getElementById('retiradaContent').innerHTML = tableRetHTML || '<div class="empty">Nenhum lote de retirada em aberto.</div>';
-    
-    // Inicialmente colapsar o resumo e expandir a tabela
-    document.getElementById('content-retirada').classList.remove('collapsed');
-    document.getElementById('toggle-retirada').classList.remove('collapsed');
-    document.getElementById('content-resumo-local').classList.add('collapsed');
-    document.getElementById('toggle-resumo-local').classList.add('collapsed');
-    
     // Atualizar o texto da última atualização
     updateLastUpdateTime();
     document.body.classList.remove('updating');
   }
   catch(err){
     console.error('Erro loadAll (Página Retirada):', err);
-    document.getElementById('retiradaContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
     document.getElementById('clientesContainer').innerHTML = '<div class="empty">Erro ao carregar dados dos locais de embarque (ver console).</div>';
     document.getElementById('lastUpdateTop').innerHTML = `
       <i class="fas fa-exclamation-triangle" style="color: rgba(255,255,255,0.9);"></i>
       <span>Erro na atualização</span>
     `;
     document.body.classList.remove('updating');
-  }
-}
-
-/* Toggle sections */
-function setupToggleHandlers() {
-  document.getElementById('toggle-retirada').addEventListener('click', function() {
-    toggleSection('retirada');
-  });
-  document.getElementById('toggle-resumo-local').addEventListener('click', function() {
-    toggleSection('resumo-local');
-  });
-}
-function toggleSection(sectionId) {
-  const content = document.getElementById(`content-${sectionId}`);
-  const header = document.getElementById(`toggle-${sectionId}`);
-  const isCollapsed = content.classList.contains('collapsed');
-  if(isCollapsed) {
-    content.classList.remove('collapsed');
-    header.classList.remove('collapsed');
-  } else {
-    content.classList.add('collapsed');
-    header.classList.add('collapsed');
   }
 }
 
@@ -681,9 +708,13 @@ function handleTotalCardClick() {
 
 /* init */
 document.addEventListener('DOMContentLoaded', function() {
-  setupToggleHandlers();
+  // Adicionar handler de filtro
+  document.getElementById('filterInput').addEventListener('keyup', filterCards);
+  
   // Adicionar handler de clique ao card "TOTAL A RETIRAR"
   document.getElementById('card-total-retirada').addEventListener('click', handleTotalCardClick);
+  
+  setupModalCloseHandlers(); // NOVO: Configura fechamento do modal
   startAutoUpdate();
   // Adicionar evento de visibilidade para pausar/recuperar atualizações
   document.addEventListener('visibilitychange', function() {
