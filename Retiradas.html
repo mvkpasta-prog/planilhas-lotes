@@ -538,7 +538,6 @@ function buildResumoCardsHTML(resumos) {
     const globalIndex = globalResumoData[resumo.groupBy].findIndex(r => r.key === resumo.key);
 
     const title = resumo.key;
-    const subtitle = resumo.groupBy === 'local' ? resumo.produtos : resumo.locais;
     
     // Gerar tags de produto com ícones
     const productTagsHtml = generateProductTagsHtml(resumo.produtos);
@@ -680,6 +679,23 @@ function setupModalCloseHandlers() {
     });
 }
 
+// NOVO: Função para o clique no card "TOTAL A RETIRAR"
+function handleTotalCardClick() {
+    const soja = formatNumber(globalProdutosTotais.soja);
+    const milho = formatNumber(globalProdutosTotais.milho);
+    const sorgo = formatNumber(globalProdutosTotais.sorgo);
+    const total = formatNumber(globalProdutosTotais.total);
+
+    alert(`
+        RESUMO TOTAL A RETIRAR: ${total} KG
+
+        - Soja: ${soja} KG
+        - Milho: ${milho} KG
+        - Sorgo: ${sorgo} KG
+    `);
+}
+
+
 function updateLastUpdateTime() {
   const now = new Date();
   const timeString = now.toLocaleTimeString('pt-BR');
@@ -766,9 +782,6 @@ function startAutoUpdate() {
   }, AUTO_UPDATE_INTERVAL);
 }
 
-function handleTotalCardClick() {
-    alert(`Total a Retirar: ${formatNumber(globalProdutosTotais.total)} KG. Esta função pode ser personalizada.`);
-}
 
 /* init */
 document.addEventListener('DOMContentLoaded', function() {
