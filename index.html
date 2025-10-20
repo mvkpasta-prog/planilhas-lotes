@@ -43,7 +43,7 @@
     font-size: 12px;
     color: rgba(255,255,255,0.9);
     display: flex;
-    align-items: center;
+    align-items:center;
     gap: 6px;
   }
   .last-update-top i {
@@ -413,7 +413,7 @@ function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts)
 function numericKeyIndex(headersNorm, key){ return headersNorm.indexOf(key); }
 function escapeHtml(s){
   if(s === undefined || s === null) return '';
-  return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'<','>':'>','"':'&quot;',"'":'&#x27;','/':'&#x2F;'}[c]));
+  return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'<','>':'>','"':'&quot;',"'":'&#x2F;'}[c]));
 }
 /* Contar status da programação — CORRIGIDA */
 function countStatusProgramacao(rowsObjects, statusCol) {
@@ -799,16 +799,37 @@ function getSaudacao() {
   }
 }
 
-/* --- NOVO: Função para formatar a mensagem de resumo --- */
+/* --- FUNÇÃO ATUALIZADA: Função para formatar a mensagem de resumo --- */
 function formatResumoMessage(soja, milho, sorgo, total) {
   const saudacao = getSaudacao();
   const sojaKg = formatNumber(soja);
   const milhoKg = formatNumber(milho);
-  // O sorgo não foi pedido no formato, mas o total inclui, vamos listá-lo se houver
-  const sorgoLine = sorgo > 0 ? `Sorgo: ${formatNumber(sorgo)} kg\n` : '';
+  const sorgoKg = formatNumber(sorgo);
   const totalKg = formatNumber(total);
 
-  return `${saudacao} \nEmbarque encerrado 🌱 🌽\nSoja: ${sojaKg} kg\nMilho: ${milhoKg} kg\n${sorgoLine}Total embarcado: ${totalKg} kg\nBom descanso a todos 🙌🏻`;
+  // Ícones condicionais: só aparecem se o peso for > 0
+  const icones = [];
+  if (soja > 0) icones.push('🌱');
+  if (milho > 0) icones.push('🌽');
+  if (sorgo > 0) icones.push('🌾');
+  const iconesLine = icones.join(' ');
+
+  // Linhas condicionais
+  const sojaLine = `Soja: ${sojaKg} kg`;
+  const milhoLine = `Milho: ${milhoKg} kg`;
+  const sorgoLine = sorgo > 0 ? `Sorgo: ${sorgoKg} kg` : '';
+
+  // Construir a mensagem final
+  let message = `${saudacao}\nEmbarque encerrado ${iconesLine}\n`;
+  message += `${sojaLine}\n`;
+  message += `${milhoLine}\n`;
+  if (sorgoLine) {
+    message += `${sorgoLine}\n`;
+  }
+  message += `Total embarcado: ${totalKg} kg\nBom descanso a todos 🙌🏻🙏🏻`;
+
+  // Remover a quebra de linha extra se sorgoLine for vazio
+  return message.trim();
 }
 
 /* --- NOVO: Handler para o clique no card de total embarcado --- */
@@ -819,6 +840,7 @@ function handleTotalCardClick() {
   // Tenta copiar para a área de transferência
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(message).then(() => {
+      // Usar a mensagem formatada para exibição no alert também
       alert(`Mensagem copiada para a área de transferência:\n\n${message}`);
     }).catch(err => {
       // Falha na cópia, exibe no alert para cópia manual
