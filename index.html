@@ -246,7 +246,7 @@
     </div>
 <script>
 /* ====== CONFIG - coloque aqui seu SHEET_ID se mudar ====== */
-const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
+const SHEET_ID = '1CZZgYJiZic9pyFFTdyldm_gVwn2K-zSGY9uhFJ5Nz6Q';
 const GIDS = {
   entrega: '1186247985',    // aba LOTES DE ENTREGA
   retirada: '1984691910',   // aba LOTES RETIRADA
@@ -433,6 +433,9 @@ function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts)
         const numValue = parseNumber(value);
         if(!isNaN(numValue)) {
           value = formatCurrencyBRL(numValue);
+        } else {
+          // Se for NaN, retorna '/' através do escapeHtml
+          value = '';
         }
       }
       // Formatar status da programação
@@ -451,9 +454,11 @@ function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts)
 }
 // helper: get index of normalized key (or -1)
 function numericKeyIndex(headersNorm, key){ return headersNorm.indexOf(key); }
+/* FUNÇÃO ATUALIZADA: Substitui undefined, null ou '' por '/' */
 function escapeHtml(s){
-  if(s === undefined || s === null) return '';
-  return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'<','>':'>','"':'&quot;',"'":'&#x2F;'}[c]));
+  // SUBSTITUIÇÃO: Troca undefined, null ou string vazia por '/'
+  if(s === undefined || s === null || s === '') return '/';
+  return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x2F;'}[c]));
 }
 /* Contar status da programação — CORRIGIDA */
 function countStatusProgramacao(rowsObjects, statusCol) {
@@ -631,7 +636,7 @@ function buildClientesHTML(clientes) {
     const saldoEntregaDisplay = !isNaN(saldoEntregaAjustado) ? `${formatNumber(saldoEntregaAjustado)} KG` : '0 KG';
     
     // Formatar valor médio do frete
-    const valorMedioFrete = !isNaN(cliente.valorMedioFrete) ? formatCurrencyBRL(cliente.valorMedioFrete) : 'N/A';
+    const valorMedioFrete = !isNaN(cliente.valorMedioFrete) ? formatCurrencyBRL(cliente.valorMedioFrete) : '/';
     
     html += `
       <div class="cliente-card">
