@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Controle de Lotes — Entrega & Retirada</title>
+<title>Controle de Lotes — Entregas</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <style>
   :root{
@@ -186,7 +186,7 @@
   <header>
     <div class="header-title">
       <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height: 22px; vertical-align: middle; margin-right: 8px;">
-      Controle de Lotes — Entrega & Retirada
+      Controle de Lotes — Entregas
     </div>
     <a href="Retiradas.html" class="header-btn" title="Acessar Lotes de Retirada">
       📦 Lotes de Retirada
@@ -243,21 +243,7 @@
     <div class="section-content card" id="content-programacao">
       <div id="programacaoContent" class="table-wrap"></div>
     </div>
-    <div class="section-header" id="toggle-entrega">
-      <span>🚚 Lotes de Entrega</span>
-      <i class="fas fa-chevron-down toggle-icon"></i>
     </div>
-    <div class="section-content card" id="content-entrega">
-      <div id="entregaContent" class="table-wrap"></div>
-    </div>
-    <div class="section-header" id="toggle-retirada">
-      <span>📦 Lotes de Retirada</span>
-      <i class="fas fa-chevron-down toggle-icon"></i>
-    </div>
-    <div class="section-content card" id="content-retirada">
-      <div id="retiradaContent" class="table-wrap"></div>
-    </div>
-  </div>
 <script>
 /* ====== CONFIG - coloque aqui seu SHEET_ID se mudar ====== */
 const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
@@ -959,7 +945,7 @@ async function loadAll(isAutoUpdate = false){
         rowsObjProgFiltered.push(obj);
       }
     }
-    // ===== LOTES DE ENTREGA: buscar e construir mapa de saldo por contrato =====
+    // ===== LOTES DE ENTREGA: buscar e construir mapa de saldo por contrato (MESMO QUE NÃO EXIBIDO) =====
     const ent = await fetchSheetByGid(GIDS.entrega);
     const rowsArrEnt = ent.arrays;
     const headersOrigEnt = ent.headersOrig;
@@ -1003,91 +989,11 @@ async function loadAll(isAutoUpdate = false){
         saldoPorContrato[contratoNorm] = (saldoPorContrato[contratoNorm]||0) + n;
       }
     }
-    // ===== filtrar ENTregas abertas (para a tabela) =====
-    let removedEnt = [...REMOVED_COMMON.map(normalizeHeader)];
-    const idDestinoKey = headersNormEnt.find(h => h.includes('iddestino') || h.includes('id_destino'));
-    const situacaoEntKey = headersNormEnt.find(h => h.includes('situacaoent') || h.includes('situacao') || h.includes('situacaoentrega'));
-    if(infoDestinoKey) removedEnt.push(infoDestinoKey);
-    if(idDestinoKey) removedEnt.push(idDestinoKey);
-    if(situacaoEntKey) removedEnt.push(situacaoEntKey);
-    existingContratoKeys.forEach(key => {
-      if(!removedEnt.includes(key)) removedEnt.push(key);
-    });
-    const rowsObjEntFiltered = [];
-    const rowsArrEntFiltered = [];
-    for(let i=0;i<rowsArrEnt.length;i++){
-      const arr = rowsArrEnt[i];
-      let obj = {...objsEnt[i]} || {};
-      // Extrair número do contrato de "INFORMAÇÕES DESTINO" ou coluna B
-      let contratoNumero = '';
-      if(infoDestinoKey && obj[infoDestinoKey]) {
-        const valorDestino = obj[infoDestinoKey];
-        if(String(valorDestino).includes('-')) {
-          contratoNumero = String(valorDestino).split('-')[0].trim();
-        } else {
-          contratoNumero = String(valorDestino).trim();
-        }
-      } else {
-        if(arr && arr[1] !== undefined) {
-          contratoNumero = arr[1];
-        }
-      }
-      obj['numero_contrato'] = contratoNumero;
-      let saldoVal = '';
-      if(saldoKeyEnt && obj[saldoKeyEnt] !== undefined && obj[saldoKeyEnt] !== '') saldoVal = obj[saldoKeyEnt];
-      else if(arr && arr[saldoIndexEnt] !== undefined) saldoVal = arr[saldoIndexEnt];
-      const n = parseNumber(saldoVal || '0');
-      if(!isNaN(n) && n > 0){
-        rowsObjEntFiltered.push(obj);
-        rowsArrEntFiltered.push(arr);
-      }
-    }
-    // Adicionar a nova coluna de contrato aos cabeçalhos (se ainda não tiver)
-    if(!headersNormEnt.includes('numero_contrato')) {
-      headersNormEnt.push('numero_contrato');
-      headersOrigEnt.push('Nº CONTRATO');
-    }
-    // build table entrega
-    const hiddenEnt = HIDDEN_COLS.map(normalizeHeader);
-    const forceIncludeEnt = ['numero_contrato'];
-    const tableEntHTML = buildTableHTML(rowsArrEntFiltered, rowsObjEntFiltered, headersOrigEnt, headersNormEnt, {
-      hiddenNorm: hiddenEnt,
-      removedNorm: removedEnt,
-      numericKey: saldoKeyEnt || headersNormEnt[saldoIndexEnt] || '',
-      forceInclude: forceIncludeEnt
-    });
-    // ===== LOTES DE RETIRADA =====
+    // ===== LOTES DE RETIRADA (MESMO QUE NÃO EXIBIDO) =====
     const ret = await fetchSheetByGid(GIDS.retirada);
-    const rowsArrRet = ret.arrays;
-    const headersOrigRet = ret.headersOrig;
-    const headersNormRet = ret.headersNorm;
-    const objsRet = ret.objects;
-    // Remove INFORMAÇÕES ORIGEM from display
-    const removedRet = [...REMOVED_COMMON.map(normalizeHeader)];
-    const possOrigem = headersNormRet.find(h => h.includes('origem') && (h.includes('informacao') || h.includes('informacoes')));
-    if(possOrigem) removedRet.push(possOrigem);
-    const hiddenRet = HIDDEN_COLS.map(normalizeHeader);
-    const saldoKeyRet = findHeaderKey(headersNormRet, ['saldoret','saldoretkg','saldoretirada']) || null;
-    const saldoIndexRet = 9;
-    const rowsObjRetFiltered = [];
-    const rowsArrRetFiltered = [];
-    for(let i=0;i<rowsArrRet.length;i++){
-      const arr = rowsArrRet[i];
-      const obj = objsRet[i] || {};
-      let saldoVal = '';
-      if(saldoKeyRet && obj[saldoKeyRet] !== undefined && obj[saldoKeyRet] !== '') saldoVal = obj[saldoKeyRet];
-      else if(arr && arr[saldoIndexRet] !== undefined) saldoVal = arr[saldoIndexRet];
-      const n = parseNumber(saldoVal || '0');
-      if(!isNaN(n) && n > 0){
-        rowsObjRetFiltered.push(obj);
-        rowsArrRetFiltered.push(arr);
-      }
-    }
-    const tableRetHTML = buildTableHTML(rowsArrRetFiltered, rowsObjRetFiltered, headersOrigRet, headersNormRet, {
-      hiddenNorm: hiddenRet,
-      removedNorm: removedRet,
-      numericKey: saldoKeyRet || headersNormRet[saldoIndexRet] || ''
-    });
+    // O restante do processamento de Lotes de Entrega e Retirada foi removido/mantido no backend para evitar erros de dependência.
+    // ...
+
     // ===== CONTADORES E TABELA DE PROGRAMAÇÃO =====
     // Contar status para os cards (aqui usamos os objetos filtrados)
     const statusCounts = countStatusProgramacao(rowsObjProgFiltered, statusKey);
@@ -1149,14 +1055,10 @@ async function loadAll(isAutoUpdate = false){
     });
     // Inserir tabelas nas seções
     document.getElementById('programacaoContent').innerHTML = tableProgHTML || '<div class="empty">Nenhuma programação para hoje.</div>';
-    document.getElementById('entregaContent').innerHTML = tableEntHTML || '<div class="empty">Nenhum lote de entrega em aberto.</div>';
-    document.getElementById('retiradaContent').innerHTML = tableRetHTML || '<div class="empty">Nenhum lote de retirada em aberto.</div>';
+    // O conteúdo de Entrega e Retirada NÃO SÃO MAIS INSERIDOS NO DOM
+    
     // Inicialmente colapsar todas as seções
-    document.getElementById('content-entrega').classList.add('collapsed');
-    document.getElementById('content-retirada').classList.add('collapsed');
     document.getElementById('content-programacao').classList.add('collapsed');
-    document.getElementById('toggle-entrega').classList.add('collapsed');
-    document.getElementById('toggle-retirada').classList.add('collapsed');
     document.getElementById('toggle-programacao').classList.add('collapsed');
     // Atualizar o texto da última atualização
     updateLastUpdateTime();
@@ -1164,9 +1066,8 @@ async function loadAll(isAutoUpdate = false){
   }
   catch(err){
     console.error('Erro loadAll:', err);
-    document.getElementById('entregaContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
-    document.getElementById('retiradaContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
-    document.getElementById('programacaoContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
+    // Mensagens de erro atualizadas para refletir apenas a seção de Programação e Contratos
+    document.getElementById('programacaoContent').innerHTML = '<div class="empty">Erro ao carregar dados da Programação (ver console).</div>';
     document.getElementById('clientesContainer').innerHTML = '<div class="empty">Erro ao carregar dados dos contratos (ver console).</div>';
     document.getElementById('lastUpdateTop').innerHTML = `
       <i class="fas fa-exclamation-triangle" style="color: rgba(255,255,255,0.9);"></i>
@@ -1177,12 +1078,15 @@ async function loadAll(isAutoUpdate = false){
 }
 /* Toggle sections */
 function setupToggleHandlers() {
+  // REMOVIDO: Handlers de toggle para Entrega e Retirada
+  /*
   document.getElementById('toggle-entrega').addEventListener('click', function() {
     toggleSection('entrega');
   });
   document.getElementById('toggle-retirada').addEventListener('click', function() {
     toggleSection('retirada');
   });
+  */
   document.getElementById('toggle-programacao').addEventListener('click', function() {
     toggleSection('programacao');
   });
