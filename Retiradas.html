@@ -9,8 +9,8 @@
   :root{
     --primary:#2563eb; --accent:#0ea5e9; --bg:#f6fbff; --card:#fff; --text:#0f172a;
     --muted:#6b7280; --success:#10b981; --warning:#f59e0b;
-    --status-carregado: #10b981; /* Verde */
-    --status-embarque: #3b82f6; /* Azul */
+    --status-carregado: #10b981; /* Verde (Finalizado) */
+    --status-embarque: #3b82f6; /* Azul (Aberto) */
     --status-transito: #ef4444; /* Vermelho */
     --status-contratar: #f97316; /* Laranja */
     --produto-soja: #10b981; /* Verde para Soja */
@@ -20,10 +20,10 @@
   }
   *{box-sizing:border-box}
   body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:12px}
-  /* NOVO: Estilo do Logo MVK como Background/Watermark */
+  /* Estilo do Logo MVK como Background/Watermark */
   body::before {
     content: '';
-    position: fixed; /* Fixar no viewport */
+    position: fixed; 
     top: 0;
     left: 0;
     width: 100%;
@@ -31,10 +31,10 @@
     background-image: url('https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png');
     background-repeat: no-repeat;
     background-position: center center;
-    background-size: 80vh; /* Ocupa 80% da altura do viewport */
-    opacity: 0.05; /* Nível de transparência para efeito sutil de marca d'água */
-    z-index: -1; /* Garantir que fique atrás do conteúdo */
-    pointer-events: none; /* Permite interagir com o conteúdo por baixo */
+    background-size: 80vh; 
+    opacity: 0.05; 
+    z-index: -1; 
+    pointer-events: none; 
   }
   header{
     background:linear-gradient(90deg,var(--primary),var(--accent));
@@ -65,28 +65,28 @@
     gap: 6px;
   }
   .wrap{max-width:1400px;margin:0 auto;width:100%}
-  /* NOVO: Estilo para o botão no header */
+  /* Estilo para o botão no header */
   .header-btn {
-    background: #fff; /* Fundo branco */
-    color: var(--primary); /* Texto na cor primária */
+    background: #fff;
+    color: var(--primary); 
     border: none;
-    padding: 6px 10px; /* Um pouco menor que o btn padrão */
+    padding: 6px 10px; 
     border-radius: 6px;
     cursor: pointer;
     font-weight: 700;
-    font-size: 13px; /* Fonte ligeiramente menor */
-    text-decoration: none; /* Remover sublinhado do link */
+    font-size: 13px; 
+    text-decoration: none; 
     transition: background 0.2s ease, opacity 0.2s ease;
-    white-space: nowrap; /* Não quebrar a linha */
+    white-space: nowrap; 
     display: flex; 
     align-items: center; 
     gap: 6px;
   }
   .header-btn:hover {
-    background: var(--bg); /* Ligeiro cinza claro no hover */
+    background: var(--bg); 
     opacity: 0.95;
   }
-  /* Cards de Status no topo - versão compacta (ligeiramente menores) */
+  /* Cards de Status no topo */
   .status-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
   .status-card{background:var(--card);border-radius:8px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:150px;text-align:center;transition:all 0.3s ease}
   .status-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
@@ -96,9 +96,9 @@
   .status-card-embarque{border-top:3px solid var(--status-embarque);}
   .status-card-transito{border-top:3px solid var(--status-transito);}
   .status-card-contratar{border-top:3px solid var(--status-contratar);}
-  /* Cards de Produtos - versão compacta (ligeiramente menores) */
+  /* Cards de Produtos */
   .produto-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
-  .produto-card{background:var(--card);border-radius:8px;padding:8px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:140px;text-align:center;transition:all 0.3s ease;border-top:3px solid transparent; cursor: pointer;} /* Adicionado cursor: pointer; */
+  .produto-card{background:var(--card);border-radius:8px;padding:8px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:140px;text-align:center;transition:all 0.3s ease;border-top:3px solid transparent; cursor: pointer;}
   .produto-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
   .produto-card h3{margin:0 0 4px 0;font-size:13px;color:var(--text);font-weight:600}
   .produto-card .count{font-size:18px;font-weight:700;margin:4px 0}
@@ -109,7 +109,7 @@
   /* Seção de Clientes e Destinos */
   .clientes-section{margin-bottom:24px}
   .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px}
-  .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all 0.3s ease; cursor: pointer;} /* Adicionado cursor: pointer */
+  .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all 0.3s ease; cursor: pointer;} 
   .cliente-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
   .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 6px 0}
   .cliente-destino{font-weight:600;color:var(--accent);margin:0 0 10px 0;font-size:13px}
@@ -117,9 +117,10 @@
   .info-label{font-weight:600;color:var(--muted);font-size:12px}
   .info-value{font-weight:700;font-size:13px}
   .cliente-produto{padding:3px 7px;border-radius:5px;font-size:11px;font-weight:600;display:inline-block;margin-top:4px}
+  .cliente-produto i { margin-right: 4px; }
   .status-carregado-tag{background-color: var(--status-carregado);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
   .status-pendente-tag{background-color: var(--status-embarque);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
-  /* NOVO: Estilo para Modal/Popup */
+  /* Modal/Popup */
   .modal-overlay {
     position: fixed;
     top: 0;
@@ -127,7 +128,7 @@
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.6);
-    display: none; /* Inicia oculto */
+    display: none; 
     justify-content: center;
     align-items: center;
     z-index: 1000;
@@ -257,19 +258,19 @@
     
     <div class="status-cards">
       <div class="status-card status-card-carregado">
-        <h3>RETIRADA ABERTA</h3>
+        <h3>CONTRATOS ABERTOS</h3>
         <div class="count" id="count-aberto">0</div>
       </div>
       <div class="status-card status-card-embarque">
-        <h3>LOTE FINALIZADO</h3>
+        <h3>CONTRATOS FINALIZADOS</h3>
         <div class="count" id="count-finalizado">0</div>
       </div>
       <div class="status-card status-card-transito">
-        <h3>CONTRATOS</h3>
+        <h3>CONTRATOS TOTAIS</h3>
         <div class="count" id="count-contratos">0</div>
       </div>
       <div class="status-card status-card-contratar">
-        <h3>PRODUTOS</h3>
+        <h3>PRODUTOS ÚNICOS</h3>
         <div class="count" id="count-produtos">0</div>
       </div>
     </div>
@@ -318,10 +319,10 @@
   </div>
 
 <script>
-/* ====== CONFIG - coloque aqui seu SHEET_ID se mudar ====== */
+/* ====== CONFIG - Planilha Lotes Retirada ====== */
 const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
 const GIDS = {
-  retirada: '1984691910'   // aba LOTES RETIRADA (o único foco)
+  retirada: '1984691910'   // GID da aba LOTES RETIRADA
 };
 // Configuração do intervalo de atualização automática (em milissegundos)
 const AUTO_UPDATE_INTERVAL = 300000;
@@ -331,7 +332,7 @@ let globalProdutosTotais = { soja: 0, milho: 0, sorgo: 0, total: 0 };
 let globalResumoData = { local: [], cliente: [] };
 let currentView = 'local'; // 'local' ou 'cliente'
 
-/* --- FUNÇÕES UTILITÁRIAS MANTIDAS --- */
+/* --- FUNÇÕES UTILITÁRIAS --- */
 
 function normalizeHeader(h){
   if(h === undefined || h === null) return '';
@@ -378,26 +379,48 @@ function escapeHtml(s){
   if(s === undefined || s === null) return '';
   return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x2F;'}[c]));
 }
-function extractProduto(text) {
-  if(!text) return '';
-  return normalizeText(text);
+
+/**
+ * Gera o HTML para as tags de produto com ícones e cores.
+ * @param {string} produtosString - String de produtos separada por ' / ' (e.g., "SOJA / MILHO").
+ * @returns {string} HTML das tags formatadas.
+ */
+function generateProductTagsHtml(produtosString) {
+    const produtosArray = produtosString.split(' / ').filter(p => p.trim() !== '');
+    if (produtosArray.length === 0) {
+        return '<span class="cliente-produto" style="background-color: var(--muted); color: white;"><i class="fas fa-question-circle"></i> N/A</span>';
+    }
+
+    let tagsHtml = '';
+    produtosArray.forEach(p => {
+        const pUp = p.toUpperCase();
+        let tagIcon = 'fas fa-cubes';
+        let tagColor = 'var(--produto-sorgo)'; // Sorgo/Default
+        
+        if(pUp.includes('SOJA')) {
+            tagIcon = 'fas fa-seedling';
+            tagColor = 'var(--produto-soja)';
+        } else if(pUp.includes('MILHO')) {
+            tagIcon = 'fas fa-sun'; // Ícone representando grão dourado/milho
+            tagColor = 'var(--produto-milho)';
+        }
+
+        tagsHtml += `<span class="cliente-produto" style="background-color: ${tagColor}; color: white; margin-right: 5px;">
+            <i class="${tagIcon}"></i> ${escapeHtml(p)}
+        </span>`;
+    });
+    return tagsHtml;
 }
 
-/* --- FUNÇÃO PRINCIPAL: Agrupar Lotes de Retirada (Corrigido Contratos e Filtro de Undefined) --- */
+/* --- FUNÇÃO PRINCIPAL: Agrupar Lotes de Retirada --- */
 function groupRetiradaData(rowsArrRet, headersNormRet, groupBy) {
     const grupos = {};
-    const localIndex = 2;
-    const clienteIndex = 3;
-    const produtoIndex = 4;
-    const aRetirarIndex = 9;
-    const embarcadaIndex = 8;
-    const contratoIndex = 1;
-    // Coluna L é índice 11 (0-based) no array de células.
-    const CONTRACT_STATUS_INDEX_FALLBACK = 11; 
-
-    // Tenta encontrar a coluna pelo nome, se não, usa o fallback para L (índice 11)
-    const statusContratoKey = headersNormRet.find(h => h.includes('situacao') && h.includes('contrato')) || headersNormRet[CONTRACT_STATUS_INDEX_FALLBACK] || null;
-    const statusContratoIndex = headersNormRet.indexOf(statusContratoKey);
+    const localIndex = 2;       // Coluna C
+    const clienteIndex = 3;     // Coluna D
+    const produtoIndex = 4;     // Coluna E
+    const aRetirarIndex = 9;    // Coluna J (Saldo a Retirar - CRÍTICO para o status)
+    const embarcadaIndex = 8;   // Coluna I
+    const contratoIndex = 1;    // Coluna B (Contrato)
 
     const contratosGlobais = new Set();
     const produtosGlobais = new Set();
@@ -405,21 +428,12 @@ function groupRetiradaData(rowsArrRet, headersNormRet, groupBy) {
     rowsArrRet.forEach(arr => {
         const local = arr[localIndex] ? arr[localIndex].trim() : 'Local Desconhecido';
         const cliente = arr[clienteIndex] ? arr[clienteIndex].trim() : 'Cliente Desconhecido';
-        const aRetirar = parseNumber(arr[aRetirarIndex] || '0');
+        const saldoARetirar = parseNumber(arr[aRetirarIndex] || '0');
         const embarcada = parseNumber(arr[embarcadaIndex] || '0');
         const contrato = arr[contratoIndex] ? arr[contratoIndex].trim() : '';
         const produtoText = arr[produtoIndex] ? arr[produtoIndex].trim() : '';
 
         if (!contrato) return; // Ignorar linhas sem contrato
-
-        // NOVO: Leitura correta da Situação do Contrato (Coluna L/Índice 11)
-        let statusContrato = '';
-        if (statusContratoIndex !== -1) {
-             statusContrato = arr[statusContratoIndex] || '';
-        } else if (arr.length > CONTRACT_STATUS_INDEX_FALLBACK) { 
-             statusContrato = arr[CONTRACT_STATUS_INDEX_FALLBACK] || '';
-        }
-        const statusNorm = normalizeText(statusContrato);
 
         const key = groupBy === 'local' ? local : cliente;
         
@@ -435,70 +449,70 @@ function groupRetiradaData(rowsArrRet, headersNormRet, groupBy) {
                 clientes: new Set(),
                 locais: new Set(),
                 produtos: new Set(),
-                contratos: new Map() // Mapeia contrato para seu status
+                contratos: new Map() // Mapeia contrato para a soma de Saldo a Retirar (Coluna J)
             };
         }
         
         // Agregação
-        grupos[key].totalARetirar += aRetirar;
+        grupos[key].totalARetirar += saldoARetirar;
         grupos[key].totalEmbarcada += embarcada;
         if (cliente) grupos[key].clientes.add(cliente);
         if (local) grupos[key].locais.add(local);
         if (produtoText) grupos[key].produtos.add(produtoText);
         
-        // Armazenar status do contrato (para contagem única)
-        // O status é sobrescrito, mas para a contagem, importa apenas o último status do contrato
-        grupos[key].contratos.set(contrato, statusNorm);
+        // NOVO: Acumular Saldo a Retirar para este Contrato único dentro do grupo
+        const currentSaldo = grupos[key].contratos.get(contrato) || 0;
+        grupos[key].contratos.set(contrato, currentSaldo + saldoARetirar);
     });
 
     const resumo = Object.values(grupos).map(grupo => {
         let totalAbertos = 0;
         let totalFinalizados = 0;
         
-        // Contar status dos contratos únicos
-        grupo.contratos.forEach(statusNorm => {
-            if (statusNorm.includes('aberto') || statusNorm.includes('em aberto')) {
-                totalAbertos++;
-            } else if (statusNorm.includes('finalizado') || statusNorm.includes('fechado')) {
+        // NOVO CÁLCULO: Contar status baseado no Saldo a Retirar por Contrato
+        grupo.contratos.forEach(saldoContrato => {
+            if (saldoContrato <= 0) { // Saldo a Retirar <= 0 -> Finalizado
                 totalFinalizados++;
+            } else { // Saldo a Retirar > 0 -> Aberto
+                totalAbertos++;
             }
         });
 
-        // CORREÇÃO DO BUG "UNDEFINED": Filtrar entradas vazias e 'Desconhecido'
+        // CORREÇÃO DO BUG "UNDEFINED" e substituição por '/'
         const clientesValidos = Array.from(grupo.clientes)
             .filter(c => c.trim() !== '' && c.trim().toLowerCase() !== 'cliente desconhecido');
         const locaisValidos = Array.from(grupo.locais)
             .filter(l => l.trim() !== '' && l.trim().toLowerCase() !== 'local desconhecido');
         const produtosValidos = Array.from(grupo.produtos)
-            .filter(p => p.trim() !== ''); // Manter o filtro de vazio
+            .filter(p => p.trim() !== '');
 
         return {
             ...grupo,
             totalARetirar: Math.round(grupo.totalARetirar),
             totalEmbarcada: Math.round(grupo.totalEmbarcada),
-            clientes: clientesValidos.sort().join(', '), 
-            locais: locaisValidos.sort().join(' / '),
-            produtos: produtosValidos.sort().join(' / '),
+            clientes: clientesValidos.sort().join(', ') || '/', 
+            locais: locaisValidos.sort().join(' / ') || '/',
+            produtos: produtosValidos.sort().join(' / ') || '/',
             totalContratos: grupo.contratos.size,
             totalAbertos: totalAbertos,
             totalFinalizados: totalFinalizados,
             groupBy: groupBy
         };
-    }).filter(r => r.totalARetirar > 0)
+    }).filter(r => r.totalARetirar > 0 || r.totalFinalizados > 0) // Mostrar se tiver saldo ou se houver contratos finalizados
       .sort((a, b) => b.totalARetirar - a.totalARetirar);
 
     return { resumo, totalContratos: contratosGlobais.size, totalProdutos: produtosGlobais.size };
 }
 
 /* --- FUNÇÃO: Calcular Totais por Produto (Retirada) --- */
-function calculateProdutosTotaisRetirada(rowsArrRet, headersNormRet) {
+function calculateProdutosTotaisRetirada(rowsArrRet) {
     let soja = 0, milho = 0, sorgo = 0;
     const produtoIndex = 4;
     const aRetirarIndex = 9;
 
     rowsArrRet.forEach(arr => {
         const produtoText = arr[produtoIndex] ? arr[produtoIndex].trim() : '';
-        const produtoNorm = extractProduto(produtoText);
+        const produtoNorm = normalizeText(produtoText);
         const aRetirar = parseNumber(arr[aRetirarIndex] || '0');
         
         if(isNaN(aRetirar)) return;
@@ -523,24 +537,17 @@ function buildResumoCardsHTML(resumos) {
   resumos.forEach((resumo, index) => { 
     const globalIndex = globalResumoData[resumo.groupBy].findIndex(r => r.key === resumo.key);
 
-    let corProduto = '#6b7280';
-    const produtoUp = (resumo.produtos || '').toUpperCase();
-    if(produtoUp.includes('SOJA')) {
-      corProduto = '#10b981';
-    } else if(produtoUp.includes('MILHO')) {
-      corProduto = '#fbbf24';
-    } else if(produtoUp.includes('SORGO')) {
-      corProduto = '#6b7280';
-    }
-    
-    const title = resumo.groupBy === 'local' ? resumo.key : resumo.key;
+    const title = resumo.key;
     const subtitle = resumo.groupBy === 'local' ? resumo.produtos : resumo.locais;
+    
+    // Gerar tags de produto com ícones
+    const productTagsHtml = generateProductTagsHtml(resumo.produtos);
 
     html += `
       <div class="cliente-card" onclick="openResumoModal(${globalIndex}, '${resumo.groupBy}')">
         <h3 class="cliente-name">${escapeHtml(title)}</h3>
-        <div class="cliente-contrato">
-            <span class="cliente-produto" style="background-color: ${corProduto}; color: white; margin-left: 0;">${escapeHtml(subtitle || 'N/A')}</span>
+        <div class="cliente-contrato" style="margin-bottom: 8px;">
+            ${productTagsHtml}
         </div>
         <div class="cliente-info" style="margin-top: 12px;">
           <span class="info-label">Contratos Abertos:</span>
@@ -566,7 +573,6 @@ function buildResumoCardsHTML(resumos) {
 
 /* Renderiza os cards e atualiza o título da seção com base na view atual */
 function renderCards() {
-    const data = globalResumoData[currentView];
     const titleSpan = document.getElementById('resumoTitle');
     const toggleBtn = document.getElementById('toggleViewBtn');
     const filterInput = document.getElementById('filterInput');
@@ -591,11 +597,9 @@ function filterCards() {
     const container = document.getElementById('clientesContainer');
     
     if (filterText.length < 2 && filterText.length > 0) {
-        // Se o filtro for muito curto, mas não vazio, ignora o filtro
         container.innerHTML = buildResumoCardsHTML(data);
         return;
     } else if (filterText.length === 0) {
-        // Se o filtro estiver vazio, mostra todos
         container.innerHTML = buildResumoCardsHTML(data);
         return;
     }
@@ -627,33 +631,20 @@ function openResumoModal(index, groupBy) {
     // Formatando a lista de Clientes ou Locais para o modal
     const secondaryListKey = groupBy === 'local' ? 'clientes' : 'locais';
     const secondaryListTitle = groupBy === 'local' ? 'Clientes Envolvidos' : 'Locais de Embarque Envolvidos';
-    // Utiliza a lista já tratada no objeto resumo (string separada por ', ')
-    const secondaryListArray = resumo[secondaryListKey].split(', ').filter(c => c.trim() !== '');
+    const secondaryListArray = resumo[secondaryListKey].split(/, | \/ /).filter(c => c.trim() !== '');
     const secondaryList = secondaryListArray.map(c => `<span>${escapeHtml(c)}</span>`).join('');
     
-    let corProduto = '#6b7280';
-    const produtoUp = (resumo.produtos || '').toUpperCase();
-    if(produtoUp.includes('SOJA')) {
-      corProduto = '#10b981';
-    } else if(produtoUp.includes('MILHO')) {
-      corProduto = '#fbbf24';
-    } else if(produtoUp.includes('SORGO')) {
-      corProduto = '#6b7280';
-    }
-    
-    // Título principal do modal e subtítulo
     const mainTitle = resumo.key;
     
     // Lista de produtos no modal
-    const produtosArray = resumo.produtos.split(' / ').filter(p => p.trim() !== '');
-    const produtosList = produtosArray.map(p => `<span class="cliente-produto" style="background-color: ${corProduto}; color: white; margin-right: 5px;">${escapeHtml(p)}</span>`).join('');
+    const produtosList = generateProductTagsHtml(resumo.produtos);
 
     modalContent.innerHTML = `
         <div class="modal-header">
             <h3>${escapeHtml(mainTitle)}</h3>
         </div>
         <div class="modal-body">
-            <p><span class="info-label">Produtos Envolvidos:</span> ${produtosList || 'N/A'}</p>
+            <p><span class="info-label">Produtos Envolvidos:</span> ${produtosList}</p>
             <p><span class="info-label">Contratos (Total no local/cliente):</span> <span class="info-value">${resumo.totalContratos}</span></p>
             <p><span class="info-label">Contratos Abertos:</span> <span class="info-value status-pendente-tag">${resumo.totalAbertos}</span></p>
             <p><span class="info-label">Contratos Finalizados:</span> <span class="info-value status-carregado-tag">${resumo.totalFinalizados}</span></p>
@@ -728,8 +719,6 @@ async function loadAll(isAutoUpdate = false){
     
     // ===== CONTADORES E TOTAIS DE PRODUTO =====
     
-    // Totais de Status (Aberto/Finalizado - usando a contagem global)
-    // Usamos a soma dos totais de contratos únicos de cada grupo de local.
     const totalAbertoGlobal = resumoLocal.reduce((acc, curr) => acc + curr.totalAbertos, 0);
     const totalFinalizadoGlobal = resumoLocal.reduce((acc, curr) => acc + curr.totalFinalizados, 0);
 
@@ -739,7 +728,7 @@ async function loadAll(isAutoUpdate = false){
     document.getElementById('count-produtos').textContent = totalProdutos;
 
     // Calcular totais por produto (usando o array de todos os lotes)
-    const produtosTotais = calculateProdutosTotaisRetirada(rowsArrRet, headersNormRet);
+    const produtosTotais = calculateProdutosTotaisRetirada(rowsArrRet);
     
     globalProdutosTotais.soja = produtosTotais.soja;
     globalProdutosTotais.milho = produtosTotais.milho;
