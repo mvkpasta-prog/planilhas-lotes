@@ -49,13 +49,13 @@
     justify-content:space-between;
     gap:8px;
     position: relative;
-    flex-wrap: wrap; /* Adicionado para responsividade */
+    flex-wrap: wrap; 
   }
   .header-title {
     display: flex;
     align-items: center;
     gap: 8px;
-    min-width: 200px; /* Garante que o título não suma */
+    min-width: 200px;
   }
   .last-update-top {
     font-size: 12px;
@@ -172,7 +172,7 @@
       font-weight: 600;
       color: var(--text);
       display: inline-block;
-      min-width: 180px; /* Aumentado para melhor alinhamento */
+      min-width: 180px; 
   }
   .modal-body .info-value {
       font-weight: 400;
@@ -376,7 +376,6 @@ function formatNumber(value) {
 }
 function escapeHtml(s){
   if(s === undefined || s === null) return '';
-  // Garante que a string é tratada corretamente antes do escapamento
   return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x2F;'}[c]));
 }
 function extractProduto(text) {
@@ -384,7 +383,7 @@ function extractProduto(text) {
   return normalizeText(text);
 }
 
-/* --- FUNÇÃO PRINCIPAL: Agrupar Lotes de Retirada --- */
+/* --- FUNÇÃO PRINCIPAL: Agrupar Lotes de Retirada (Corrigido Contratos e Filtro de Undefined) --- */
 function groupRetiradaData(rowsArrRet, headersNormRet, groupBy) {
     const grupos = {};
     const localIndex = 2;
@@ -393,8 +392,11 @@ function groupRetiradaData(rowsArrRet, headersNormRet, groupBy) {
     const aRetirarIndex = 9;
     const embarcadaIndex = 8;
     const contratoIndex = 1;
+    // Coluna L é índice 11 (0-based) no array de células.
+    const CONTRACT_STATUS_INDEX_FALLBACK = 11; 
 
-    const statusContratoKey = headersNormRet.find(h => h.includes('situacao') && h.includes('contrato')) || null;
+    // Tenta encontrar a coluna pelo nome, se não, usa o fallback para L (índice 11)
+    const statusContratoKey = headersNormRet.find(h => h.includes('situacao') && h.includes('contrato')) || headersNormRet[CONTRACT_STATUS_INDEX_FALLBACK] || null;
     const statusContratoIndex = headersNormRet.indexOf(statusContratoKey);
 
     const contratosGlobais = new Set();
@@ -407,10 +409,17 @@ function groupRetiradaData(rowsArrRet, headersNormRet, groupBy) {
         const embarcada = parseNumber(arr[embarcadaIndex] || '0');
         const contrato = arr[contratoIndex] ? arr[contratoIndex].trim() : '';
         const produtoText = arr[produtoIndex] ? arr[produtoIndex].trim() : '';
-        const statusContrato = statusContratoIndex !== -1 ? (arr[statusContratoIndex] || '') : '';
-        const statusNorm = normalizeText(statusContrato);
 
         if (!contrato) return; // Ignorar linhas sem contrato
+
+        // NOVO: Leitura correta da Situação do Contrato (Coluna L/Índice 11)
+        let statusContrato = '';
+        if (statusContratoIndex !== -1) {
+             statusContrato = arr[statusContratoIndex] || '';
+        } else if (arr.length > CONTRACT_STATUS_INDEX_FALLBACK) { 
+             statusContrato = arr[CONTRACT_STATUS_INDEX_FALLBACK] || '';
+        }
+        const statusNorm = normalizeText(statusContrato);
 
         const key = groupBy === 'local' ? local : cliente;
         
@@ -438,9 +447,8 @@ function groupRetiradaData(rowsArrRet, headersNormRet, groupBy) {
         if (produtoText) grupos[key].produtos.add(produtoText);
         
         // Armazenar status do contrato (para contagem única)
-        if (!grupos[key].contratos.has(contrato)) {
-            grupos[key].contratos.set(contrato, statusNorm);
-        }
+        // O status é sobrescrito, mas para a contagem, importa apenas o último status do contrato
+        grupos[key].contratos.set(contrato, statusNorm);
     });
 
     const resumo = Object.values(grupos).map(grupo => {
@@ -456,15 +464,19 @@ function groupRetiradaData(rowsArrRet, headersNormRet, groupBy) {
             }
         });
 
-        // Correção do Bug da Barra /: filtra strings vazias
-        const produtosValidos = Array.from(grupo.produtos).filter(p => p.trim() !== '');
-        const locaisValidos = Array.from(grupo.locais).filter(l => l.trim() !== '');
+        // CORREÇÃO DO BUG "UNDEFINED": Filtrar entradas vazias e 'Desconhecido'
+        const clientesValidos = Array.from(grupo.clientes)
+            .filter(c => c.trim() !== '' && c.trim().toLowerCase() !== 'cliente desconhecido');
+        const locaisValidos = Array.from(grupo.locais)
+            .filter(l => l.trim() !== '' && l.trim().toLowerCase() !== 'local desconhecido');
+        const produtosValidos = Array.from(grupo.produtos)
+            .filter(p => p.trim() !== ''); // Manter o filtro de vazio
 
         return {
             ...grupo,
             totalARetirar: Math.round(grupo.totalARetirar),
             totalEmbarcada: Math.round(grupo.totalEmbarcada),
-            clientes: Array.from(grupo.clientes).sort().join(', '),
+            clientes: clientesValidos.sort().join(', '), 
             locais: locaisValidos.sort().join(' / '),
             produtos: produtosValidos.sort().join(' / '),
             totalContratos: grupo.contratos.size,
@@ -472,7 +484,7 @@ function groupRetiradaData(rowsArrRet, headersNormRet, groupBy) {
             totalFinalizados: totalFinalizados,
             groupBy: groupBy
         };
-    }).filter(r => r.totalARetirar > 0) // Filtra para mostrar apenas com saldo a retirar
+    }).filter(r => r.totalARetirar > 0)
       .sort((a, b) => b.totalARetirar - a.totalARetirar);
 
     return { resumo, totalContratos: contratosGlobais.size, totalProdutos: produtosGlobais.size };
@@ -509,7 +521,6 @@ function buildResumoCardsHTML(resumos) {
   }
   let html = '';
   resumos.forEach((resumo, index) => { 
-    // O ID deve ser único no array filtrado para ser usado no modal
     const globalIndex = globalResumoData[resumo.groupBy].findIndex(r => r.key === resumo.key);
 
     let corProduto = '#6b7280';
@@ -522,16 +533,14 @@ function buildResumoCardsHTML(resumos) {
       corProduto = '#6b7280';
     }
     
-    // Título do card (Local ou Cliente)
     const title = resumo.groupBy === 'local' ? resumo.key : resumo.key;
-    // Subtítulo (Produtos ou Locais)
     const subtitle = resumo.groupBy === 'local' ? resumo.produtos : resumo.locais;
 
     html += `
       <div class="cliente-card" onclick="openResumoModal(${globalIndex}, '${resumo.groupBy}')">
         <h3 class="cliente-name">${escapeHtml(title)}</h3>
         <div class="cliente-contrato">
-            <span class="cliente-produto" style="background-color: ${corProduto}; color: white; margin-left: 0;">${escapeHtml(subtitle)}</span>
+            <span class="cliente-produto" style="background-color: ${corProduto}; color: white; margin-left: 0;">${escapeHtml(subtitle || 'N/A')}</span>
         </div>
         <div class="cliente-info" style="margin-top: 12px;">
           <span class="info-label">Contratos Abertos:</span>
@@ -581,7 +590,12 @@ function filterCards() {
     const filterText = normalizeText(document.getElementById('filterInput').value).trim();
     const container = document.getElementById('clientesContainer');
     
-    if (filterText.length < 2 && filterText !== 'a' && filterText !== 'e' && filterText !== 'o') { // Filtro minimalista
+    if (filterText.length < 2 && filterText.length > 0) {
+        // Se o filtro for muito curto, mas não vazio, ignora o filtro
+        container.innerHTML = buildResumoCardsHTML(data);
+        return;
+    } else if (filterText.length === 0) {
+        // Se o filtro estiver vazio, mostra todos
         container.innerHTML = buildResumoCardsHTML(data);
         return;
     }
@@ -613,7 +627,8 @@ function openResumoModal(index, groupBy) {
     // Formatando a lista de Clientes ou Locais para o modal
     const secondaryListKey = groupBy === 'local' ? 'clientes' : 'locais';
     const secondaryListTitle = groupBy === 'local' ? 'Clientes Envolvidos' : 'Locais de Embarque Envolvidos';
-    const secondaryListArray = resumo[secondaryListKey].split(', ').filter(c => c.trim() !== 'Cliente Desconhecido' && c.trim() !== 'Local Desconhecido' && c.trim() !== '' && c.trim() !== '/');
+    // Utiliza a lista já tratada no objeto resumo (string separada por ', ')
+    const secondaryListArray = resumo[secondaryListKey].split(', ').filter(c => c.trim() !== '');
     const secondaryList = secondaryListArray.map(c => `<span>${escapeHtml(c)}</span>`).join('');
     
     let corProduto = '#6b7280';
@@ -628,10 +643,9 @@ function openResumoModal(index, groupBy) {
     
     // Título principal do modal e subtítulo
     const mainTitle = resumo.key;
-    const subtitleInfo = groupBy === 'local' ? resumo.produtos : resumo.produtos;
     
     // Lista de produtos no modal
-    const produtosArray = resumo.produtos.split(' / ').filter(p => p.trim() !== '' && p.trim() !== '/');
+    const produtosArray = resumo.produtos.split(' / ').filter(p => p.trim() !== '');
     const produtosList = produtosArray.map(p => `<span class="cliente-produto" style="background-color: ${corProduto}; color: white; margin-right: 5px;">${escapeHtml(p)}</span>`).join('');
 
     modalContent.innerHTML = `
@@ -639,7 +653,7 @@ function openResumoModal(index, groupBy) {
             <h3>${escapeHtml(mainTitle)}</h3>
         </div>
         <div class="modal-body">
-            <p><span class="info-label">Produtos Envolvidos:</span> ${produtosList}</p>
+            <p><span class="info-label">Produtos Envolvidos:</span> ${produtosList || 'N/A'}</p>
             <p><span class="info-label">Contratos (Total no local/cliente):</span> <span class="info-value">${resumo.totalContratos}</span></p>
             <p><span class="info-label">Contratos Abertos:</span> <span class="info-value status-pendente-tag">${resumo.totalAbertos}</span></p>
             <p><span class="info-label">Contratos Finalizados:</span> <span class="info-value status-carregado-tag">${resumo.totalFinalizados}</span></p>
@@ -701,7 +715,7 @@ async function loadAll(isAutoUpdate = false){
     const rowsArrRet = ret.arrays;
     const headersNormRet = ret.headersNorm;
 
-    // Agrupamento por Local e Cliente (feito em uma única chamada de função refatorada)
+    // Agrupamento por Local e Cliente
     const { resumo: resumoLocal, totalContratos, totalProdutos } = groupRetiradaData(rowsArrRet, headersNormRet, 'local');
     const { resumo: resumoCliente } = groupRetiradaData(rowsArrRet, headersNormRet, 'cliente');
     
@@ -715,6 +729,7 @@ async function loadAll(isAutoUpdate = false){
     // ===== CONTADORES E TOTAIS DE PRODUTO =====
     
     // Totais de Status (Aberto/Finalizado - usando a contagem global)
+    // Usamos a soma dos totais de contratos únicos de cada grupo de local.
     const totalAbertoGlobal = resumoLocal.reduce((acc, curr) => acc + curr.totalAbertos, 0);
     const totalFinalizadoGlobal = resumoLocal.reduce((acc, curr) => acc + curr.totalFinalizados, 0);
 
