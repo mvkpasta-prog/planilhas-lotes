@@ -49,6 +49,8 @@
     justify-content:space-between;
     gap:8px;
     position: relative;
+    /* Ajuste para alinhar o conteúdo principal do header e o botão */
+    flex-wrap: wrap; 
   }
   .header-title {
     display: flex;
@@ -69,6 +71,24 @@
   .actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px}
   .btn{background:var(--primary);color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px}
   .btn:hover{opacity:.95}
+  /* NOVO: Estilo para o botão no header */
+  .header-btn {
+    background: #fff; /* Fundo branco */
+    color: var(--primary); /* Texto na cor primária */
+    border: none;
+    padding: 6px 10px; /* Um pouco menor que o btn padrão */
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 13px; /* Fonte ligeiramente menor */
+    text-decoration: none; /* Remover sublinhado do link */
+    transition: background 0.2s ease, opacity 0.2s ease;
+    white-space: nowrap; /* Não quebrar a linha */
+  }
+  .header-btn:hover {
+    background: var(--bg); /* Ligeiro cinza claro no hover */
+    opacity: 0.95;
+  }
   /* Cards de Status no topo - versão compacta (ligeiramente menores) */
   .status-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
   .status-card{background:var(--card);border-radius:8px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:150px;text-align:center;transition:all 0.3s ease}
@@ -141,6 +161,24 @@
     .cliente-card{min-width:100%;padding:12px}
     .status-card{min-width:140px;padding:10px}
     .produto-card{min-width:130px;padding:8px}
+    /* Ajuste para mobile para que o botão e o título do header caibam */
+    header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .header-title {
+      width: 100%;
+      justify-content: space-between;
+    }
+    .last-update-top {
+      order: 3; /* Move para baixo no mobile */
+    }
+    .header-btn {
+      order: 2; /* Posição intermediária no mobile */
+      width: 100%; /* Ocupa a largura total no mobile */
+      text-align: center;
+    }
   }
 </style>
 </head>
@@ -150,6 +188,9 @@
       <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height: 22px; vertical-align: middle; margin-right: 8px;">
       Controle de Lotes — Entrega & Retirada
     </div>
+    <a href="Retiradas.html" class="header-btn" title="Acessar Lotes de Retirada">
+      📦 Lotes de Retirada
+    </a>
     <div class="last-update-top" id="lastUpdateTop">
       <i class="fas fa-hourglass-half"></i> <span>Atualizando...</span>
     </div>
