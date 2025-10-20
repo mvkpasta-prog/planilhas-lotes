@@ -78,14 +78,7 @@
   /* Seção de Clientes e Destinos */
   .clientes-section{margin-bottom:24px}
   .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px}
-  .cliente-card{
-    background:var(--card);
-    border-radius:8px;
-    padding:14px;
-    box-shadow:0 3px 8px rgba(0,0,0,0.06);
-    transition:all 0.3s ease;
-    cursor: pointer; /* ADICIONADO: Habilita clique */
-  }
+  .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all 0.3s ease}
   .cliente-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
   .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 6px 0} /* AUMENTADO DE 15px para 16px */
   .cliente-destino{font-weight:600;color:var(--accent);margin:0 0 10px 0;font-size:13px}
@@ -121,114 +114,6 @@
   .status-transito{background-color: var(--status-transito);}
   .status-contratar{background-color: var(--status-contratar);}
   .empty{color:var(--muted);font-style:italic;padding:10px}
-  
-  /* 1. Loading Overlay */
-  #loadingOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.95);
-    display: none; /* Hidden by default */
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    flex-direction: column;
-    color: var(--primary);
-    font-weight: 700;
-  }
-  #loadingOverlay i {
-    font-size: 32px;
-    margin-bottom: 15px;
-    animation: spin 1s linear infinite;
-  }
-  
-  /* 2. Modal */
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    display: none; /* Hidden by default */
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
-    overflow-y: auto;
-    padding: 20px 10px;
-  }
-  .modal-content {
-    background: var(--card);
-    border-radius: 8px;
-    max-width: 900px;
-    width: 95%;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    position: relative;
-    padding: 20px;
-    max-height: 95vh;
-    overflow-y: auto;
-  }
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-    margin-bottom: 15px;
-  }
-  .modal-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--primary);
-  }
-  .close-modal {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: var(--muted);
-  }
-  .close-modal:hover {
-    color: var(--text);
-  }
-  .detail-group {
-    margin-bottom: 20px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 15px;
-  }
-  .detail-group h4 {
-    margin-top: 0;
-    color: var(--accent);
-    font-size: 16px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 5px;
-    margin-bottom: 10px;
-  }
-  .detail-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 5px 0;
-    border-bottom: 1px dotted #f0f0f0;
-    font-size: 13px;
-  }
-  .detail-item:last-child {
-    border-bottom: none;
-  }
-  .detail-label {
-    font-weight: 600;
-    color: var(--muted);
-    flex-basis: 40%;
-  }
-  .detail-value {
-    font-weight: 700;
-    color: var(--text);
-    text-align: right;
-    flex-basis: 60%;
-  }
-  
   @media (max-width:900px){
     table{min-width:650px}
     th, td{padding:6px;font-size:11px}
@@ -246,12 +131,6 @@
 </style>
 </head>
 <body>
-  
-  <div id="loadingOverlay">
-    <i class="fas fa-spinner"></i>
-    <span>Atualizando dados... Por favor, aguarde.</span>
-  </div>
-  
   <header>
     <div class="header-title">
       <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height: 22px; vertical-align: middle; margin-right: 8px;">
@@ -262,7 +141,6 @@
       <span>Atualizando...</span>
     </div>
   </header>
-  
   <div class="wrap">
     <div class="status-cards">
       <div class="status-card status-card-carregado">
@@ -326,18 +204,6 @@
       <div id="retiradaContent" class="table-wrap"></div>
     </div>
   </div>
-  
-  <div class="modal-overlay" id="detailsModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 class="modal-title" id="modalTitle">Detalhes do Lote</h3>
-        <button class="close-modal" id="closeModalBtn">&times;</button>
-      </div>
-      <div id="modalBody">
-        </div>
-    </div>
-  </div>
-  
 <script>
 /* ====== CONFIG - coloque aqui seu SHEET_ID se mudar ====== */
 const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
@@ -359,21 +225,6 @@ const REMOVED_PROGRAMACAO = [
   'descarga','comprovantededescarga','horarioprev','classificacaodestino','chaveid',
   'frete', 'statusagendamento', 'datadedescarga', 'notafiscal' // Adicionadas conforme solicitação
 ];
-
-/* Variáveis globais para armazenar dados da programação para o Modal */
-let rowsProgGlobal = [];
-let headersProgGlobal = [];
-let headersNormProgGlobal = [];
-
-/* --- Funções de Overlay --- */
-function showLoadingOverlay() {
-  document.getElementById('loadingOverlay').style.display = 'flex';
-}
-
-function hideLoadingOverlay() {
-  document.getElementById('loadingOverlay').style.display = 'none';
-}
-
 /* Normaliza cabeçalho: remove acento, espaços e pontuação */
 function normalizeHeader(h){
   if(h === undefined || h === null) return '';
@@ -709,7 +560,7 @@ function extractWeightFromColumnI(text) {
   }
   return 0;
 }
-/* Gerar HTML para os cards de clientes (agora por contrato) - ATUALIZADA PARA INCLUIR ONCLICK */
+/* Gerar HTML para os cards de clientes (agora por contrato) - ATUALIZADA PARA INCLUIR VALOR MÉDIO DO FRETE */
 function buildClientesHTML(clientes) {
   if(clientes.length === 0) {
     return '<div class="empty">Nenhum contrato encontrado para hoje.</div>';
@@ -738,9 +589,8 @@ function buildClientesHTML(clientes) {
     // Formatar valor médio do frete
     const valorMedioFrete = !isNaN(cliente.valorMedioFrete) ? formatCurrencyBRL(cliente.valorMedioFrete) : 'N/A';
     
-    // ADICIONADO: data-contrato e onclick
     html += `
-      <div class="cliente-card" data-contrato="${escapeHtml(cliente.contrato)}" onclick="showContractDetailsModal('${escapeHtml(cliente.contrato)}')">
+      <div class="cliente-card">
         <h3 class="cliente-name">${escapeHtml(cliente.cliente)} - ${escapeHtml(cliente.destino)}</h3>
         <div class="cliente-contrato">Contrato: ${escapeHtml(cliente.contrato)} <span class="cliente-produto" style="background-color: ${corProduto}; color: white; margin-left: 8px;">${escapeHtml(cliente.produto)}</span></div>
         <div class="caminhoes-info">
@@ -764,7 +614,7 @@ function buildClientesHTML(clientes) {
         ${cliente.pesoEmTransitoEmbarque && cliente.pesoEmTransitoEmbarque > 0 ? 
           `<div class="cliente-info" style="margin-top: 6px; font-size: 12px; color: #ef4444;">
             <span class="info-label">Peso em Trânsito/Embarque:</span>
-            <span class="info-value">${formatNumber(cliente.pesoEmTransitoEmbarque)} KG (Descontado do Saldo)</span>
+            <span class="info-value">${formatNumber(cliente.pesoEmTransitoEmbarque)} KG</span>
           </div>` : ''}
       </div>
     `;
@@ -935,7 +785,6 @@ async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusC
 /* --- Main load function --- */
 async function loadAll(isAutoUpdate = false){
   try{
-    showLoadingOverlay(); // NOVO: Mostrar overlay no início
     if(isAutoUpdate) {
       document.body.classList.add('updating');
     }
@@ -945,12 +794,6 @@ async function loadAll(isAutoUpdate = false){
     const headersOrigProg = prog.headersOrig;
     const headersNormProg = prog.headersNorm;
     const objsProg = prog.objects;
-    
-    // NOVO: Armazenar dados da programação globalmente para o modal
-    rowsProgGlobal = rowsArrProg;
-    headersProgGlobal = headersOrigProg;
-    headersNormProgGlobal = headersNormProg;
-    
     // Encontrar a coluna "STATUS"
     const statusKey = headersNormProg.find(h => h.includes('status') && !h.includes('agendamento')) || null;
     const statusIndex = headersNormProg.indexOf(statusKey);
@@ -1174,8 +1017,6 @@ async function loadAll(isAutoUpdate = false){
     // Atualizar o texto da última atualização
     updateLastUpdateTime();
     document.body.classList.remove('updating');
-    showLoadingOverlay(); // NOVO: Esconder overlay no final
-    hideLoadingOverlay();
   }
   catch(err){
     console.error('Erro loadAll:', err);
@@ -1188,112 +1029,7 @@ async function loadAll(isAutoUpdate = false){
       <span>Erro na atualização</span>
     `;
     document.body.classList.remove('updating');
-    hideLoadingOverlay(); // NOVO: Esconder overlay mesmo em caso de erro
   }
-}
-
-/* --- Funções do Modal --- */
-function showContractDetailsModal(contractId) {
-    const modal = document.getElementById('detailsModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalBody = document.getElementById('modalBody');
-
-    // 1. Encontrar as linhas na Programação que correspondem ao ID do Contrato
-    const rows = rowsProgGlobal.filter(arr => {
-        // Coluna C (índice 2) contém a informação do destino/contrato
-        const destinoText = arr[2] || ''; 
-        const { contrato } = extractContratoInfo(destinoText);
-        // Normaliza o ID do contrato para comparação (apenas dígitos)
-        return String(contrato).replace(/\D/g, '').trim() === String(contractId).replace(/\D/g, '').trim();
-    });
-
-    if (rows.length === 0) {
-        modalTitle.textContent = 'Erro ao buscar detalhes';
-        modalBody.innerHTML = '<div class="empty">Nenhuma linha de programação encontrada para este contrato.</div>';
-        modal.style.display = 'flex';
-        return;
-    }
-
-    // 2. Construir Conteúdo do Modal
-    let html = '';
-    const contratoDisplay = rows[0][2] ? String(rows[0][2]).split('-')[0].trim() : contractId;
-    modalTitle.textContent = `Detalhes do Contrato: ${contratoDisplay}`;
-
-    rows.forEach((arr, index) => {
-        // Encontrar a data (coluna 1 / índice 0)
-        const dataProgramacao = arr[0] || 'N/A';
-        html += `<div class="detail-group">
-            <h4>Lote ${index + 1} (${dataProgramacao})</h4>`;
-
-        // Iterar sobre todos os cabeçalhos (incluindo os ocultos e removidos da tabela principal)
-        headersNormProgGlobal.forEach((normKey, headerIndex) => {
-            const label = headersProgGlobal[headerIndex] || normKey;
-            let value = arr[headerIndex] || '';
-
-            // Aplicar formatação para Status
-            if (normKey.includes('status') && !normKey.includes('agendamento')) {
-                value = formatStatusProgramacao(value); 
-            }
-            
-            // Aplicar formatação para Frete (Col E / índice 4)
-            const freteIndex = 4; // Coluna E
-            const transportadoraIndex = 5; // Coluna F
-
-            if (headerIndex === freteIndex && value) {
-                const freteValue = parseNumber(value);
-                if (!isNaN(freteValue)) {
-                    // Recalcular o frete real se a transportadora não for MVK (coluna F)
-                    const transportadoraText = arr[transportadoraIndex] || '';
-                    const isMVK = normalizeText(transportadoraText).includes('mvk');
-                    const isTransportadoraEmpty = transportadoraText.trim() === '';
-                    
-                    let freteReal = freteValue;
-                    if(!isMVK && !isTransportadoraEmpty) {
-                        freteReal = freteValue / 0.92;
-                    }
-
-                    value = formatCurrencyBRL(freteReal);
-                }
-            }
-
-            // Aplicar formatação para outras colunas de moeda se necessário (ex: Frete Empresa - Coluna L / índice 11)
-            const freteEmpresaIndex = 11;
-            if(headerIndex === freteEmpresaIndex && value) {
-                 const numValue = parseNumber(value);
-                 if(!isNaN(numValue)) {
-                    value = formatCurrencyBRL(numValue);
-                 }
-            }
-
-            // Ignorar colunas de ID e comuns vazias
-            if (normKey.includes('idorigemymvk1') || normKey === 'chaveid' || !value && REMOVED_COMMON.map(normalizeHeader).includes(normKey)) return;
-
-            // Exibir o item
-            html += `<div class="detail-item">
-                <span class="detail-label">${escapeHtml(label)}:</span>
-                <span class="detail-value">${value}</span>
-            </div>`;
-        });
-
-        html += '</div>';
-    });
-
-    modalBody.innerHTML = html;
-    modal.style.display = 'flex';
-}
-
-function closeModal() {
-    document.getElementById('detailsModal').style.display = 'none';
-}
-
-function setupModalHandlers() {
-    document.getElementById('closeModalBtn').addEventListener('click', closeModal);
-    // Fechar ao clicar no overlay escuro
-    document.getElementById('detailsModal').addEventListener('click', function(e) {
-        if (e.target === this) { 
-            closeModal();
-        }
-    });
 }
 /* Toggle sections */
 function setupToggleHandlers() {
@@ -1339,17 +1075,15 @@ function stopAutoUpdate() {
 // Setup toggle handlers and start auto update after DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
   setupToggleHandlers();
-  setupModalHandlers(); // NOVO: Inicializar handlers do modal
   startAutoUpdate();
   // Adicionar evento de visibilidade para pausar/recuperar atualizações
   document.addEventListener('visibilitychange', function() {
     if(document.hidden) {
       console.log('Página oculta - pausando atualizações automáticas');
-      stopAutoUpdate();
     } else {
       console.log('Página visível - retomando atualizações automáticas');
       // Atualizar imediatamente quando a página volta a ficar visível
-      startAutoUpdate();
+      loadAll(true);
     }
   });
 });
