@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Controle de Lotes — Resumo de Retirada</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+  :root{
+    --primary:#2563eb; --accent:#0ea5e9; --bg:#f6fbff; --card:#fff; --text:#0f172a;
+    --muted:#6b7280; --success:#10b981; --warning:#f59e0b;
+    --status-carregado: #10b981; /* Verde */
+    --status-embarque: #3b82f6; /* Azul */
+    --status-transito: #ef4444; /* Vermelho */
+    --status-contratar: #f97316; /* Laranja */
+    --produto-soja: #10b981; /* Verde para Soja */
+    --produto-milho: #fbbf24; /* Amarelo para Milho */
+    --produto-sorgo: #6b7280; /* Cinza para Sorgo */
+    --produto-total: #8b5cf6; /* Roxo para Total */
+  }
+  *{box-sizing:border-box}
+  body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:12px}
+  /* NOVO: Estilo do Logo MVK como Background/Watermark */
+  body::before {
+    content: '';
+    position: fixed; /* Fixar no viewport */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png');
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 80vh; /* Ocupa 80% da altura do viewport */
+    opacity: 0.05; /* Nível de transparência para efeito sutil de marca d'água */
+    z-index: -1; /* Garantir que fique atrás do conteúdo */
+    pointer-events: none; /* Permite interagir com o conteúdo por baixo */
+  }
+  header{
+    background:linear-gradient(90deg,var(--primary),var(--accent));
+    color:white;
+    padding:12px;
+    border-radius:8px;
+    margin-bottom:16px;
+    text-align:center;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    position: relative;
+  }
+  .header-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .last-update-top {
+    font-size: 12px;
+    color: rgba(255,255,255,0.9);
+    display: flex;
+    align-items:center;
+    gap: 6px;
+  }
+  /* Removido o CSS de animação para o spinner */
+  .updating .last-update-top i{ /* A classe updating não tem mais efeito de rotação */ }
+  
+  .wrap{max-width:1400px;margin:0 auto;width:100%}
+  .actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px}
+  .btn{background:var(--primary);color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px}
+  .btn:hover{opacity:.95}
+  /* Cards de Status no topo - versão compacta (ligeiramente menores) */
+  .status-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+  .status-card{background:var(--card);border-radius:8px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:150px;text-align:center;transition:all 0.3s ease}
+  .status-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
+  .status-card h3{margin:0 0 6px 0;font-size:14px;color:var(--text);font-weight:600}
+  .status-card .count{font-size:22px;font-weight:700;margin:6px 0}
+  .status-card-carregado{border-top:3px solid var(--status-carregado);}
+  .status-card-embarque{border-top:3px solid var(--status-embarque);}
+  .status-card-transito{border-top:3px solid var(--status-transito);}
+  .status-card-contratar{border-top:3px solid var(--status-contratar);}
+  /* Cards de Produtos - versão compacta (ligeiramente menores) */
+  .produto-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+  .produto-card{background:var(--card);border-radius:8px;padding:8px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:140px;text-align:center;transition:all 0.3s ease;border-top:3px solid transparent; cursor: pointer;} /* Adicionado cursor: pointer; */
+  .produto-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
+  .produto-card h3{margin:0 0 4px 0;font-size:13px;color:var(--text);font-weight:600}
+  .produto-card .count{font-size:18px;font-weight:700;margin:4px 0}
+  .produto-soja{border-top-color: var(--produto-soja);}
+  .produto-milho{border-top-color: var(--produto-milho);}
+  .produto-sorgo{border-top-color: var(--produto-sorgo);}
+  .produto-total{border-top-color: var(--produto-total);}
+  /* Seção de Clientes e Destinos */
+  .clientes-section{margin-bottom:24px}
+  .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px}
+  .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all 0.3s ease}
+  .cliente-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
+  .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 6px 0} /* AUMENTADO DE 15px para 16px */
+  .cliente-destino{font-weight:600;color:var(--accent);margin:0 0 10px 0;font-size:13px}
+  .cliente-info{display:flex;justify-content:space-between;margin-bottom:6px;align-items:center}
+  .info-label{font-weight:600;color:var(--muted);font-size:12px}
+  .info-value{font-weight:700;font-size:13px}
+  .cliente-produto{padding:3px 7px;border-radius:5px;font-size:11px;font-weight:600;display:inline-block;margin-top:4px}
+  .status-carregado-tag{background-color: var(--status-carregado);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
+  .status-pendente-tag{background-color: var(--status-embarque);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
+  .caminhoes-info{display:flex;gap:8px;margin-top:6px;padding-top:6px;border-top:1px solid #eee}
+  .caminhoes-separados{display:flex;gap:6px;align-items:center}
+  /* Títulos expansíveis */
+  .section-header{background:linear-gradient(90deg,var(--primary),var(--accent));color:white;padding:12px;border-radius:8px;margin-bottom:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:700;transition:all 0.3s ease;font-size:15px}
+  .section-header:hover{opacity:0.95}
+  .section-header .toggle-icon{transition:transform 0.3s ease}
+  .section-header.collapsed .toggle-icon{transform:rotate(-90deg)}
+  .section-content{display:block;transition:all 0.3s ease;overflow:hidden}
+  .section-content.collapsed{display:none}
+  h2{color:var(--primary);margin:6px 0 12px 0;font-size:18px}
+  .card{background:var(--card);border-radius:8px;padding:12px;margin-bottom:16px;box-shadow:0 4px 12px rgba(16,24,40,0.06)}
+  .table-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;margin:0;font-size:12px;min-width:750px}
+  th,td{border:1px solid #e6eefc;padding:8px;text-align:left;vertical-align:top}
+  th{background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff;font-weight:700;white-space:nowrap}
+  tr:nth-child(even){background:#fbfdff}
+  .status{display:inline-block;padding:5px 9px;border-radius:14px;color:#fff;font-weight:700;font-size:11px}
+  .status-aberto{background:var(--warning)}
+  .status-fechado{background:var(--success)}
+  /* Estilos para os novos status da programação */
+  .status-programacao{display:inline-block;padding:5px 10px;border-radius:14px;color:#fff;font-weight:700;font-size:11px;min-width:90px;text-align:center}
+  .status-carregado{background-color: var(--status-carregado);}
+  .status-embarque{background-color: var(--status-embarque);}
+  .status-transito{background-color: var(--status-transito);}
+  .status-contratar{background-color: var(--status-contratar);}
+  .empty{color:var(--muted);font-style:italic;padding:10px}
+  @media (max-width:900px){
+    table{min-width:650px}
+    th, td{padding:6px;font-size:11px}
+    .status-cards, .produto-cards{flex-direction:column}
+    .clientes-container{grid-template-columns:1fr}
+    .cliente-card{min-width:260px}
+  }
+  @media (max-width:600px){
+    body{padding:8px}
+    .section-header{padding:10px;font-size:14px}
+    .cliente-card{min-width:100%;padding:12px}
+    .status-card{min-width:140px;padding:10px}
+    .produto-card{min-width:130px;padding:8px}
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="header-title">
+      <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height: 22px; vertical-align: middle; margin-right: 8px;">
+      Controle de Lotes — Resumo de Retirada
+    </div>
+    <div class="last-update-top" id="lastUpdateTop">
+      <i class="fas fa-hourglass-half"></i> <span>Atualizando...</span>
+    </div>
+  </header>
+  <div class="wrap">
+    <div class="status-cards">
+      <div class="status-card status-card-carregado">
+        <h3>RETIRADA ABERTA</h3>
+        <div class="count" id="count-aberto">0</div>
+      </div>
+      <div class="status-card status-card-embarque">
+        <h3>LOTE FINALIZADO</h3>
+        <div class="count" id="count-finalizado">0</div>
+      </div>
+      <div class="status-card status-card-transito">
+        <h3>CONTRATOS</h3>
+        <div class="count" id="count-contratos">0</div>
+      </div>
+      <div class="status-card status-card-contratar">
+        <h3>PRODUTOS</h3>
+        <div class="count" id="count-produtos">0</div>
+      </div>
+    </div>
+    <div class="produto-cards">
+      <div class="produto-card produto-soja">
+        <h3>SOJA A RETIRAR</h3>
+        <div class="count" id="count-soja">0 KG</div>
+      </div>
+      <div class="produto-card produto-milho">
+        <h3>MILHO A RETIRAR</h3>
+        <div class="count" id="count-milho">0 KG</div>
+      </div>
+      <div class="produto-card produto-sorgo">
+        <h3>SORGO A RETIRAR</h3>
+        <div class="count" id="count-sorgo">0 KG</div>
+      </div>
+      <div class="produto-card produto-total" id="card-total-retirada">
+        <h3>TOTAL A RETIRAR</h3>
+        <div class="count" id="count-total">0 KG</div>
+      </div>
+    </div>
+    
+    <div class="clientes-section">
+      <div class="section-header" id="toggle-resumo-local">
+        <span>📍 Resumo por Local de Embarque</span>
+        <i class="fas fa-chevron-down toggle-icon"></i>
+      </div>
+      <div class="section-content card" id="content-resumo-local">
+          <div class="clientes-container" id="clientesContainer">
+          </div>
+      </div>
+    </div>
+    
+    <div class="section-header" id="toggle-retirada">
+      <span>📦 Tabela de Lotes de Retirada</span>
+      <i class="fas fa-chevron-down toggle-icon"></i>
+    </div>
+    <div class="section-content card" id="content-retirada">
+      <div id="retiradaContent" class="table-wrap"></div>
+    </div>
+    
+  </div>
+<script>
+/* ====== CONFIG - coloque aqui seu SHEET_ID se mudar ====== */
+const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
+const GIDS = {
+  retirada: '1984691910'   // aba LOTES RETIRADA (o único foco)
+};
+// Configuração do intervalo de atualização automática (em milissegundos)
+const AUTO_UPDATE_INTERVAL = 300000;
+/* colunas que ficam ocultas em exibição (aparecem em detalhes) - normalizadas */
+const HIDDEN_COLS = ['safra', 'royalties'];
+/* colunas removidas (normalizadas) de todas as tabelas */
+const REMOVED_COMMON = ['localizacao','idorigemymvk1', 'numero_contrato']; 
+
+/* Variável global para armazenar os totais de produto para o resumo */
+let globalProdutosTotais = { soja: 0, milho: 0, sorgo: 0, total: 0 };
+
+/* --- FUNÇÕES UTILITÁRIAS MANTIDAS --- */
+
+/* Normaliza cabeçalho: remove acento, espaços e pontuação */
+function normalizeHeader(h){
+  if(h === undefined || h === null) return '';
+  return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+}
+/* Normaliza texto: remove acentos — reutilizável para status */
+function normalizeText(text) {
+  if(text === undefined || text === null) return '';
+  return String(text).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+/* Parse CSV tolerante (trata vírgulas dentro de aspas) */
+function parseCSV(text){
+  if(!text) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
+  const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+  if(lines.length === 0) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
+  const parsed = lines.map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g,'').trim()));
+  const headersOrig = parsed.shift().map(h => h||'');
+  const headersNorm = headersOrig.map(h => normalizeHeader(h));
+  const objects = parsed.map(cells => {
+    const obj = {};
+    headersNorm.forEach((key, idx) => {
+      obj[key] = cells[idx] !== undefined ? cells[idx] : '';
+    });
+    return obj;
+  });
+  return {arrays: parsed, headersOrig, headersNorm, objects};
+}
+/* fetch CSV via gviz - retorna parseCSV result */
+async function fetchSheetByGid(gid){
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`;
+  const r = await fetch(url);
+  if(!r.ok) throw new Error('Erro ao buscar planilha: ' + r.status);
+  const text = await r.text();
+  return parseCSV(text);
+}
+/* util: parse number tolerant */
+function parseNumber(val){
+  if(val === undefined || val === null) return NaN;
+  const s = String(val).replace(/\s/g,'').replace(/\./g,'').replace(/,/g,'.');
+  const n = parseFloat(s.replace(/[^\d\.\-]/g,''));
+  return isNaN(n) ? NaN : n;
+}
+/* Formata número com separadores de milhar */
+function formatNumber(value) {
+  if(isNaN(value)) return '0';
+  return new Intl.NumberFormat('pt-BR').format(Math.round(value));
+}
+/* Formata número como moeda brasileira */
+function formatCurrencyBRL(value) {
+  if (isNaN(value)) return value;
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(value);
+}
+function escapeHtml(s){
+  if(s === undefined || s === null) return '';
+  return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'<','>':'>','"':'&quot;',"'":'&#x2F;'}[c]));
+}
+
+/* build table HTML: rowsArrays = array of arrays; rowsObjects = array of objects keyed by normalized headers */
+function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts){
+  const hiddenNorm = opts.hiddenNorm || [];
+  const removedNorm = opts.removedNorm || [];
+  const numericKey = opts.numericKey || '';
+  const forceInclude = opts.forceInclude || [];
+  const currencyCols = opts.currencyCols || [];
+  const statusCol = opts.statusCol || '';
+  
+  const visible = headersNorm.filter(h => !removedNorm.includes(h));
+  let displayCols = visible.filter(h => !hiddenNorm.includes(h));
+  
+  forceInclude.forEach(fc => {
+    if(visible.includes(fc) && !displayCols.includes(fc)) displayCols.unshift(fc);
+    else if(visible.includes(fc)) displayCols = [fc, ...displayCols.filter(x => x !== fc)];
+  });
+  if(displayCols.length === 0){
+    return '<div class="empty">Sem colunas para exibir.</div>';
+  }
+  
+  let html = '<table><thead><tr>';
+  displayCols.forEach(h => {
+    const idx = headersNorm.indexOf(h);
+    const title = (idx>=0 ? headersOrig[idx] : h) || h;
+    html += `<th>${escapeHtml(title)}</th>`;
+  });
+  if(numericKey) html += '<th>Status</th>';
+  html += '</tr></thead><tbody>';
+  
+  rowsObjects.forEach((obj, i) => {
+    const arr = rowsArrays[i] || [];
+    // Nota: O status de FECHADO/ABERTO não é aplicável aqui, mas a lógica foi mantida do original.
+    html += '<tr>';
+    displayCols.forEach(h => {
+      const idx = headersNorm.indexOf(h);
+      let value = (obj[h] !== undefined && obj[h] !== '') ? obj[h] : (arr[idx] !== undefined ? arr[idx] : '');
+      
+      if(currencyCols.includes(h)) {
+        const numValue = parseNumber(value);
+        if(!isNaN(numValue)) {
+          value = formatCurrencyBRL(numValue);
+        }
+      }
+      
+      if(h === statusCol) {
+        // Lógica de formatação de status de programação (não relevante para retirada, mas mantida como placeholder)
+        html += `<td>${escapeHtml(value)}</td>`;
+      } else {
+        html += `<td>${escapeHtml(value)}</td>`;
+      }
+    });
+    // Coluna Status final: aqui seria bom usar a Coluna L (situação do contrato)
+    if(numericKey) {
+        const saldoVal = arr[headersNorm.indexOf(numericKey)];
+        const n = parseNumber(saldoVal || '0');
+        html += `<td>${n > 0 ? '<span class="status status-aberto">ABERTO</span>':'<span class="status status-fechado">FINALIZADO</span>'}</td>`;
+    }
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  return html;
+}
+
+/* Extrair produto do texto (última parte após o último traço) */
+function extractProduto(text) {
+  if(!text) return '';
+  return normalizeText(text); // Agora apenas normalizamos para facilitar a comparação
+}
+
+/* --- NOVA FUNÇÃO: Agrupar por Local de Embarque --- */
+/* (Baseado na planilha LOTES RETIRADA) */
+async function groupByLocalEmbarque(rowsArrRet, headersNormRet) {
+  const grupos = {};
+  
+  // Mapeamento dos índices (baseado nas colunas B, C, D, E, J)
+  const contratoIndex = 1; // Coluna B
+  const localIndex = 2;    // Coluna C
+  const clienteIndex = 3;  // Coluna D
+  const produtoIndex = 4;  // Coluna E
+  const aRetirarIndex = 9; // Coluna J (Quantidade a Retirar)
+  const embarcadaIndex = 8; // Coluna I (Quantidade Embarcada)
+  
+  // Contadores gerais (para os status cards)
+  const statusContratoKey = headersNormRet.find(h => h.includes('situacao') && h.includes('contrato')) || null;
+  const statusContratoIndex = headersNormRet.indexOf(statusContratoKey);
+  const contratos = new Set();
+  const produtos = new Set();
+
+  rowsArrRet.forEach(arr => {
+    const local = arr[localIndex] ? arr[localIndex].trim() : 'Local Desconhecido';
+    const produtoText = arr[produtoIndex] ? arr[produtoIndex].trim() : '';
+    const cliente = arr[clienteIndex] ? arr[clienteIndex].trim() : 'Cliente Desconhecido';
+    const aRetirar = parseNumber(arr[aRetirarIndex] || '0');
+    const embarcada = parseNumber(arr[embarcadaIndex] || '0');
+    const contrato = arr[contratoIndex] ? arr[contratoIndex].trim() : '';
+    const statusContrato = statusContratoIndex !== -1 ? (arr[statusContratoIndex] || '') : '';
+    const statusNorm = normalizeText(statusContrato);
+
+    // Contadores de status
+    if(contrato) contratos.add(contrato);
+    if(produtoText) produtos.add(produtoText);
+    
+    if(!grupos[local]) {
+      grupos[local] = {
+        localEmbarque: local,
+        totalARetirar: 0,
+        totalEmbarcada: 0,
+        clientes: new Set(),
+        produtos: new Set(),
+        contratos: new Set(),
+        aberto: 0,
+        finalizado: 0
+      };
+    }
+    
+    // Agregação
+    grupos[local].totalARetirar += aRetirar;
+    grupos[local].totalEmbarcada += embarcada;
+    if(cliente) grupos[local].clientes.add(cliente);
+    if(produtoText) grupos[local].produtos.add(produtoText);
+    if(contrato) grupos[local].contratos.add(contrato);
+    
+    // Contar status
+    if (statusNorm.includes('aberto') || statusNorm.includes('em aberto')) {
+        grupos[local].aberto++;
+    } else if (statusNorm.includes('finalizado') || statusNorm.includes('fechado')) {
+        grupos[local].finalizado++;
+    }
+  });
+
+  const resumo = Object.values(grupos).map(grupo => ({
+    ...grupo,
+    totalARetirar: Math.round(grupo.totalARetirar),
+    totalEmbarcada: Math.round(grupo.totalEmbarcada),
+    clientes: Array.from(grupo.clientes).join(', '),
+    produtos: Array.from(grupo.produtos).join(' / '),
+    totalContratos: grupo.contratos.size,
+    totalAbertos: grupo.aberto,
+    totalFinalizados: grupo.finalizado
+  })).sort((a, b) => b.totalARetirar - a.totalARetirar);
+
+  return { resumo, totalContratos: contratos.size, totalProdutos: produtos.size };
+}
+
+/* --- NOVA FUNÇÃO: Calcular Totais por Produto (Retirada) --- */
+function calculateProdutosTotaisRetirada(rowsArrRet, headersNormRet) {
+    let soja = 0, milho = 0, sorgo = 0;
+    
+    // Mapeamento dos índices (baseado nas colunas E e J)
+    const produtoIndex = 4;  // Coluna E
+    const aRetirarIndex = 9; // Coluna J (Quantidade a Retirar)
+
+    rowsArrRet.forEach(arr => {
+        const produtoText = arr[produtoIndex] ? arr[produtoIndex].trim() : '';
+        const produtoNorm = extractProduto(produtoText);
+        const aRetirar = parseNumber(arr[aRetirarIndex] || '0');
+        
+        if(isNaN(aRetirar)) return;
+        
+        // Somar ao produto correspondente
+        if(produtoNorm.includes('soja')) {
+          soja += aRetirar;
+        } else if(produtoNorm.includes('milho')) {
+          milho += aRetirar;
+        } else if(produtoNorm.includes('sorgo')) {
+          sorgo += aRetirar;
+        }
+    });
+    return {soja, milho, sorgo};
+}
+
+/* Gerar HTML para os cards de resumo por Local de Embarque */
+function buildResumoLocalHTML(resumos) {
+  if(resumos.length === 0) {
+    return '<div class="empty">Nenhum lote de retirada com saldo em aberto.</div>';
+  }
+  let html = '';
+  resumos.forEach(resumo => {
+    // Definir cor do produto (simples, pega o primeiro)
+    let corProduto = '#6b7280'; // Cinza padrão
+    const produtoUp = (resumo.produtos || '').toUpperCase();
+    if(produtoUp.includes('SOJA')) {
+      corProduto = '#10b981'; // Verde para Soja
+    } else if(produtoUp.includes('MILHO')) {
+      corProduto = '#fbbf24'; // Amarelo para Milho
+    } else if(produtoUp.includes('SORGO')) {
+      corProduto = '#6b7280'; // Cinza para Sorgo
+    }
+    
+    html += `
+      <div class="cliente-card">
+        <h3 class="cliente-name">${escapeHtml(resumo.localEmbarque)}</h3>
+        <div class="cliente-contrato">
+            Clientes: ${escapeHtml(resumo.clientes)}
+            <span class="cliente-produto" style="background-color: ${corProduto}; color: white; margin-left: 8px;">${escapeHtml(resumo.produtos)}</span>
+        </div>
+        <div class="cliente-info" style="margin-top: 12px;">
+          <span class="info-label">Contratos Abertos:</span>
+          <span class="info-value status-pendente-tag">${resumo.totalAbertos}</span>
+        </div>
+        <div class="cliente-info" style="margin-top: 6px;">
+          <span class="info-label">Contratos Finalizados:</span>
+          <span class="info-value status-carregado-tag">${resumo.totalFinalizados}</span>
+        </div>
+        <div class="cliente-info" style="margin-top: 12px; border-top: 1px solid #eee; padding-top: 8px;">
+          <span class="info-label">Total a Retirar:</span>
+          <span class="info-value">${formatNumber(resumo.totalARetirar)} KG</span>
+        </div>
+        <div class="cliente-info" style="margin-top: 6px;">
+          <span class="info-label">Total Embarcado:</span>
+          <span class="info-value">${formatNumber(resumo.totalEmbarcada)} KG</span>
+        </div>
+      </div>
+    `;
+  });
+  return html;
+}
+
+/* Atualizar o texto da última atualização (no topo) */
+function updateLastUpdateTime() {
+  const now = new Date();
+  const timeString = now.toLocaleTimeString('pt-BR');
+  const dateString = now.toLocaleDateString('pt-BR');
+  document.getElementById('lastUpdateTop').innerHTML = `
+    <i class="fas fa-check-circle" style="color: rgba(255,255,255,0.9);"></i>
+    <span>Última atualização: ${timeString} - ${dateString}</span>
+  `;
+}
+
+/* --- Main load function --- */
+async function loadAll(isAutoUpdate = false){
+  try{
+    if(isAutoUpdate) {
+      document.getElementById('lastUpdateTop').innerHTML = `
+        <i class="fas fa-hourglass-half" style="color: rgba(255,255,255,0.9);"></i>
+        <span>Atualizando...</span>
+      `;
+      document.body.classList.add('updating');
+    }
+    
+    // ===== LOTES DE RETIRADA (FOCO ÚNICO) =====
+    const ret = await fetchSheetByGid(GIDS.retirada);
+    const rowsArrRet = ret.arrays;
+    const headersOrigRet = ret.headersOrig;
+    const headersNormRet = ret.headersNorm;
+    const objsRet = ret.objects;
+    
+    // Filtrar apenas linhas com saldo > 0
+    const saldoKeyRet = headersNormRet.find(h => h.includes('quantidadearetirar')) || headersNormRet[9] || null; // Coluna J
+    const rowsObjRetFiltered = [];
+    const rowsArrRetFiltered = [];
+    
+    for(let i=0;i<rowsArrRet.length;i++){
+      const arr = rowsArrRet[i];
+      const obj = objsRet[i] || {};
+      
+      let saldoVal = '';
+      const saldoIndex = headersNormRet.indexOf(saldoKeyRet);
+      
+      if(saldoKeyRet && obj[saldoKeyRet] !== undefined && obj[saldoKeyRet] !== '') saldoVal = obj[saldoKeyRet];
+      else if(saldoIndex !== -1 && arr[saldoIndex] !== undefined) saldoVal = arr[saldoIndex];
+      
+      const n = parseNumber(saldoVal || '0');
+      if(!isNaN(n) && n > 0){
+        rowsObjRetFiltered.push(obj);
+        rowsArrRetFiltered.push(arr);
+      }
+    }
+
+    // ===== RESUMO POR LOCAL DE EMBARQUE =====
+    const { resumo: resumoLocal, totalContratos, totalProdutos } = await groupByLocalEmbarque(rowsArrRet, headersNormRet);
+    
+    document.getElementById('clientesContainer').innerHTML = buildResumoLocalHTML(resumoLocal);
+    
+    // ===== CONTADORES E TOTAIS DE PRODUTO =====
+    
+    // Totais de Status (Aberto/Finalizado)
+    const totalAberto = rowsArrRet.filter(arr => {
+        const situacaoContrato = arr[headersNormRet.indexOf('situacaocontrato')] || '';
+        const situacaoNorm = normalizeText(situacaoContrato);
+        return situacaoNorm.includes('aberto') || situacaoNorm.includes('em aberto');
+    }).length;
+    const totalFinalizado = rowsArrRet.filter(arr => {
+        const situacaoContrato = arr[headersNormRet.indexOf('situacaocontrato')] || '';
+        const situacaoNorm = normalizeText(situacaoContrato);
+        return situacaoNorm.includes('finalizado') || situacaoNorm.includes('fechado');
+    }).length;
+
+    document.getElementById('count-aberto').textContent = totalAberto;
+    document.getElementById('count-finalizado').textContent = totalFinalizado;
+    document.getElementById('count-contratos').textContent = totalContratos;
+    document.getElementById('count-produtos').textContent = totalProdutos;
+
+    // Calcular totais por produto
+    const produtosTotais = calculateProdutosTotaisRetirada(rowsArrRetFiltered, headersNormRet);
+    
+    // Armazenar no objeto global para a funcionalidade de clique (se implementada)
+    globalProdutosTotais.soja = produtosTotais.soja;
+    globalProdutosTotais.milho = produtosTotais.milho;
+    globalProdutosTotais.sorgo = produtosTotais.sorgo;
+    
+    // Calcular e exibir TOTAL A RETIRAR (apenas o saldo em aberto)
+    const totalARetirar = produtosTotais.soja + produtosTotais.milho + produtosTotais.sorgo;
+    globalProdutosTotais.total = totalARetirar; // Armazenar o total
+    
+    // Atualizar cards de produto com "KG" ao lado
+    document.getElementById('count-soja').textContent = `${formatNumber(produtosTotais.soja)} KG`;
+    document.getElementById('count-milho').textContent = `${formatNumber(produtosTotais.milho)} KG`;
+    document.getElementById('count-sorgo').textContent = `${formatNumber(produtosTotais.sorgo)} KG`;
+    document.getElementById('count-total').textContent = `${formatNumber(totalARetirar)} KG`;
+    
+    // ===== TABELA COMPLETA DE LOTES DE RETIRADA (APENAS ABERTOS) =====
+    let removedRet = [...REMOVED_COMMON.map(normalizeHeader)];
+    // Adicionar colunas de controle (NFP, Status Contrato, Status Royalties) aos headers originais, para fins de visualização
+    const situacaoContratoKey = headersNormRet.find(h => h.includes('situacaocontrato')) || null;
+    const nfpStatusKey = headersNormRet.find(h => h.includes('statusnfp')) || null;
+    const royaltiesStatusKey = headersNormRet.find(h => h.includes('statusroyalties')) || null;
+    
+    const tableRetHTML = buildTableHTML(rowsArrRetFiltered, rowsObjRetFiltered, headersOrigRet, headersNormRet, {
+      hiddenNorm: HIDDEN_COLS.map(normalizeHeader),
+      removedNorm: removedRet,
+      numericKey: saldoKeyRet, // Usar saldo para exibir status Aberto/Fechado
+      forceInclude: [
+        headersNormRet[1], headersNormRet[3], headersNormRet[4], // Contrato, Cliente, Produto
+        saldoKeyRet, headersNormRet[headersNormRet.indexOf('quantidadeembarcada')] // Saldo e Embarcado
+      ].filter(Boolean)
+    });
+
+    // Inserir tabela na seção
+    document.getElementById('retiradaContent').innerHTML = tableRetHTML || '<div class="empty">Nenhum lote de retirada em aberto.</div>';
+    
+    // Inicialmente colapsar o resumo e expandir a tabela
+    document.getElementById('content-retirada').classList.remove('collapsed');
+    document.getElementById('toggle-retirada').classList.remove('collapsed');
+    document.getElementById('content-resumo-local').classList.add('collapsed');
+    document.getElementById('toggle-resumo-local').classList.add('collapsed');
+    
+    // Atualizar o texto da última atualização
+    updateLastUpdateTime();
+    document.body.classList.remove('updating');
+  }
+  catch(err){
+    console.error('Erro loadAll (Página Retirada):', err);
+    document.getElementById('retiradaContent').innerHTML = '<div class="empty">Erro ao carregar dados (ver console).</div>';
+    document.getElementById('clientesContainer').innerHTML = '<div class="empty">Erro ao carregar dados dos locais de embarque (ver console).</div>';
+    document.getElementById('lastUpdateTop').innerHTML = `
+      <i class="fas fa-exclamation-triangle" style="color: rgba(255,255,255,0.9);"></i>
+      <span>Erro na atualização</span>
+    `;
+    document.body.classList.remove('updating');
+  }
+}
+
+/* Toggle sections */
+function setupToggleHandlers() {
+  document.getElementById('toggle-retirada').addEventListener('click', function() {
+    toggleSection('retirada');
+  });
+  document.getElementById('toggle-resumo-local').addEventListener('click', function() {
+    toggleSection('resumo-local');
+  });
+}
+function toggleSection(sectionId) {
+  const content = document.getElementById(`content-${sectionId}`);
+  const header = document.getElementById(`toggle-${sectionId}`);
+  const isCollapsed = content.classList.contains('collapsed');
+  if(isCollapsed) {
+    content.classList.remove('collapsed');
+    header.classList.remove('collapsed');
+  } else {
+    content.classList.add('collapsed');
+    header.classList.add('collapsed');
+  }
+}
+
+/* Configurar atualização automática */
+let autoUpdateInterval;
+function startAutoUpdate() {
+  loadAll(true);
+  autoUpdateInterval = setInterval(() => {
+    loadAll(true);
+  }, AUTO_UPDATE_INTERVAL);
+}
+
+// Handler de clique para copiar resumo (mantido como placeholder)
+function handleTotalCardClick() {
+    alert(`Total a Retirar: ${formatNumber(globalProdutosTotais.total)} KG. Esta função pode ser personalizada.`);
+}
+
+/* init */
+document.addEventListener('DOMContentLoaded', function() {
+  setupToggleHandlers();
+  // Adicionar handler de clique ao card "TOTAL A RETIRAR"
+  document.getElementById('card-total-retirada').addEventListener('click', handleTotalCardClick);
+  startAutoUpdate();
+  // Adicionar evento de visibilidade para pausar/recuperar atualizações
+  document.addEventListener('visibilitychange', function() {
+    if(!document.hidden) {
+      loadAll(true);
+    }
+  });
+});
+</script>
+</body>
+</html>
