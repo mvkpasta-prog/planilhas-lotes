@@ -20,10 +20,9 @@
   }
   *{box-sizing:border-box}
   body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:12px}
-  /* Estilo do Logo MVK como Background/Watermark */
   body::before {
     content: '';
-    position: fixed; 
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
@@ -31,10 +30,10 @@
     background-image: url('https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png');
     background-repeat: no-repeat;
     background-position: center center;
-    background-size: 80vh; 
-    opacity: 0.05; 
-    z-index: -1; 
-    pointer-events: none; 
+    background-size: 80vh;
+    opacity: 0.05;
+    z-index: -1;
+    pointer-events: none;
   }
   header{
     background:linear-gradient(90deg,var(--primary),var(--accent));
@@ -48,8 +47,7 @@
     align-items:center;
     justify-content:space-between;
     gap:8px;
-    position: relative;
-    flex-wrap: wrap; 
+    flex-wrap: wrap;
   }
   .header-title {
     display: flex;
@@ -65,38 +63,31 @@
     gap: 6px;
   }
   .wrap{max-width:1400px;margin:0 auto;width:100%}
-  /* Estilo para o botão no header */
   .header-btn {
     background: #fff;
-    color: var(--primary); 
+    color: var(--primary);
     border: none;
-    padding: 6px 10px; 
+    padding: 6px 10px;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 700;
-    font-size: 13px; 
-    text-decoration: none; 
+    font-size: 13px;
+    text-decoration: none;
     transition: background 0.2s ease, opacity 0.2s ease;
-    white-space: nowrap; 
-    display: flex; 
-    align-items: center; 
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
     gap: 6px;
   }
   .header-btn:hover {
-    background: var(--bg); 
+    background: var(--bg);
     opacity: 0.95;
   }
-  /* Cards de Status no topo */
   .status-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
   .status-card{background:var(--card);border-radius:8px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:150px;text-align:center;transition:all 0.3s ease}
   .status-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
   .status-card h3{margin:0 0 6px 0;font-size:14px;color:var(--text);font-weight:600}
   .status-card .count{font-size:22px;font-weight:700;margin:6px 0}
-  .status-card-carregado{border-top:3px solid var(--status-carregado);}
-  .status-card-embarque{border-top:3px solid var(--status-embarque);}
-  .status-card-transito{border-top:3px solid var(--status-transito);}
-  .status-card-contratar{border-top:3px solid var(--status-contratar);}
-  /* Cards de Produtos */
   .produto-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
   .produto-card{background:var(--card);border-radius:8px;padding:8px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:140px;text-align:center;transition:all 0.3s ease;border-top:3px solid transparent; cursor: pointer;}
   .produto-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
@@ -105,11 +96,9 @@
   .produto-soja{border-top-color: var(--produto-soja);}
   .produto-milho{border-top-color: var(--produto-milho);}
   .produto-sorgo{border-top-color: var(--produto-sorgo);}
-  .produto-total{border-top-color: var(--produto-total);}
-  /* Seção de Clientes e Destinos */
   .clientes-section{margin-bottom:24px}
   .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px}
-  .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all 0.3s ease; cursor: pointer;} 
+  .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all 0.3s ease; cursor: pointer;}
   .cliente-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
   .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 6px 0}
   .cliente-destino{font-weight:600;color:var(--accent);margin:0 0 10px 0;font-size:13px}
@@ -117,106 +106,8 @@
   .info-label{font-weight:600;color:var(--muted);font-size:12px}
   .info-value{font-weight:700;font-size:13px}
   .cliente-produto{padding:3px 7px;border-radius:5px;font-size:11px;font-weight:600;display:inline-block;margin-top:4px}
-  .status-carregado-tag{background-color: var(--status-carregado);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
   .status-pendente-tag{background-color: var(--status-embarque);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
-  /* Modal/Popup */
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    display: none; 
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
-  .modal-content {
-    background: var(--card);
-    padding: 20px;
-    border-radius: 8px;
-    max-width: 500px;
-    width: 90%;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    position: relative;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  .modal-close {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    color: var(--muted);
-  }
-  .modal-header h3 {
-      margin-top: 0;
-      font-size: 18px;
-      color: var(--primary);
-      border-bottom: 2px solid var(--accent);
-      padding-bottom: 8px;
-      margin-bottom: 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-  }
-  .modal-body p {
-      margin: 5px 0;
-      font-size: 14px;
-  }
-  .modal-body .info-label {
-      font-weight: 600;
-      color: var(--text);
-      display: inline-block;
-      min-width: 180px; 
-  }
-  .modal-body .info-value {
-      font-weight: 400;
-      color: var(--muted);
-  }
-  .modal-clientes-list {
-      margin-top: 15px;
-      padding-top: 10px;
-      border-top: 1px dashed #ddd;
-  }
-  .modal-clientes-list h4 {
-      margin-top: 0;
-      margin-bottom: 8px;
-      font-size: 14px;
-      color: var(--accent);
-  }
-  .modal-clientes-list span {
-      display: block;
-      padding: 3px 0;
-      font-size: 13px;
-      color: var(--text);
-  }
-  h2{color:var(--primary);margin:6px 0 12px 0;font-size:18px}
-  .toggle-btn {
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 14px;
-    transition: opacity 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-  }
-  .toggle-btn:hover {
-    opacity: 0.9;
-  }
-  .toggle-btn i {
-      margin-right: 5px;
-  }
+  .empty{color:var(--muted);font-style:italic;padding:10px;text-align:center;}
   #filterInput {
     flex-grow: 1;
     min-width: 200px;
@@ -268,123 +159,96 @@
   </header>
   <div class="wrap">
     <div class="status-cards">
-      <div class="status-card status-card-carregado">
+      <div class="status-card">
         <h3>CLIENTES</h3>
         <div class="count" id="count-clientes">0</div>
       </div>
-      <div class="status-card status-card-embarque">
+      <div class="status-card">
         <h3>CONTRATOS</h3>
         <div class="count" id="count-contratos">0</div>
       </div>
-      <div class="status-card status-card-transito">
+      <div class="status-card produto-soja">
         <h3>SOJA (KG)</h3>
         <div class="count" id="count-soja">0</div>
       </div>
-      <div class="status-card status-card-contratar">
+      <div class="status-card produto-milho">
         <h3>MILHO (KG)</h3>
         <div class="count" id="count-milho">0</div>
       </div>
     </div>
     <div class="clientes-section">
-      <h2 style="margin-top: 0;">📍 Lotes de Entrega por Cliente</h2>
+      <h2 style="margin-top: 0;">📍 Lotes de Entrega com Saldo Pendente</h2>
       <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
         <input type="text" id="filterInput" placeholder="Filtrar por Cliente, Contrato ou Cidade...">
       </div>
       <div class="clientes-container" id="clientesContainer">
+        <div class="empty">Carregando...</div>
       </div>
     </div>
   </div>
-  <div id="resumoModal" class="modal-overlay">
-      <div class="modal-content">
-          <button class="modal-close" onclick="closeModal()">&times;</button>
-          <div id="modalContentBody"></div>
-      </div>
-  </div>
 <script>
-/* ====== CONFIG - Planilha Lotes Entrega ====== */
-const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
-const GIDS = {
-  entrega: '1186247985'   // GID da aba LOTES DE ENTREGA
-};
+const SPREADSHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
+const RANGE = 'B:I';
+const API_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&range=${RANGE}`;
 const AUTO_UPDATE_INTERVAL = 300000;
 
 let globalData = [];
 
-/* --- UTILS --- */
-function normalizeHeader(h){
-  if(h === undefined || h === null) return '';
-  return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+function extrairCidade(fullCityString) {
+  if (!fullCityString) return '';
+  const parts = fullCityString.split('-');
+  return parts.length > 1 ? parts.slice(1).join('-').trim() : fullCityString.trim();
 }
-function normalizeText(text) {
-  if(text === undefined || text === null) return '';
-  return String(text).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
+function normalizarTexto(text) {
+  return String(text).normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
-function parseCSV(text){
-  if(!text) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
-  const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
-  if(lines.length === 0) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
-  const parsed = lines.map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g,'').trim()));
-  const headersOrig = parsed.shift().map(h => h||'');
-  const headersNorm = headersOrig.map(h => normalizeHeader(h));
-  const objects = parsed.map(cells => {
-    const obj = {};
-    headersNorm.forEach((key, idx) => {
-      obj[key] = cells[idx] !== undefined ? cells[idx] : '';
-    });
-    return obj;
-  });
-  return {arrays: parsed, headersOrig, headersNorm, objects};
-}
-async function fetchSheetByGid(gid){
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`;
-  const r = await fetch(url);
-  if(!r.ok) throw new Error('Erro ao buscar planilha: ' + r.status);
-  const text = await r.text();
-  return parseCSV(text);
-}
-function parseNumber(val){
-  if(val === undefined || val === null) return NaN;
+
+function parseNumber(val) {
+  if (!val) return NaN;
   const s = String(val).replace(/\s/g,'').replace(/\./g,'').replace(/,/g,'.');
-  const n = parseFloat(s.replace(/[^\d\.\-]/g,''));
-  return isNaN(n) ? NaN : n;
+  return parseFloat(s.replace(/[^\d\.\-]/g,''));
 }
+
 function formatNumber(value) {
-  if(isNaN(value)) return '0';
+  if (isNaN(value)) return '0';
   return new Intl.NumberFormat('pt-BR').format(Math.round(value));
 }
-function escapeHtml(s){
-  if(s === undefined || s === null) return '';
-  return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'<','>':'>','"':'&quot;',"'":'&#x2F;'}[c]));
+
+function escapeHtml(s) {
+  if (s === undefined || s === null) return '';
+  return String(s).replace(/[&<>"'\/]/g, c => ({
+    '&': '&amp;',
+    '<': '<',
+    '>': '>',
+    '"': '&quot;',
+    "'": '&#x2F;'
+  }[c]));
 }
 
-/* --- PROCESSAMENTO DOS DADOS --- */
-function processData(rowsArr, headersNorm) {
-  const grupos = {};
-  const colunas = {
-    contrato: 1,      // B
-    cliente: 2,       // C
-    cidade: 3,        // D
-    produto: 4,       // E
-    safra: 5,         // F
-    volume: 6,        // G
-    embarcado: 7,     // H
-    falta: 8          // I
-  };
+function agruparPorCliente(dataRows) {
+  const groupedData = {};
+  // Índices baseados em RANGE B:I → 0=B, 1=C, ..., 7=I
+  for (let i = 1; i < dataRows.length; i++) {
+    const row = dataRows[i].c;
+    const getValue = (idx) => row?.[idx]?.v !== undefined ? String(row[idx].v) : '';
 
-  rowsArr.forEach(arr => {
-    const cliente = arr[colunas.cliente]?.trim() || 'Cliente Desconhecido';
-    if (!cliente || cliente === '') return;
+    const contrato = getValue(0) || '';
+    const cliente = getValue(1)?.trim() || '';
+    const cidadeCompleta = getValue(2) || '';
+    const produto = getValue(3) || '';
+    const volume = parseNumber(getValue(5)) || 0;
+    const embarcado = parseNumber(getValue(6)) || 0;
+    const falta = parseNumber(getValue(7)) || 0;
 
-    const contrato = arr[colunas.contrato]?.trim() || '';
-    const cidade = arr[colunas.cidade]?.split('-').slice(1).join('-').trim() || arr[colunas.cidade]?.trim() || '';
-    const produto = arr[colunas.produto]?.trim() || '';
-    const volume = parseNumber(arr[colunas.volume]) || 0;
-    const embarcado = parseNumber(arr[colunas.embarcado]) || 0;
-    const falta = parseNumber(arr[colunas.falta]) || 0;
+    // ✅ FILTRO: só inclui se falta > 0
+    if (falta <= 0 || !cliente) continue;
 
-    if (!grupos[cliente]) {
-      grupos[cliente] = {
-        cliente: cliente,
+    const cidade = extrairCidade(cidadeCompleta);
+
+    if (!groupedData[cliente]) {
+      groupedData[cliente] = {
+        cliente,
         cidadeRef: cidade,
         contratos: [],
         totalVolume: 0,
@@ -394,39 +258,37 @@ function processData(rowsArr, headersNorm) {
       };
     }
 
-    grupos[cliente].contratos.push({
+    groupedData[cliente].contratos.push({
       contrato,
       cidade,
       produto,
       volume,
       embarcado,
       falta,
-      searchKey: normalizeText(`${cliente} ${contrato} ${cidade} ${produto}`)
+      searchKey: normalizarTexto(`${cliente} ${contrato} ${cidade} ${produto}`)
     });
 
-    grupos[cliente].totalVolume += volume;
-    grupos[cliente].totalEmbarcado += embarcado;
-    grupos[cliente].totalFalta += falta;
-    if (produto) grupos[cliente].produtos.add(produto);
-  });
-
-  return Object.values(grupos).sort((a, b) => b.totalFalta - a.totalFalta);
+    groupedData[cliente].totalVolume += volume;
+    groupedData[cliente].totalEmbarcado += embarcado;
+    groupedData[cliente].totalFalta += falta;
+    if (produto) groupedData[cliente].produtos.add(produto);
+  }
+  return Object.values(groupedData).sort((a, b) => b.totalFalta - a.totalFalta);
 }
 
-/* --- RENDERIZAÇÃO --- */
 function renderCards(data, filter = '') {
   const container = document.getElementById('clientesContainer');
-  const term = normalizeText(filter);
-  const filtered = term 
-    ? data.filter(item => 
-        normalizeText(item.cliente).includes(term) ||
+  const term = normalizarTexto(filter);
+  const filtered = term
+    ? data.filter(item =>
+        normalizarTexto(item.cliente).includes(term) ||
         item.contratos.some(c => c.searchKey.includes(term))
       )
     : data;
 
-  container.innerHTML = filtered.length 
+  container.innerHTML = filtered.length
     ? filtered.map(item => `
-      <div class="cliente-card" onclick="openModal(${globalData.findIndex(d => d.cliente === item.cliente)})">
+      <div class="cliente-card">
         <h3 class="cliente-name">${escapeHtml(item.cliente)}</h3>
         <div class="cliente-destino">${escapeHtml(item.cidadeRef)}</div>
         <div class="cliente-info" style="margin-top: 10px;">
@@ -434,15 +296,15 @@ function renderCards(data, filter = '') {
           <span class="info-value">${item.contratos.length}</span>
         </div>
         <div class="cliente-info" style="margin-top: 6px;">
-          <span class="info-label">Total a Entregar:</span>
-          <span class="info-value">${formatNumber(item.totalFalta)} KG</span>
+          <span class="info-label">Saldo a Entregar:</span>
+          <span class="info-value status-pendente-tag">${formatNumber(item.totalFalta)} KG</span>
         </div>
         <div class="cliente-info" style="margin-top: 6px;">
           <span class="info-label">Total Embarcado:</span>
           <span class="info-value">${formatNumber(item.totalEmbarcado)} KG</span>
         </div>
         <div style="margin-top: 8px;">
-          ${Array.from(item.produtos).map(p => 
+          ${Array.from(item.produtos).map(p =>
             `<span class="cliente-produto" style="background-color: ${
               p.toLowerCase().includes('soja') ? 'var(--produto-soja)' :
               p.toLowerCase().includes('milho') ? 'var(--produto-milho)' :
@@ -452,7 +314,7 @@ function renderCards(data, filter = '') {
         </div>
       </div>
     `).join('')
-    : '<div class="empty">Nenhum lote encontrado.</div>';
+    : '<div class="empty">Nenhum lote com saldo pendente encontrado.</div>';
 
   // Atualizar contadores
   document.getElementById('count-clientes').textContent = data.length;
@@ -467,42 +329,6 @@ function renderCards(data, filter = '') {
   document.getElementById('count-milho').textContent = formatNumber(milho);
 }
 
-function openModal(index) {
-  const item = globalData[index];
-  if (!item) return;
-  const modal = document.getElementById('resumoModal');
-  const body = document.getElementById('modalContentBody');
-
-  const contratosHtml = item.contratos.map(ct => `
-    <div style="padding: 8px 0; border-bottom: 1px dashed #eee;">
-      <strong>Contrato:</strong> ${escapeHtml(ct.contrato)}<br>
-      <strong>Cidade:</strong> ${escapeHtml(ct.cidade)}<br>
-      <strong>Produto:</strong> ${escapeHtml(ct.produto)}<br>
-      <strong>Falta:</strong> ${formatNumber(ct.falta)} KG
-    </div>
-  `).join('');
-
-  body.innerHTML = `
-    <div class="modal-header">
-      <h3>${escapeHtml(item.cliente)} - ${escapeHtml(item.cidadeRef)}</h3>
-    </div>
-    <div class="modal-body">
-      <p><strong>Total a Entregar:</strong> ${formatNumber(item.totalFalta)} KG</p>
-      <p><strong>Total Embarcado:</strong> ${formatNumber(item.totalEmbarcado)} KG</p>
-      <p><strong>Contratos:</strong> ${item.contratos.length}</p>
-      <div style="margin-top: 15px;">
-        <h4>Detalhes dos Contratos:</h4>
-        ${contratosHtml}
-      </div>
-    </div>
-  `;
-  modal.style.display = 'flex';
-}
-
-function closeModal() {
-  document.getElementById('resumoModal').style.display = 'none';
-}
-
 function updateLastUpdateTime() {
   const now = new Date();
   document.getElementById('lastUpdateTop').innerHTML = `
@@ -511,24 +337,33 @@ function updateLastUpdateTime() {
   `;
 }
 
-/* --- CARREGAMENTO PRINCIPAL --- */
-async function loadAll(isAutoUpdate = false) {
+async function fetchAndRenderData(isAutoUpdate = false) {
+  const container = document.getElementById('clientesContainer');
+  if (isAutoUpdate) {
+    container.innerHTML = '<div class="empty">Atualizando...</div>';
+    document.getElementById('lastUpdateTop').innerHTML = `
+      <i class="fas fa-hourglass-half" style="color: rgba(255,255,255,0.9);"></i>
+      <span>Atualizando...</span>
+    `;
+  }
+
   try {
-    if (isAutoUpdate) {
-      document.getElementById('lastUpdateTop').innerHTML = `
-        <i class="fas fa-hourglass-half" style="color: rgba(255,255,255,0.9);"></i>
-        <span>Atualizando...</span>
-      `;
+    const response = await fetch(API_URL);
+    const text = await response.text();
+    const jsonText = text.replace('google.visualization.Query.setResponse(', '').slice(0, -2);
+    const data = JSON.parse(jsonText);
+
+    if (data.status === 'ok') {
+      const grouped = agruparPorCliente(data.table.rows);
+      globalData = grouped;
+      renderCards(grouped);
+      updateLastUpdateTime();
+    } else {
+      container.innerHTML = '<div class="empty">Erro na planilha. Verifique permissões.</div>';
     }
-
-    const data = await fetchSheetByGid(GIDS.entrega);
-    globalData = processData(data.arrays, data.headersNorm);
-    renderCards(globalData);
-
-    updateLastUpdateTime();
   } catch (err) {
     console.error('Erro ao carregar Lotes de Entrega:', err);
-    document.getElementById('clientesContainer').innerHTML = '<div class="empty">Erro ao carregar dados. Verifique o console.</div>';
+    container.innerHTML = '<div class="empty">Erro de conexão ou processamento.</div>';
     document.getElementById('lastUpdateTop').innerHTML = `
       <i class="fas fa-exclamation-triangle" style="color: rgba(255,255,255,0.9);"></i>
       <span>Erro na atualização</span>
@@ -536,28 +371,19 @@ async function loadAll(isAutoUpdate = false) {
   }
 }
 
-/* --- INICIALIZAÇÃO --- */
 document.addEventListener('DOMContentLoaded', () => {
-  // Fechar modal ao clicar fora ou pressionar ESC
-  document.getElementById('resumoModal').addEventListener('click', e => {
-    if (e.target === document.getElementById('resumoModal')) closeModal();
-  });
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeModal();
-  });
-
   // Filtro
-  document.getElementById('filterInput').addEventListener('input', e => {
+  document.getElementById('filterInput').addEventListener('input', (e) => {
     renderCards(globalData, e.target.value);
   });
 
-  // Carregar dados
-  loadAll(true);
-  setInterval(() => loadAll(true), AUTO_UPDATE_INTERVAL);
+  // Carregar inicial
+  fetchAndRenderData(true);
+  setInterval(() => fetchAndRenderData(true), AUTO_UPDATE_INTERVAL);
 
   // Atualizar ao voltar à aba
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) loadAll(true);
+    if (!document.hidden) fetchAndRenderData(true);
   });
 });
 </script>
