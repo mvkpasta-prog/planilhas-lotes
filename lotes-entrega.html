@@ -54,11 +54,28 @@
   .wrap{max-width:1400px;margin:0 auto;width:100%}
   .header-btn { background:#fff; color:var(--primary); border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:700; font-size:13px; text-decoration:none; transition:background .2s, opacity .2s; display:flex; align-items:center; gap:6px; }
   .header-btn:hover { background:var(--bg); opacity:.95; }
-  .status-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
-  .status-card{background:var(--card);border-radius:8px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:150px;text-align:center;transition:all .3s}
+
+  /* novo layout dos status cards: grid com duas colunas; produtos ficam numa linha abaixo em 4 colunas */
+  .status-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .status-card{background:var(--card);border-radius:8px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);text-align:center;transition:all .3s; min-height:72px; display:flex; flex-direction:column; justify-content:center;}
   .status-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
   .status-card h3{margin:0 0 6px 0;font-size:14px;color:var(--text);font-weight:600}
   .status-card .count{font-size:22px;font-weight:700;margin:6px 0}
+
+  /* area que ocupa a segunda linha com 4 cards de produto */
+  .product-row {
+    grid-column: 1 / -1; /* ocupa as 2 colunas da grid pai */
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
   .clientes-section{margin-bottom:24px}
   .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px}
   .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all .3s; cursor:pointer;}
@@ -72,6 +89,7 @@
   .status-pendente-tag{background-color: var(--status-embarque);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
   .empty{color:var(--muted);font-style:italic;padding:10px;text-align:center;}
   #filterInput {flex-grow:1; min-width:200px; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:14px}
+
   .modal-overlay {position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.6); display:none; justify-content:center; align-items:center; z-index:1000}
   .modal-content {background:var(--card); padding:20px; border-radius:8px; max-width:900px; width:95%; max-height:90vh; overflow-y:auto; position:relative;}
   .modal-close {position:absolute; top:10px; right:10px; background:none; border:none; font-size:22px; cursor:pointer; color:var(--muted)}
@@ -86,7 +104,18 @@
   .contracts-table th {background:#fafafa; font-weight:700}
   .product-breakdown {display:flex; gap:10px; flex-wrap:wrap; margin-top:8px}
   .product-chip {padding:6px 10px; border-radius:999px; font-weight:700; font-size:13px; color:#fff; display:inline-block}
-  @media (max-width:900px){ .modal-content{max-width:95%} .contracts-table th, .contracts-table td{font-size:12px} }
+
+  @media (max-width:1100px){
+    .product-row { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width:700px){
+    .status-cards { grid-template-columns: 1fr; }
+    .product-row { grid-template-columns: repeat(2,1fr); }
+  }
+  @media (max-width:480px){
+    .product-row { grid-template-columns: 1fr; }
+  }
+
   @media (max-width:600px){
     body{padding:8px}
     .cliente-card{min-width:100%; padding:12px}
@@ -112,10 +141,39 @@
 
   <div class="wrap">
     <div class="status-cards">
-      <div class="status-card"><h3>CLIENTES</h3><div class="count" id="count-clientes">0</div></div>
-      <div class="status-card"><h3>CONTRATOS</h3><div class="count" id="count-contratos">0</div></div>
-      <div class="status-card produto-soja"><h3>SOJA (KG)</h3><div class="count" id="count-soja">0</div></div>
-      <div class="status-card produto-milho"><h3>MILHO (KG)</h3><div class="count" id="count-milho">0</div></div>
+      <!-- Top: Clientes e Contratos -->
+      <div class="status-card">
+        <h3>CLIENTES</h3>
+        <div class="count" id="count-clientes">0</div>
+      </div>
+
+      <div class="status-card">
+        <h3>CONTRATOS</h3>
+        <div class="count" id="count-contratos">0</div>
+      </div>
+
+      <!-- Product row (ocupa as 2 colunas e mostra 4 cards) -->
+      <div class="product-row">
+        <div class="status-card produto-soja">
+          <h3>SOJA (KG)</h3>
+          <div class="count" id="count-soja">0</div>
+        </div>
+
+        <div class="status-card produto-milho">
+          <h3>MILHO (KG)</h3>
+          <div class="count" id="count-milho">0</div>
+        </div>
+
+        <div class="status-card">
+          <h3>SORGO (KG)</h3>
+          <div class="count" id="count-sorgo">0</div>
+        </div>
+
+        <div class="status-card">
+          <h3>TOTAL (KG)</h3>
+          <div class="count" id="count-total">0</div>
+        </div>
+      </div>
     </div>
 
     <div class="clientes-section">
@@ -180,7 +238,6 @@ function escapeHtml(s) {
   if (s===undefined || s===null) return '';
   return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x2F;'}[c]));
 }
-// Escapa string para uso dentro de uma literal JS entre aspas simples:
 function escapeForJs(s) {
   if (s===undefined || s===null) return '';
   return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r/g,'').replace(/\n/g,'\\n');
@@ -190,23 +247,18 @@ function escapeForJs(s) {
 function extractContractNumber(raw) {
   if (!raw) return '';
   const s = String(raw).trim();
-  // Se tiver '-', pegar coisa antes do primeiro '-'
   if (s.includes('-')) return s.split('-')[0].trim();
-  // caso contrário, retornar inteiro
   return s;
 }
 
 function processData(rowsArr) {
   const grupos = {};
-  // rowsArr NÃO contém o cabeçalho (parseCSV removeu)
   for (let i = 0; i < rowsArr.length; i++) {
     const row = rowsArr[i];
-    if (!row || row.length < 9) continue; // precisa ter A..I
+    if (!row || row.length < 9) continue;
 
-    // Raw possível do contrato (fallback A ou B)
     const contratoRaw = ((row[1] && String(row[1]).trim() !== '') ? String(row[1]).trim() : (row[0] || '')).toString().trim();
-    const contrato = extractContractNumber(contratoRaw); // agora extrai número antes do '-'
-
+    const contrato = extractContractNumber(contratoRaw);
     const cliente = (row[2] || '').trim();  // C
     const cidadeCompleta = row[3] || '';    // D
     const produto = (row[4] || '').trim();  // E
@@ -238,7 +290,7 @@ function processData(rowsArr) {
   return Object.values(grupos).sort((a,b) => b.totalFalta - a.totalFalta);
 }
 
-/* ---------- RENDER ---------- */
+/* ---------- RENDERIZAÇÃO ---------- */
 function renderCards(data, filter = '') {
   const container = document.getElementById('clientesContainer');
   const term = normalizeText(filter);
@@ -273,15 +325,19 @@ function renderCards(data, filter = '') {
     `;
   }).join('') : '<div class="empty">Nenhum lote com saldo pendente encontrado.</div>';
 
-  // contadores baseados no conjunto completo (data)
+  // contadores
   document.getElementById('count-clientes').textContent = data.length;
   document.getElementById('count-contratos').textContent = data.reduce((acc,c) => acc + c.contratos.length, 0);
 
   const soja = data.reduce((acc,c) => acc + c.contratos.filter(ct => ct.produto.toLowerCase().includes('soja')).reduce((s,ct) => s + ct.falta, 0), 0);
   const milho = data.reduce((acc,c) => acc + c.contratos.filter(ct => ct.produto.toLowerCase().includes('milho')).reduce((s,ct) => s + ct.falta, 0), 0);
+  const sorgo = data.reduce((acc,c) => acc + c.contratos.filter(ct => ct.produto.toLowerCase().includes('sorgo')).reduce((s,ct) => s + ct.falta, 0), 0);
+  const total = soja + milho + sorgo;
 
   document.getElementById('count-soja').textContent = formatNumber(soja);
   document.getElementById('count-milho').textContent = formatNumber(milho);
+  document.getElementById('count-sorgo').textContent = formatNumber(sorgo);
+  document.getElementById('count-total').textContent = formatNumber(total);
 }
 
 /* ---------- MODAL ---------- */
