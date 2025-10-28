@@ -66,7 +66,6 @@
   }
   /* Removido o CSS de animação para o spinner */
   .updating .last-update-top i{ /* A classe updating não tem mais efeito de rotação */ }
-  
   .wrap{max-width:1400px;margin:0 auto;width:100%}
   .actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px}
   .btn{background:var(--primary);color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px}
@@ -188,9 +187,14 @@
       <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height: 22px; vertical-align: middle; margin-right: 8px;">
       Controle de Lotes — Entregas
     </div>
-    <a href="Retiradas.html" class="header-btn" title="Acessar Lotes de Retirada">
-      📦 Lotes de Retirada
-    </a>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <a href="Retiradas.html" class="header-btn" title="Acessar Lotes de Retirada">
+        📦 Lotes de Retirada
+      </a>
+      <a href="lotes-entrega.html" class="header-btn" title="Acessar Lotes de Entrega">
+        🚚 Lotes de Entrega
+      </a>
+    </div>
     <div class="last-update-top" id="lastUpdateTop">
       <i class="fas fa-hourglass-half"></i> <span>Atualizando...</span>
     </div>
@@ -267,7 +271,6 @@ const REMOVED_PROGRAMACAO = [
 ];
 /* Variável global para armazenar os totais de produto para o resumo */
 let globalProdutosTotais = { soja: 0, milho: 0, sorgo: 0, total: 0 };
-
 /* Normaliza cabeçalho: remove acento, espaços e pontuação */
 function normalizeHeader(h){
   if(h === undefined || h === null) return '';
@@ -457,8 +460,8 @@ function escapeHtml(s){
   // CORREÇÃO NA RAIZ: A chave para '/' estava faltando, causando a injeção de "undefined".
   return String(s).replace(/[&<>"'\/]/g, c => ({
     '&':'&amp;',
-    '<':'&lt;',
-    '>':'&gt;',
+    '<':'<',
+    '>':'>',
     '"':'&quot;',
     "'":'&#39;',
     '/':'&#x2F;' // CORREÇÃO PRINCIPAL
@@ -638,10 +641,8 @@ function buildClientesHTML(clientes) {
     }
     // Formatar saldo de entrega ajustado (pode ser negativo)
     const saldoEntregaDisplay = !isNaN(saldoEntregaAjustado) ? `${formatNumber(saldoEntregaAjustado)} KG` : '0 KG';
-    
     // Formatar valor médio do frete
     const valorMedioFrete = !isNaN(cliente.valorMedioFrete) ? formatCurrencyBRL(cliente.valorMedioFrete) : 'N/A';
-    
     html += `
       <div class="cliente-card">
         <h3 class="cliente-name">${escapeHtml(cliente.cliente)} - ${escapeHtml(cliente.destino)}</h3>
@@ -782,31 +783,25 @@ async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusC
     if(freteColIndex !== -1 && transportadoraColIndex !== -1) {
       let freteText = '';
       let transportadoraText = '';
-      
       if(Array.isArray(arr) && arr[freteColIndex] !== undefined) {
         freteText = arr[freteColIndex];
       }
-      
       if(Array.isArray(arr) && arr[transportadoraColIndex] !== undefined) {
         transportadoraText = arr[transportadoraColIndex];
       }
-      
       const freteValue = parseNumber(freteText);
       // Ajuste: Só processa frete se ele for um número válido e a transportadora não for MVK.
       // E também só se a transportadora não estiver vazia.
       if(!isNaN(freteValue) && freteValue > 0) {
         let freteReal = freteValue;
-        
         // Verificar se a transportadora NÃO é MVK (case-insensitive e não vazia)
         const isMVK = normalizeText(transportadoraText).includes('mvk');
         const isTransportadoraEmpty = transportadoraText.trim() === '';
-        
         // Aplicar o cálculo (/0.92) apenas se NÃO for MVK e o campo estiver preenchido
         // O valor 0.92 é usado para encontrar o valor do frete antes da dedução de 8% de impostos.
         if(!isMVK && !isTransportadoraEmpty) {
           freteReal = freteValue / 0.92;
         }
-        
         grupos[key].valoresFrete.push(freteReal);
       }
     }
@@ -835,7 +830,6 @@ async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusC
     };
   }).sort((a, b) => b.totalPeso - a.totalPeso); // Ordenar por peso total decrescente
 }
-
 /* --- NOVO: Função para obter a saudação correta --- */
 function getSaudacao() {
   const hora = new Date().getHours();
@@ -847,7 +841,6 @@ function getSaudacao() {
     return 'Boa noite';
   }
 }
-
 /* --- FUNÇÃO ATUALIZADA: Função para formatar a mensagem de resumo --- */
 function formatResumoMessage(soja, milho, sorgo, total) {
   const saudacao = getSaudacao();
@@ -855,53 +848,55 @@ function formatResumoMessage(soja, milho, sorgo, total) {
   const milhoKg = formatNumber(milho);
   const sorgoKg = formatNumber(sorgo);
   const totalKg = formatNumber(total);
-
   // Ícones condicionais: só aparecem se o peso for > 0
   const icones = [];
   if (soja > 0) icones.push('🌱');
   if (milho > 0) icones.push('🌽');
   if (sorgo > 0) icones.push('🌾');
   const iconesLine = icones.join(' ');
-
   // Linhas condicionais
   const sojaLine = `Soja: ${sojaKg} kg`;
   const milhoLine = `Milho: ${milhoKg} kg`;
   const sorgoLine = sorgo > 0 ? `Sorgo: ${sorgoKg} kg` : '';
-
   // Construir a mensagem final
-  let message = `${saudacao}\nEmbarque encerrado ${iconesLine}\n`;
-  message += `${sojaLine}\n`;
-  message += `${milhoLine}\n`;
+  let message = `${saudacao}
+Embarque encerrado ${iconesLine}
+`;
+  message += `${sojaLine}
+`;
+  message += `${milhoLine}
+`;
   if (sorgoLine) {
-    message += `${sorgoLine}\n`;
+    message += `${sorgoLine}
+`;
   }
-  message += `Total embarcado: ${totalKg} kg\nBom descanso a todos 🙌🏻🙏🏻`;
-
+  message += `Total embarcado: ${totalKg} kg
+Bom descanso a todos 🙌🏻🙏🏻`;
   // Remover a quebra de linha extra se sorgoLine for vazio
   return message.trim();
 }
-
 /* --- NOVO: Handler para o clique no card de total embarcado --- */
 function handleTotalCardClick() {
   const { soja, milho, sorgo, total } = globalProdutosTotais;
   const message = formatResumoMessage(soja, milho, sorgo, total);
-
   // Tenta copiar para a área de transferência
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(message).then(() => {
       // Usar a mensagem formatada para exibição no alert também
-      alert(`Mensagem copiada para a área de transferência:\n\n${message}`);
+      alert(`Mensagem copiada para a área de transferência:
+${message}`);
     }).catch(err => {
       // Falha na cópia, exibe no alert para cópia manual
       console.error('Falha ao copiar:', err);
-      alert(`Falha ao copiar. Copie a mensagem manualmente:\n\n${message}`);
+      alert(`Falha ao copiar. Copie a mensagem manualmente:
+${message}`);
     });
   } else {
     // navigator.clipboard não disponível, exibe no alert para cópia manual
-    alert(`Copie a mensagem manualmente:\n\n${message}`);
+    alert(`Copie a mensagem manualmente:
+${message}`);
   }
 }
-
 /* --- Main load function --- */
 async function loadAll(isAutoUpdate = false){
   try{
@@ -993,7 +988,6 @@ async function loadAll(isAutoUpdate = false){
     const ret = await fetchSheetByGid(GIDS.retirada);
     // O restante do processamento de Lotes de Entrega e Retirada foi removido/mantido no backend para evitar erros de dependência.
     // ...
-
     // ===== CONTADORES E TABELA DE PROGRAMAÇÃO =====
     // Contar status para os cards (aqui usamos os objetos filtrados)
     const statusCounts = countStatusProgramacao(rowsObjProgFiltered, statusKey);
@@ -1056,7 +1050,6 @@ async function loadAll(isAutoUpdate = false){
     // Inserir tabelas nas seções
     document.getElementById('programacaoContent').innerHTML = tableProgHTML || '<div class="empty">Nenhuma programação para hoje.</div>';
     // O conteúdo de Entrega e Retirada NÃO SÃO MAIS INSERIDOS NO DOM
-    
     // Inicialmente colapsar todas as seções
     document.getElementById('content-programacao').classList.add('collapsed');
     document.getElementById('toggle-programacao').classList.add('collapsed');
