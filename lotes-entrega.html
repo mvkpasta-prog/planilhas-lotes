@@ -1,638 +1,1041 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Controle de Lotes — Lotes de Entrega</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-<style>
-  :root{
-    --primary:#2563eb; --accent:#0ea5e9; --bg:#f6fbff; --card:#fff; --text:#0f172a;
-    --muted:#6b7280; --success:#10b981; --warning:#f59e0b;
-    --status-carregado: #10b981; /* Verde */
-    --status-embarque: #3b82f6; /* Azul */
-    --status-transito: #ef4444; /* Vermelho */
-    --status-contratar: #f97316; /* Laranja */
-    --produto-soja: #10b981; /* Verde para Soja */
-    --produto-milho: #fbbf24; /* Amarelo para Milho */
-    --produto-sorgo: #6b7280; /* Cinza para Sorgo */
-    --produto-total: #8b5cf6; /* Roxo para Total */
-  }
-  *{box-sizing:border-box}
-  body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:12px}
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png');
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: 80vh;
-    opacity: 0.05;
-    z-index: -1;
-    pointer-events: none;
-  }
-  header{
-    background:linear-gradient(90deg,var(--primary),var(--accent));
-    color:white;
-    padding:12px;
-    border-radius:8px;
-    margin-bottom:16px;
-    text-align:center;
-    font-weight:700;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:8px;
-    flex-wrap: wrap;
-  }
-  .header-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 200px;
-  }
-  .last-update-top {
-    font-size: 12px;
-    color: rgba(255,255,255,0.9);
-    display: flex;
-    align-items:center;
-    gap: 6px;
-  }
-  .wrap{max-width:1400px;margin:0 auto;width:100%}
-  .header-btn {
-    background: #fff;
-    color: var(--primary);
-    border: none;
-    padding: 6px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 13px;
-    text-decoration: none;
-    transition: background 0.2s ease, opacity 0.2s ease;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .header-btn:hover {
-    background: var(--bg);
-    opacity: 0.95;
-  }
-  .status-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
-  .status-card{background:var(--card);border-radius:8px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:150px;text-align:center;transition:all 0.3s ease}
-  .status-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
-  .status-card h3{margin:0 0 6px 0;font-size:14px;color:var(--text);font-weight:600}
-  .status-card .count{font-size:22px;font-weight:700;margin:6px 0}
-  .clientes-section{margin-bottom:24px}
-  .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px}
-  .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all 0.3s ease; cursor: pointer;}
-  .cliente-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
-  .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 6px 0}
-  .cliente-destino{font-weight:600;color:var(--accent);margin:0 0 10px 0;font-size:13px}
-  .cliente-info{display:flex;justify-content:space-between;margin-bottom:6px;align-items:center}
-  .info-label{font-weight:600;color:var(--muted);font-size:12px}
-  .info-value{font-weight:700;font-size:13px}
-  .cliente-produto{padding:3px 7px;border-radius:5px;font-size:11px;font-weight:600;display:inline-block;margin-top:4px}
-  .status-pendente-tag{background-color: var(--status-embarque);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
-  .empty{color:var(--muted);font-style:italic;padding:10px;text-align:center;}
-  #filterInput {
-    flex-grow: 1;
-    min-width: 200px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 14px;
-  }
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.6);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
-  .modal-content {
-    background: var(--card);
-    padding: 20px;
-    border-radius: 8px;
-    max-width: 600px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  .modal-close {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 22px;
-    cursor: pointer;
-    color: var(--muted);
-  }
-  .modal-header h3 {
-    margin-top: 0;
-    font-size: 18px;
-    color: var(--primary);
-    border-bottom: 2px solid var(--accent);
-    padding-bottom: 8px;
-    margin-bottom: 15px;
-  }
-  .modal-body p {
-    margin: 5px 0;
-    font-size: 14px;
-  }
-  .modal-body .info-label {
-    font-weight: 600;
-    color: var(--text);
-    display: inline-block;
-    min-width: 160px;
-  }
-  .modal-body .info-value {
-    font-weight: 400;
-    color: var(--muted);
-  }
-  .contrato-item {
-    padding: 8px 0;
-    border-bottom: 1px dashed #eee;
-  }
-  .contrato-item:last-child {
-    border-bottom: none;
-  }
-  @media (max-width:600px){
-    body{padding:8px}
-    .cliente-card{min-width:100%;padding:12px}
-    header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 10px;
-    }
-    .header-btn {
-      width: 100%;
-      justify-content: center;
-      order: 2;
-    }
-    .header-title {
-        width: 100%;
-        justify-content: space-between;
-    }
-    .last-update-top {
-        order: 3;
-    }
-  }
-</style>
-</head>
-<body>
-  <header>
-    <div class="header-title">
-      <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height: 22px; vertical-align: middle; margin-right: 8px;">
-      Controle de Lotes — Lotes de Entrega
-    </div>
-    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-      <a href="index.html" class="header-btn" title="Voltar para a página principal">
-        <i class="fas fa-home"></i> Página Inicial
-      </a>
-      <a href="Retiradas.html" class="header-btn" title="Acessar Lotes de Retirada">
-        <i class="fas fa-box"></i> Lotes de Retirada
-      </a>
-    </div>
-    <div class="last-update-top" id="lastUpdateTop">
-      <i class="fas fa-hourglass-half"></i> <span>Atualizando...</span>
-    </div>
-  </header>
-  <div class="wrap">
-    <div class="status-cards">
-      <div class="status-card">
-        <h3>CLIENTES</h3>
-        <div class="count" id="count-clientes">0</div>
-      </div>
-      <div class="status-card">
-        <h3>CONTRATOS</h3>
-        <div class="count" id="count-contratos">0</div>
-      </div>
-      <div class="status-card produto-soja">
-        <h3>SOJA (KG)</h3>
-        <div class="count" id="count-soja">0</div>
-      </div>
-      <div class="status-card produto-milho">
-        <h3>MILHO (KG)</h3>
-        <div class="count" id="count-milho">0</div>
-      </div>
-    </div>
-    <div class="clientes-section">
-      <h2 style="margin-top: 0;">📍 Lotes com Saldo a Entregar</h2>
-      <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
-        <input type="text" id="filterInput" placeholder="Filtrar por Cliente, Contrato ou Cidade...">
-      </div>
-      <div class="clientes-container" id="clientesContainer">
-        <div class="empty">Carregando...</div>
-      </div>
-    </div>
-  </div>
 
-  <div id="resumoModal" class="modal-overlay">
-    <div class="modal-content">
-      <button class="modal-close" onclick="closeModal()">&times;</button>
-      <div id="modalContentBody"></div>
-    </div>
-  </div>
+<html lang="pt-BR">
+
+<head>
+
+<meta charset="utf-8" />
+
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+
+<title>Controle de Lotes — Lotes de Entrega</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+<style>
+
+  :root{
+
+    --primary:#2563eb; --accent:#0ea5e9; --bg:#f6fbff; --card:#fff; --text:#0f172a;
+
+    --muted:#6b7280; --success:#10b981; --warning:#f59e0b;
+
+    --status-carregado: #10b981; /* Verde */
+
+    --status-embarque: #3b82f6; /* Azul */
+
+    --status-transito: #ef4444; /* Vermelho */
+
+    --status-contratar: #f97316; /* Laranja */
+
+    --produto-soja: #10b981; /* Verde para Soja */
+
+    --produto-milho: #fbbf24; /* Amarelo para Milho */
+
+    --produto-sorgo: #6b7280; /* Cinza para Sorgo */
+
+    --produto-total: #8b5cf6; /* Roxo para Total */
+
+  }
+
+  *{box-sizing:border-box}
+
+  body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:12px}
+
+  body::before {
+
+    content: '';
+
+    position: fixed;
+
+    top: 0;
+
+    left: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    background-image: url('https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png');
+
+    background-repeat: no-repeat;
+
+    background-position: center center;
+
+    background-size: 80vh;
+
+    opacity: 0.05;
+
+    z-index: -1;
+
+    pointer-events: none;
+
+  }
+
+  header{
+
+    background:linear-gradient(90deg,var(--primary),var(--accent));
+
+    color:white;
+
+    padding:12px;
+
+    border-radius:8px;
+
+    margin-bottom:16px;
+
+    text-align:center;
+
+    font-weight:700;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:8px;
+
+    flex-wrap: wrap;
+
+  }
+
+  .header-title {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    min-width: 200px;
+
+  }
+
+  .last-update-top {
+
+    font-size: 12px;
+
+    color: rgba(255,255,255,0.9);
+
+    display: flex;
+
+    align-items:center;
+
+    gap: 6px;
+
+  }
+
+  .wrap{max-width:1400px;margin:0 auto;width:100%}
+
+  .header-btn {
+
+    background: #fff;
+
+    color: var(--primary);
+
+    border: none;
+
+    padding: 6px 10px;
+
+    border-radius: 6px;
+
+    cursor: pointer;
+
+    font-weight: 700;
+
+    font-size: 13px;
+
+    text-decoration: none;
+
+    transition: background 0.2s ease, opacity 0.2s ease;
+
+    white-space: nowrap;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+  }
+
+  .header-btn:hover {
+
+    background: var(--bg);
+
+    opacity: 0.95;
+
+  }
+
+  .status-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+
+  .status-card{background:var(--card);border-radius:8px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:150px;text-align:center;transition:all 0.3s ease}
+
+  .status-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
+
+  .status-card h3{margin:0 0 6px 0;font-size:14px;color:var(--text);font-weight:600}
+
+  .status-card .count{font-size:22px;font-weight:700;margin:6px 0}
+
+  .clientes-section{margin-bottom:24px}
+
+  .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px}
+
+  .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all 0.3s ease; cursor: pointer;}
+
+  .cliente-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
+
+  .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 6px 0}
+
+  .cliente-destino{font-weight:600;color:var(--accent);margin:0 0 10px 0;font-size:13px}
+
+  .cliente-info{display:flex;justify-content:space-between;margin-bottom:6px;align-items:center}
+
+  .info-label{font-weight:600;color:var(--muted);font-size:12px}
+
+  .info-value{font-weight:700;font-size:13px}
+
+  .cliente-produto{padding:3px 7px;border-radius:5px;font-size:11px;font-weight:600;display:inline-block;margin-top:4px}
+
+  .status-pendente-tag{background-color: var(--status-embarque);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
+
+  .empty{color:var(--muted);font-style:italic;padding:10px;text-align:center;}
+
+  #filterInput {
+
+    flex-grow: 1;
+
+    min-width: 200px;
+
+    padding: 10px;
+
+    border: 1px solid #ccc;
+
+    border-radius: 6px;
+
+    font-size: 14px;
+
+  }
+
+  .modal-overlay {
+
+    position: fixed;
+
+    top: 0;
+
+    left: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    background: rgba(0,0,0,0.6);
+
+    display: none;
+
+    justify-content: center;
+
+    align-items: center;
+
+    z-index: 1000;
+
+  }
+
+  .modal-content {
+
+    background: var(--card);
+
+    padding: 20px;
+
+    border-radius: 8px;
+
+    max-width: 600px;
+
+    width: 90%;
+
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+  }
+
+  .modal-close {
+
+    position: absolute;
+
+    top: 10px;
+
+    right: 10px;
+
+    background: none;
+
+    border: none;
+
+    font-size: 22px;
+
+    cursor: pointer;
+
+    color: var(--muted);
+
+  }
+
+  .modal-header h3 {
+
+    margin-top: 0;
+
+    font-size: 18px;
+
+    color: var(--primary);
+
+    border-bottom: 2px solid var(--accent);
+
+    padding-bottom: 8px;
+
+    margin-bottom: 15px;
+
+  }
+
+  .modal-body p {
+
+    margin: 5px 0;
+
+    font-size: 14px;
+
+  }
+
+  .modal-body .info-label {
+
+    font-weight: 600;
+
+    color: var(--text);
+
+    display: inline-block;
+
+    min-width: 160px;
+
+  }
+
+  .modal-body .info-value {
+
+    font-weight: 400;
+
+    color: var(--muted);
+
+  }
+
+  .contrato-item {
+
+    padding: 8px 0;
+
+    border-bottom: 1px dashed #eee;
+
+  }
+
+  .contrato-item:last-child {
+
+    border-bottom: none;
+
+  }
+
+  @media (max-width:600px){
+
+    body{padding:8px}
+
+    .cliente-card{min-width:100%;padding:12px}
+
+    header {
+
+      flex-direction: column;
+
+      align-items: flex-start;
+
+      gap: 10px;
+
+    }
+
+    .header-btn {
+
+      width: 100%;
+
+      justify-content: center;
+
+      order: 2;
+
+    }
+
+    .header-title {
+
+        width: 100%;
+
+        justify-content: space-between;
+
+    }
+
+    .last-update-top {
+
+        order: 3;
+
+    }
+
+  }
+
+</style>
+
+</head>
+
+<body>
+
+  <header>
+
+    <div class="header-title">
+
+      <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height: 22px; vertical-align: middle; margin-right: 8px;">
+
+      Controle de Lotes — Lotes de Entrega
+
+    </div>
+
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+
+      <a href="index.html" class="header-btn" title="Voltar para a página principal">
+
+        <i class="fas fa-home"></i> Página Inicial
+
+      </a>
+
+      <a href="Retiradas.html" class="header-btn" title="Acessar Lotes de Retirada">
+
+        <i class="fas fa-box"></i> Lotes de Retirada
+
+      </a>
+
+    </div>
+
+    <div class="last-update-top" id="lastUpdateTop">
+
+      <i class="fas fa-hourglass-half"></i> <span>Atualizando...</span>
+
+    </div>
+
+  </header>
+
+  <div class="wrap">
+
+    <div class="status-cards">
+
+      <div class="status-card">
+
+        <h3>CLIENTES</h3>
+
+        <div class="count" id="count-clientes">0</div>
+
+      </div>
+
+      <div class="status-card">
+
+        <h3>CONTRATOS</h3>
+
+        <div class="count" id="count-contratos">0</div>
+
+      </div>
+
+      <div class="status-card produto-soja">
+
+        <h3>SOJA (KG)</h3>
+
+        <div class="count" id="count-soja">0</div>
+
+      </div>
+
+      <div class="status-card produto-milho">
+
+        <h3>MILHO (KG)</h3>
+
+        <div class="count" id="count-milho">0</div>
+
+      </div>
+
+    </div>
+
+    <div class="clientes-section">
+
+      <h2 style="margin-top: 0;">📍 Lotes com Saldo a Entregar</h2>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+
+        <input type="text" id="filterInput" placeholder="Filtrar por Cliente, Contrato ou Cidade...">
+
+      </div>
+
+      <div class="clientes-container" id="clientesContainer">
+
+        <div class="empty">Carregando...</div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div id="resumoModal" class="modal-overlay">
+
+    <div class="modal-content">
+
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+
+      <div id="modalContentBody"></div>
+
+    </div>
+
+  </div>
+
+
 
 <script>
+
 const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
+
 const GID_ENTREGA = '1186247985'; // GID da aba "LOTES DE ENTREGA"
+
 const AUTO_UPDATE_INTERVAL = 300000;
+
+
 
 let globalData = [];
 
+
+
 // --- UTILS ---
+
 function normalizeHeader(h) {
-  if (h === undefined || h === null) return '';
-  return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+
+  if (h === undefined || h === null) return '';
+
+  return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+
 }
+
 function normalizeText(text) {
-  if (text === undefined || text === null) return '';
-  return String(text).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  if (text === undefined || text === null) return '';
+
+  return String(text).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
 }
+
 function parseCSV(text) {
-  if (!text) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
-  // O Google Sheets CSV exporta as células com aspas se contiverem vírgulas (CSV)
-  // ou quebras de linha. O split com regex lida com isso.
-  const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
-  if (lines.length === 0) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
 
-  // Função para dividir linhas CSV, respeitando aspas
-  const parseLine = (line) => {
-    const cells = [];
-    let inQuote = false;
-    let currentCell = '';
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-      if (char === '"') {
-        // Trata aspas duplas dentro de aspas (escaped quote)
-        if (inQuote && line[i + 1] === '"') {
-          currentCell += '"';
-          i++;
-        } else {
-          inQuote = !inQuote;
-        }
-      } else if (char === ',' && !inQuote) {
-        cells.push(currentCell.trim());
-        currentCell = '';
-      } else {
-        currentCell += char;
-      }
-    }
-    cells.push(currentCell.trim()); // Adiciona a última célula
-    return cells;
-  };
+  if (!text) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
 
-  // Mapeia as linhas para um array de células
-  const parsed = lines.map(parseLine);
-  
-  const headersOrig = parsed.shift().map(h => h || '');
-  const headersNorm = headersOrig.map(h => normalizeHeader(h));
-  
-  // Note: O 'objects' não é usado no código atual, mantendo apenas para compatibilidade
-  const objects = parsed.map(cells => {
-    const obj = {};
-    headersNorm.forEach((key, idx) => {
-      obj[key] = cells[idx] !== undefined ? cells[idx] : '';
-    });
-    return obj;
-  });
+  const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
 
-  return { arrays: parsed, headersOrig, headersNorm, objects };
+  if (lines.length === 0) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
+
+  const parsed = lines.map(line =>
+
+    line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim())
+
+  );
+
+  const headersOrig = parsed.shift().map(h => h || '');
+
+  const headersNorm = headersOrig.map(h => normalizeHeader(h));
+
+  const objects = parsed.map(cells => {
+
+    const obj = {};
+
+    headersNorm.forEach((key, idx) => {
+
+      obj[key] = cells[idx] !== undefined ? cells[idx] : '';
+
+    });
+
+    return obj;
+
+  });
+
+  return { arrays: parsed, headersOrig, headersNorm, objects };
+
 }
+
 async function fetchSheetByGid(gid) {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`;
-  const r = await fetch(url);
-  if (!r.ok) throw new Error('Erro ao buscar planilha: ' + r.status);
-  const text = await r.text();
-  return parseCSV(text);
+
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`;
+
+  const r = await fetch(url);
+
+  if (!r.ok) throw new Error('Erro ao buscar planilha: ' + r.status);
+
+  const text = await r.text();
+
+  return parseCSV(text);
+
 }
+
 function parseNumber(val) {
-  if (val === undefined || val === null) return 0;
-  const s = String(val).replace(/\s/g, '').replace(/\./g, '').replace(/,/g, '.');
-  return parseFloat(s.replace(/[^\d\.\-]/g, '')) || 0;
+
+  if (val === undefined || val === null) return NaN;
+
+  const s = String(val).replace(/\s/g, '').replace(/\./g, '').replace(/,/g, '.');
+
+  return parseFloat(s.replace(/[^\d\.\-]/g, ''));
+
 }
+
 function formatNumber(value) {
-  if (isNaN(value)) return '0';
-  return new Intl.NumberFormat('pt-BR').format(Math.round(value));
+
+  if (isNaN(value)) return '0';
+
+  return new Intl.NumberFormat('pt-BR').format(Math.round(value));
+
 }
+
 function escapeHtml(s) {
-  if (s === undefined || s === null) return '';
-  return String(s).replace(/[&<>"'\/]/g, c => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#x27;',
-    '/': '&#x2F;'
-  }[c]));
+
+  if (s === undefined || s === null) return '';
+
+  return String(s).replace(/[&<>"'\/]/g, c => ({
+
+    '&': '&amp;',
+
+    '<': '<',
+
+    '>': '>',
+
+    '"': '&quot;',
+
+    "'": '&#x2F;'
+
+  }[c]));
+
 }
+
+
 
 // --- PROCESSAMENTO DOS DADOS ---
+
 function processData(rowsArr) {
-  const grupos = {};
 
-  // rowsArr agora contém apenas as linhas de dados, a partir do índice 0.
-  for (let i = 0; i < rowsArr.length; i++) {
-    const row = rowsArr[i];
-    // A planilha pode ter colunas A, B, C... mas a planilha CSV começa no índice 0
-    // Coluna B = 0
-    // Coluna C = 1
-    // Coluna D = 2
-    // Coluna E = 3
-    // Coluna F = 4
-    // Coluna G = 5
-    // Coluna H = 6
-    // Coluna I = 7
+  const grupos = {};
 
-    if (!row || row.length < 8) continue; // Necessita de pelo menos 8 colunas (A-I)
 
-    const contrato = (row[0] || '').trim(); // Coluna B
-    const cliente = (row[1] || '').trim(); // Coluna C
-    const cidadeCompleta = row[2] || '';   // Coluna D
-    const produto = (row[3] || '').trim(); // Coluna E
-    const safra = (row[4] || '').trim();   // Coluna F
-    const volume = parseNumber(row[5]); // Coluna G
-    const embarcado = parseNumber(row[6]); // Coluna H
-    const falta = parseNumber(row[7]);     // Coluna I
 
-    // ✅ Lógica: SÓ CONSIDERA SE FALTA > 0 E CLIENTE NÃO VAZIO
-    if (falta <= 0 || !cliente) continue;
+  // Ignorar cabeçalho (linha 0)
 
-    // Extrair cidade após o primeiro "-"
-    let cidade = cidadeCompleta;
-    if (cidadeCompleta.includes('-')) {
-      cidade = cidadeCompleta.split('-').slice(1).join('-').trim();
-    }
+  for (let i = 1; i < rowsArr.length; i++) {
 
-    if (!grupos[cliente]) {
-      grupos[cliente] = {
-        cliente,
-        cidadeRef: cidade, // Usa a cidade da primeira ocorrência como referência
-        contratos: [],
-        totalVolume: 0,
-        totalEmbarcado: 0,
-        totalFalta: 0,
-        produtos: new Set()
-      };
-    }
+    const row = rowsArr[i];
 
-    grupos[cliente].contratos.push({
-      contrato,
-      cidade,
-      produto,
-      safra,
-      volume,
-      embarcado,
-      falta,
-      searchKey: normalizeText(`${cliente} ${contrato} ${cidade} ${produto}`)
-    });
+    if (!row || row.length < 9) continue;
 
-    grupos[cliente].totalVolume += volume;
-    grupos[cliente].totalEmbarcado += embarcado;
-    grupos[cliente].totalFalta += falta;
-    if (produto) grupos[cliente].produtos.add(produto);
-  }
 
-  // Ordenar por saldo pendente (maior primeiro)
-  return Object.values(grupos).sort((a, b) => b.totalFalta - a.totalFalta);
+
+    const contrato = (row[0] || '').trim(); // Coluna B
+
+    const cliente = (row[1] || '').trim(); // Coluna C
+
+    const cidadeCompleta = row[2] || '';   // Coluna D
+
+    const produto = (row[3] || '').trim(); // Coluna E
+
+    const safra = (row[4] || '').trim();   // Coluna F
+
+    const volume = parseNumber(row[5]) || 0; // Coluna G
+
+    const embarcado = parseNumber(row[6]) || 0; // Coluna H
+
+    const falta = parseNumber(row[7]) || 0;     // ✅ Coluna I → ÍNDICE 7
+
+
+
+    // ✅ SÓ CONSIDERA SE FALTA > 0
+
+    if (falta <= 0 || !cliente) continue;
+
+
+
+    // Extrair cidade após o primeiro "-"
+
+    let cidade = cidadeCompleta;
+
+    if (cidadeCompleta.includes('-')) {
+
+      cidade = cidadeCompleta.split('-').slice(1).join('-').trim();
+
+    }
+
+
+
+    if (!grupos[cliente]) {
+
+      grupos[cliente] = {
+
+        cliente,
+
+        cidadeRef: cidade,
+
+        contratos: [],
+
+        totalVolume: 0,
+
+        totalEmbarcado: 0,
+
+        totalFalta: 0,
+
+        produtos: new Set()
+
+      };
+
+    }
+
+
+
+    grupos[cliente].contratos.push({
+
+      contrato,
+
+      cidade,
+
+      produto,
+
+      safra,
+
+      volume,
+
+      embarcado,
+
+      falta,
+
+      searchKey: normalizeText(`${cliente} ${contrato} ${cidade} ${produto}`)
+
+    });
+
+
+
+    grupos[cliente].totalVolume += volume;
+
+    grupos[cliente].totalEmbarcado += embarcado;
+
+    grupos[cliente].totalFalta += falta;
+
+    if (produto) grupos[cliente].produtos.add(produto);
+
+  }
+
+
+
+  // Ordenar por saldo pendente (maior primeiro)
+
+  return Object.values(grupos).sort((a, b) => b.totalFalta - a.totalFalta);
+
 }
+
+
 
 // --- RENDERIZAÇÃO ---
+
 function renderCards(data, filter = '') {
-  const container = document.getElementById('clientesContainer');
-  const term = normalizeText(filter);
-  const filtered = term
-    ? data.filter(item =>
-        normalizeText(item.cliente).includes(term) ||
-        // Pesquisa também dentro dos contratos do grupo (por exemplo, por número de contrato)
-        item.contratos.some(c => c.searchKey.includes(term))
-      )
-    : data;
 
-  container.innerHTML = filtered.length
-    ? filtered.map((item, idx) => `
-      <div class="cliente-card" onclick="openModal(${idx})">
-        <h3 class="cliente-name">${escapeHtml(item.cliente)}</h3>
-        <div class="cliente-destino">${escapeHtml(item.cidadeRef)}</div>
-        <div class="cliente-info" style="margin-top: 10px;">
-          <span class="info-label">Contratos:</span>
-          <span class="info-value">${item.contratos.length}</span>
-        </div>
-        <div class="cliente-info" style="margin-top: 6px;">
-          <span class="info-label">Saldo a Entregar:</span>
-          <span class="info-value status-pendente-tag">${formatNumber(item.totalFalta)} KG</span>
-        </div>
-        <div class="cliente-info" style="margin-top: 6px;">
-          <span class="info-label">Total Embarcado:</span>
-          <span class="info-value">${formatNumber(item.totalEmbarcado)} KG</span>
-        </div>
-        <div style="margin-top: 8px;">
-          ${Array.from(item.produtos).map(p =>
-            `<span class="cliente-produto" style="background-color: ${
-              p.toLowerCase().includes('soja') ? 'var(--produto-soja)' :
-              p.toLowerCase().includes('milho') ? 'var(--produto-milho)' :
-              'var(--produto-sorgo)'
-            }; color: white;">${escapeHtml(p)}</span>`
-          ).join(' ')}
-        </div>
-      </div>
-    `).join('')
-    : '<div class="empty">Nenhum lote com saldo pendente encontrado.</div>';
+  const container = document.getElementById('clientesContainer');
 
-  // Atualizar contadores
-  // Os contadores globais devem ser baseados apenas nos dados FILTRADOS por SALDO > 0
-  const contratosTotais = data.reduce((acc, c) => acc + c.contratos.length, 0);
-  const sojaFalta = data.reduce((acc, c) => acc + c.contratos
-    .filter(ct => ct.produto.toLowerCase().includes('soja'))
-    .reduce((sum, ct) => sum + ct.falta, 0), 0);
-  const milhoFalta = data.reduce((acc, c) => acc + c.contratos
-    .filter(ct => ct.produto.toLowerCase().includes('milho'))
-    .reduce((sum, ct) => sum + ct.falta, 0), 0);
-  
-  document.getElementById('count-clientes').textContent = formatNumber(data.length);
-  document.getElementById('count-contratos').textContent = formatNumber(contratosTotais);
-  document.getElementById('count-soja').textContent = formatNumber(sojaFalta);
-  document.getElementById('count-milho').textContent = formatNumber(milhoFalta);
+  const term = normalizeText(filter);
+
+  const filtered = term
+
+    ? data.filter(item =>
+
+        normalizeText(item.cliente).includes(term) ||
+
+        item.contratos.some(c => c.searchKey.includes(term))
+
+      )
+
+    : data;
+
+
+
+  container.innerHTML = filtered.length
+
+    ? filtered.map((item, idx) => `
+
+      <div class="cliente-card" onclick="openModal(${idx})">
+
+        <h3 class="cliente-name">${escapeHtml(item.cliente)}</h3>
+
+        <div class="cliente-destino">${escapeHtml(item.cidadeRef)}</div>
+
+        <div class="cliente-info" style="margin-top: 10px;">
+
+          <span class="info-label">Contratos:</span>
+
+          <span class="info-value">${item.contratos.length}</span>
+
+        </div>
+
+        <div class="cliente-info" style="margin-top: 6px;">
+
+          <span class="info-label">Saldo a Entregar:</span>
+
+          <span class="info-value status-pendente-tag">${formatNumber(item.totalFalta)} KG</span>
+
+        </div>
+
+        <div class="cliente-info" style="margin-top: 6px;">
+
+          <span class="info-label">Total Embarcado:</span>
+
+          <span class="info-value">${formatNumber(item.totalEmbarcado)} KG</span>
+
+        </div>
+
+        <div style="margin-top: 8px;">
+
+          ${Array.from(item.produtos).map(p =>
+
+            `<span class="cliente-produto" style="background-color: ${
+
+              p.toLowerCase().includes('soja') ? 'var(--produto-soja)' :
+
+              p.toLowerCase().includes('milho') ? 'var(--produto-milho)' :
+
+              'var(--produto-sorgo)'
+
+            }; color: white;">${escapeHtml(p)}</span>`
+
+          ).join(' ')}
+
+        </div>
+
+      </div>
+
+    `).join('')
+
+    : '<div class="empty">Nenhum lote com saldo pendente encontrado.</div>';
+
+
+
+  // Atualizar contadores
+
+  document.getElementById('count-clientes').textContent = data.length;
+
+  document.getElementById('count-contratos').textContent = data.reduce((acc, c) => acc + c.contratos.length, 0);
+
+  const soja = data.reduce((acc, c) => acc + c.contratos
+
+    .filter(ct => ct.produto.toLowerCase().includes('soja'))
+
+    .reduce((sum, ct) => sum + ct.falta, 0), 0);
+
+  const milho = data.reduce((acc, c) => acc + c.contratos
+
+    .filter(ct => ct.produto.toLowerCase().includes('milho'))
+
+    .reduce((sum, ct) => sum + ct.falta, 0), 0);
+
+  document.getElementById('count-soja').textContent = formatNumber(soja);
+
+  document.getElementById('count-milho').textContent = formatNumber(milho);
+
 }
+
+
 
 function openModal(index) {
-  // Note: Como o renderCards usa o índice do array FILTRADO (que é o 'filtered'),
-  // e não o índice no 'globalData', a lógica aqui precisa ser ajustada.
-  // Para simplificar, o openModal usa o índice do 'globalData' para obter o item,
-  // o que funciona desde que `renderCards` passe o índice CORRETO do `globalData`.
-  // ATENÇÃO: Se o array `filtered` for diferente de `globalData`, o índice não será o mesmo.
-  // **Corrigindo:** O renderCards precisa passar o objeto completo ou o índice do `globalData`.
-  
-  // Vamos alterar o renderCards para passar o índice do item no array `globalData`
-  // ou mudar para o índice do `filtered` e adaptar a função openModal.
-  // MANTEREI A ESTRUTURA ORIGINAL E CORRIGIREI O INDEX PASSADO.
-  
-  // **Ajuste na Lógica:** O `renderCards` precisa usar o índice do `globalData` ou passar o objeto completo.
-  // Mantendo o `openModal(${idx})` e ajustando o `renderCards` para usar o índice no `globalData`
-  // de modo que `globalData[idx]` funcione.
 
-  // No código original, ao usar `filtered.map((item, idx) => ... openModal(${idx}) ...)`
-  // O `idx` é o índice no array **filtrado**.
-  // A maneira mais segura de corrigir é passar o objeto completo ou um identificador único,
-  // mas a forma mais rápida é usar o índice de `globalData` na renderização.
+  const item = globalData[index];
 
-  // Novo ajuste no `renderCards` para encontrar o índice do item no `globalData`:
-  const item = globalData.find((_, i) => i === index); // Isso só funcionaria se não houvesse filtro.
-  
-  // **Revertendo para a forma mais correta:**
-  // O `renderCards` foi ajustado para passar o índice do item *dentro do array `filtered`* para o `openModal`.
-  // Agora, precisamos da lista de itens **filtrados** globalmente para o `openModal` acessar corretamente.
-  // No entanto, para não ter que guardar dois arrays (globalData e filteredData) e manter o código simples,
-  // vamos usar o `globalData` e pedir a re-filtragem dentro do `openModal` para achar o item.
-  
-  // Para não quebrar a lógica do `openModal(index)` original, **o openModal deve acessar o item correto**.
-  // Como o `globalData` é a lista de *todos* os clientes com saldo, e o filtro é aplicado sobre ele,
-  // o modo mais eficiente é refazer o filtro *se houver* para achar o item correto, 
-  // ou passar o objeto completo, ou o índice do `globalData`.
-  
-  // Vamos assumir que, para o `openModal`, o índice `index` é o índice do item no array **filtrado** (visível).
-  // Para que isso funcione, o array **filtrado** precisa ser acessível ou o item passado.
-  
-  // **SOLUÇÃO ADOTADA:** A função `renderCards` usará o índice do array **globalData**
-  // ao renderizar para que `openModal(index)` aponte para o item correto.
-  // No entanto, para manter a consistência e evitar bugs com a filtragem:
-  // Vamos passar o *nome do cliente* para o openModal.
-  
-  // *Voltando ao original e ajustando a renderização para passar o índice correto.*
-  // Se o `globalData` é a lista não filtrada, e `renderCards` filtra, precisamos saber qual item do `globalData`
-  // é o item filtrado de índice `idx`.
-  
-  // ***MUDANÇA CRÍTICA:*** Mudar a forma como `renderCards` gera o `onclick` para passar um identificador.
-  // Em vez de `onclick="openModal(${idx})"`, vamos usar `onclick="openModal('${escapeHtml(item.cliente)}')"`
-  
-  // Isso requer uma alteração na função `openModal` para buscar o cliente pelo nome.
-  
-  // REVERTENDO: A solução mais simples para o seu código é usar um **indexMap**
-  // para mapear o índice do array *filtrado* para o índice do array *globalData*.
-  // No entanto, para ser o mais fiel possível ao seu pedido, vamos fazer o seguinte ajuste no `openModal` 
-  // e manter a assinatura `openModal(index)` que se refere ao índice do `globalData` *não filtrado*.
-  
-  // ***Ajuste feito:*** O `renderCards` agora passa o índice do item no `globalData`.
-  
-  const currentFilter = document.getElementById('filterInput').value;
-  const term = normalizeText(currentFilter);
-  const filtered = term
-    ? globalData.filter(item =>
-        normalizeText(item.cliente).includes(term) ||
-        item.contratos.some(c => c.searchKey.includes(term))
-      )
-    : globalData;
-  
-  const item = filtered[index]; // O índice é do array filtrado/visível
+  if (!item) return;
 
-  if (!item) return;
 
-  const contratosHtml = item.contratos.map(ct => `
-    <div class="contrato-item">
-      <p><strong>Contrato:</strong> ${escapeHtml(ct.contrato)}</p>
-      <p><span class="info-label">Cidade:</span> ${escapeHtml(ct.cidade)}</p>
-      <p><span class="info-label">Produto:</span> ${escapeHtml(ct.produto)}</p>
-      <p><span class="info-label">Safra:</span> ${escapeHtml(ct.safra)}</p>
-      <p><span class="info-label">Volume Contratado:</span> ${formatNumber(ct.volume)} KG</p>
-      <p><span class="info-label">Embarcado:</span> ${formatNumber(ct.embarcado)} KG</p>
-      <p><span class="info-label">Falta Embarcar:</span> <strong>${formatNumber(ct.falta)} KG</strong></p>
-    </div>
-  `).join('');
 
-  document.getElementById('modalContentBody').innerHTML = `
-    <div class="modal-header">
-      <h3>${escapeHtml(item.cliente)} — ${escapeHtml(item.cidadeRef)}</h3>
-    </div>
-    <div class="modal-body">
-      <p><span class="info-label">Total de Contratos:</span> ${item.contratos.length}</p>
-      <p><span class="info-label">Saldo Total a Entregar:</span> <strong>${formatNumber(item.totalFalta)} KG</strong></p>
-      <p><span class="info-label">Total Embarcado:</span> ${formatNumber(item.totalEmbarcado)} KG</p>
-      <div style="margin-top: 20px;">
-        <h4>Detalhes por Contrato:</h4>
-        ${contratosHtml}
-      </div>
-    </div>
-  `;
-  document.getElementById('resumoModal').style.display = 'flex';
+  const contratosHtml = item.contratos.map(ct => `
+
+    <div class="contrato-item">
+
+      <p><strong>Contrato:</strong> ${escapeHtml(ct.contrato)}</p>
+
+      <p><span class="info-label">Cidade:</span> ${escapeHtml(ct.cidade)}</p>
+
+      <p><span class="info-label">Produto:</span> ${escapeHtml(ct.produto)}</p>
+
+      <p><span class="info-label">Safra:</span> ${escapeHtml(ct.safra)}</p>
+
+      <p><span class="info-label">Volume Contratado:</span> ${formatNumber(ct.volume)} KG</p>
+
+      <p><span class="info-label">Embarcado:</span> ${formatNumber(ct.embarcado)} KG</p>
+
+      <p><span class="info-label">Falta Embarcar:</span> <strong>${formatNumber(ct.falta)} KG</strong></p>
+
+    </div>
+
+  `).join('');
+
+
+
+  document.getElementById('modalContentBody').innerHTML = `
+
+    <div class="modal-header">
+
+      <h3>${escapeHtml(item.cliente)} — ${escapeHtml(item.cidadeRef)}</h3>
+
+    </div>
+
+    <div class="modal-body">
+
+      <p><span class="info-label">Total de Contratos:</span> ${item.contratos.length}</p>
+
+      <p><span class="info-label">Saldo Total a Entregar:</span> <strong>${formatNumber(item.totalFalta)} KG</strong></p>
+
+      <p><span class="info-label">Total Embarcado:</span> ${formatNumber(item.totalEmbarcado)} KG</p>
+
+      <div style="margin-top: 20px;">
+
+        <h4>Detalhes por Contrato:</h4>
+
+        ${contratosHtml}
+
+      </div>
+
+    </div>
+
+  `;
+
+  document.getElementById('resumoModal').style.display = 'flex';
+
 }
+
+
 
 function closeModal() {
-  document.getElementById('resumoModal').style.display = 'none';
+
+  document.getElementById('resumoModal').style.display = 'none';
+
 }
+
+
 
 function updateLastUpdateTime() {
-  const now = new Date();
-  document.getElementById('lastUpdateTop').innerHTML = `
-    <i class="fas fa-check-circle" style="color: rgba(255,255,255,0.9);"></i>
-    <span>Última atualização: ${now.toLocaleTimeString('pt-BR')} - ${now.toLocaleDateString('pt-BR')}</span>
-  `;
+
+  const now = new Date();
+
+  document.getElementById('lastUpdateTop').innerHTML = `
+
+    <i class="fas fa-check-circle" style="color: rgba(255,255,255,0.9);"></i>
+
+    <span>Última atualização: ${now.toLocaleTimeString('pt-BR')} - ${now.toLocaleDateString('pt-BR')}</span>
+
+  `;
+
 }
+
+
 
 // --- CARREGAMENTO ---
-async function loadAll(isAutoUpdate = false) {
-  const container = document.getElementById('clientesContainer');
-  if (isAutoUpdate) {
-    container.innerHTML = '<div class="empty">Atualizando...</div>';
-    document.getElementById('lastUpdateTop').innerHTML = `
-      <i class="fas fa-hourglass-half" style="color: rgba(255,255,255,0.9);"></i>
-      <span>Atualizando...</span>
-    `;
-  }
 
-  try {
-    const data = await fetchSheetByGid(GID_ENTREGA);
-    // O `data.arrays` contém todas as linhas da planilha (exceto o cabeçalho)
-    const grouped = processData(data.arrays);
-    globalData = grouped;
-    // Reaplicar o filtro atual após carregar novos dados
-    renderCards(grouped, document.getElementById('filterInput').value); 
-    updateLastUpdateTime();
-  } catch (err) {
-    console.error('Erro ao carregar Lotes de Entrega:', err);
-    container.innerHTML = '<div class="empty">Erro ao carregar dados. Verifique a planilha.</div>';
-    document.getElementById('lastUpdateTop').innerHTML = `
-      <i class="fas fa-exclamation-triangle" style="color: rgba(255,255,255,0.9);"></i>
-      <span>Erro na atualização</span>
-    `;
-  }
+async function loadAll(isAutoUpdate = false) {
+
+  const container = document.getElementById('clientesContainer');
+
+  if (isAutoUpdate) {
+
+    container.innerHTML = '<div class="empty">Atualizando...</div>';
+
+    document.getElementById('lastUpdateTop').innerHTML = `
+
+      <i class="fas fa-hourglass-half" style="color: rgba(255,255,255,0.9);"></i>
+
+      <span>Atualizando...</span>
+
+    `;
+
+  }
+
+
+
+  try {
+
+    const data = await fetchSheetByGid(GID_ENTREGA);
+
+    const grouped = processData(data.arrays);
+
+    globalData = grouped;
+
+    renderCards(grouped);
+
+    updateLastUpdateTime();
+
+  } catch (err) {
+
+    console.error('Erro ao carregar Lotes de Entrega:', err);
+
+    container.innerHTML = '<div class="empty">Erro ao carregar dados. Verifique a planilha.</div>';
+
+    document.getElementById('lastUpdateTop').innerHTML = `
+
+      <i class="fas fa-exclamation-triangle" style="color: rgba(255,255,255,0.9);"></i>
+
+      <span>Erro na atualização</span>
+
+    `;
+
+  }
+
 }
 
+
+
 // --- INIT ---
+
 document.addEventListener('DOMContentLoaded', () => {
-  // Filtro
-  document.getElementById('filterInput').addEventListener('input', (e) => {
-    renderCards(globalData, e.target.value);
-  });
 
-  // Modal
-  document.getElementById('resumoModal').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('resumoModal')) closeModal();
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeModal();
-  });
+  // Filtro
 
-  // Carregar
-  loadAll(true);
-  setInterval(() => loadAll(true), AUTO_UPDATE_INTERVAL);
+  document.getElementById('filterInput').addEventListener('input', (e) => {
 
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) loadAll(true);
-  });
+    renderCards(globalData, e.target.value);
+
+  });
+
+
+
+  // Modal
+
+  document.getElementById('resumoModal').addEventListener('click', (e) => {
+
+    if (e.target === document.getElementById('resumoModal')) closeModal();
+
+  });
+
+  document.addEventListener('keydown', (e) => {
+
+    if (e.key === 'Escape') closeModal();
+
+  });
+
+
+
+  // Carregar
+
+  loadAll(true);
+
+  setInterval(() => loadAll(true), AUTO_UPDATE_INTERVAL);
+
+
+
+  document.addEventListener('visibilitychange', () => {
+
+    if (!document.hidden) loadAll(true);
+
+  });
+
 });
+
 </script>
+
 </body>
+
 </html>
