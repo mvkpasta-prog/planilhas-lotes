@@ -108,7 +108,6 @@
     border-radius: 6px;
     font-size: 14px;
   }
-  /* Modal */
   .modal-overlay {
     position: fixed;
     top: 0;
@@ -240,7 +239,6 @@
     </div>
   </div>
 
-  <!-- Modal de Detalhes -->
   <div id="resumoModal" class="modal-overlay">
     <div class="modal-content">
       <button class="modal-close" onclick="closeModal()">&times;</button>
@@ -250,12 +248,11 @@
 
 <script>
 const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
-const GID_ENTREGA = '1186247985'; // aba "LOTES DE ENTREGA"
+const GID_ENTREGA = '1186247985';
 const AUTO_UPDATE_INTERVAL = 300000;
 
 let globalData = [];
 
-// --- UTILS ---
 function normalizeHeader(h) {
   if (h === undefined || h === null) return '';
   return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
@@ -312,18 +309,17 @@ function escapeHtml(s) {
 // --- PROCESSAMENTO DOS DADOS ---
 function processData(rowsArr) {
   const grupos = {};
-  // Estrutura da aba LOTES DE ENTREGA (colunas A a I):
-  // A=Contrato, B=Cliente, C=Cidade, D=Produto, E=Safra, F=Volume, G=Embarcado, H=?, I=Saldo a Entregar
-  // Índices: 0=A, 1=B, 2=C, 3=D, 4=E, 5=F, 6=G, 7=H, 8=I
+  // Estrutura da aba LOTES DE ENTREGA:
+  // CSV: coluna B = índice 0, C=1, D=2, E=3, F=4, G=5, H=6, I=7
   for (let i = 0; i < rowsArr.length; i++) {
     const row = rowsArr[i];
     const contrato = row[0]?.trim() || '';
     const cliente = row[1]?.trim() || '';
     const cidadeCompleta = row[2] || '';
     const produto = row[3]?.trim() || '';
-    const volume = parseNumber(row[5]) || 0;
-    const embarcado = parseNumber(row[6]) || 0;
-    const saldo = parseNumber(row[8]) || 0; // ✅ COLUNA I = ÍNDICE 8
+    const volume = parseNumber(row[5]) || 0;      // Coluna G = índice 5
+    const embarcado = parseNumber(row[6]) || 0;   // Coluna H = índice 6
+    const saldo = parseNumber(row[7]) || 0;       // ✅ COLUNA I = ÍNDICE 7 (CORRIGIDO!)
 
     // ✅ SÓ MOSTRA SE SALDO > 0
     if (saldo <= 0 || !cliente) continue;
@@ -405,7 +401,6 @@ function renderCards(data, filter = '') {
     `).join('')
     : '<div class="empty">Nenhum lote com saldo pendente encontrado.</div>';
 
-  // Atualizar contadores
   document.getElementById('count-clientes').textContent = data.length;
   document.getElementById('count-contratos').textContent = data.reduce((acc, c) => acc + c.contratos.length, 0);
   const soja = data.reduce((acc, c) => acc + c.contratos
@@ -462,7 +457,6 @@ function updateLastUpdateTime() {
   `;
 }
 
-// --- CARREGAMENTO ---
 async function loadAll(isAutoUpdate = false) {
   const container = document.getElementById('clientesContainer');
   if (isAutoUpdate) {
@@ -489,14 +483,11 @@ async function loadAll(isAutoUpdate = false) {
   }
 }
 
-// --- INIT ---
 document.addEventListener('DOMContentLoaded', () => {
-  // Filtro
   document.getElementById('filterInput').addEventListener('input', (e) => {
     renderCards(globalData, e.target.value);
   });
 
-  // Modal close
   document.getElementById('resumoModal').addEventListener('click', (e) => {
     if (e.target === document.getElementById('resumoModal')) closeModal();
   });
@@ -504,7 +495,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape') closeModal();
   });
 
-  // Carregar
   loadAll(true);
   setInterval(() => loadAll(true), AUTO_UPDATE_INTERVAL);
 
