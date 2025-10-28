@@ -1,1041 +1,532 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
-
 <head>
-
 <meta charset="utf-8" />
-
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-
 <title>Controle de Lotes — Lotes de Entrega</title>
-
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-
 <style>
-
   :root{
-
     --primary:#2563eb; --accent:#0ea5e9; --bg:#f6fbff; --card:#fff; --text:#0f172a;
-
     --muted:#6b7280; --success:#10b981; --warning:#f59e0b;
-
     --status-carregado: #10b981; /* Verde */
-
     --status-embarque: #3b82f6; /* Azul */
-
     --status-transito: #ef4444; /* Vermelho */
-
     --status-contratar: #f97316; /* Laranja */
-
     --produto-soja: #10b981; /* Verde para Soja */
-
     --produto-milho: #fbbf24; /* Amarelo para Milho */
-
     --produto-sorgo: #6b7280; /* Cinza para Sorgo */
-
     --produto-total: #8b5cf6; /* Roxo para Total */
-
   }
-
   *{box-sizing:border-box}
-
   body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:12px}
-
   body::before {
-
     content: '';
-
     position: fixed;
-
     top: 0;
-
     left: 0;
-
     width: 100%;
-
     height: 100%;
-
     background-image: url('https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png');
-
     background-repeat: no-repeat;
-
     background-position: center center;
-
     background-size: 80vh;
-
     opacity: 0.05;
-
     z-index: -1;
-
     pointer-events: none;
-
   }
-
   header{
-
     background:linear-gradient(90deg,var(--primary),var(--accent));
-
     color:white;
-
     padding:12px;
-
     border-radius:8px;
-
     margin-bottom:16px;
-
     text-align:center;
-
     font-weight:700;
-
     display:flex;
-
     align-items:center;
-
     justify-content:space-between;
-
     gap:8px;
-
     flex-wrap: wrap;
-
   }
-
   .header-title {
-
     display: flex;
-
     align-items: center;
-
     gap: 8px;
-
     min-width: 200px;
-
   }
-
   .last-update-top {
-
     font-size: 12px;
-
     color: rgba(255,255,255,0.9);
-
     display: flex;
-
     align-items:center;
-
     gap: 6px;
-
   }
-
   .wrap{max-width:1400px;margin:0 auto;width:100%}
-
   .header-btn {
-
     background: #fff;
-
     color: var(--primary);
-
     border: none;
-
     padding: 6px 10px;
-
     border-radius: 6px;
-
     cursor: pointer;
-
     font-weight: 700;
-
     font-size: 13px;
-
     text-decoration: none;
-
     transition: background 0.2s ease, opacity 0.2s ease;
-
     white-space: nowrap;
-
     display: flex;
-
     align-items: center;
-
     gap: 6px;
-
   }
-
   .header-btn:hover {
-
     background: var(--bg);
-
     opacity: 0.95;
-
   }
-
   .status-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
-
   .status-card{background:var(--card);border-radius:8px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:150px;text-align:center;transition:all 0.3s ease}
-
   .status-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
-
   .status-card h3{margin:0 0 6px 0;font-size:14px;color:var(--text);font-weight:600}
-
   .status-card .count{font-size:22px;font-weight:700;margin:6px 0}
-
   .clientes-section{margin-bottom:24px}
-
   .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px}
-
   .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all 0.3s ease; cursor: pointer;}
-
   .cliente-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
-
   .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 6px 0}
-
   .cliente-destino{font-weight:600;color:var(--accent);margin:0 0 10px 0;font-size:13px}
-
   .cliente-info{display:flex;justify-content:space-between;margin-bottom:6px;align-items:center}
-
   .info-label{font-weight:600;color:var(--muted);font-size:12px}
-
   .info-value{font-weight:700;font-size:13px}
-
   .cliente-produto{padding:3px 7px;border-radius:5px;font-size:11px;font-weight:600;display:inline-block;margin-top:4px}
-
   .status-pendente-tag{background-color: var(--status-embarque);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
-
   .empty{color:var(--muted);font-style:italic;padding:10px;text-align:center;}
-
   #filterInput {
-
     flex-grow: 1;
-
     min-width: 200px;
-
     padding: 10px;
-
     border: 1px solid #ccc;
-
     border-radius: 6px;
-
     font-size: 14px;
-
   }
-
   .modal-overlay {
-
     position: fixed;
-
     top: 0;
-
     left: 0;
-
     width: 100%;
-
     height: 100%;
-
     background: rgba(0,0,0,0.6);
-
     display: none;
-
     justify-content: center;
-
     align-items: center;
-
     z-index: 1000;
-
   }
-
   .modal-content {
-
     background: var(--card);
-
     padding: 20px;
-
     border-radius: 8px;
-
     max-width: 600px;
-
     width: 90%;
-
     max-height: 90vh;
-
     overflow-y: auto;
-
   }
-
   .modal-close {
-
     position: absolute;
-
     top: 10px;
-
     right: 10px;
-
     background: none;
-
     border: none;
-
     font-size: 22px;
-
     cursor: pointer;
-
     color: var(--muted);
-
   }
-
   .modal-header h3 {
-
     margin-top: 0;
-
     font-size: 18px;
-
     color: var(--primary);
-
     border-bottom: 2px solid var(--accent);
-
     padding-bottom: 8px;
-
     margin-bottom: 15px;
-
   }
-
   .modal-body p {
-
     margin: 5px 0;
-
     font-size: 14px;
-
   }
-
   .modal-body .info-label {
-
     font-weight: 600;
-
     color: var(--text);
-
     display: inline-block;
-
     min-width: 160px;
-
   }
-
   .modal-body .info-value {
-
     font-weight: 400;
-
     color: var(--muted);
-
   }
-
   .contrato-item {
-
     padding: 8px 0;
-
     border-bottom: 1px dashed #eee;
-
   }
-
   .contrato-item:last-child {
-
     border-bottom: none;
-
   }
-
   @media (max-width:600px){
-
     body{padding:8px}
-
     .cliente-card{min-width:100%;padding:12px}
-
     header {
-
       flex-direction: column;
-
       align-items: flex-start;
-
       gap: 10px;
-
     }
-
     .header-btn {
-
       width: 100%;
-
       justify-content: center;
-
       order: 2;
-
     }
-
     .header-title {
-
         width: 100%;
-
         justify-content: space-between;
-
     }
-
     .last-update-top {
-
         order: 3;
-
     }
-
   }
-
 </style>
-
 </head>
-
 <body>
-
   <header>
-
     <div class="header-title">
-
       <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height: 22px; vertical-align: middle; margin-right: 8px;">
-
       Controle de Lotes — Lotes de Entrega
-
     </div>
-
     <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-
       <a href="index.html" class="header-btn" title="Voltar para a página principal">
-
         <i class="fas fa-home"></i> Página Inicial
-
       </a>
-
       <a href="Retiradas.html" class="header-btn" title="Acessar Lotes de Retirada">
-
         <i class="fas fa-box"></i> Lotes de Retirada
-
       </a>
-
     </div>
-
     <div class="last-update-top" id="lastUpdateTop">
-
       <i class="fas fa-hourglass-half"></i> <span>Atualizando...</span>
-
     </div>
-
   </header>
-
   <div class="wrap">
-
     <div class="status-cards">
-
       <div class="status-card">
-
         <h3>CLIENTES</h3>
-
         <div class="count" id="count-clientes">0</div>
-
       </div>
-
       <div class="status-card">
-
         <h3>CONTRATOS</h3>
-
         <div class="count" id="count-contratos">0</div>
-
       </div>
-
       <div class="status-card produto-soja">
-
         <h3>SOJA (KG)</h3>
-
         <div class="count" id="count-soja">0</div>
-
       </div>
-
       <div class="status-card produto-milho">
-
         <h3>MILHO (KG)</h3>
-
         <div class="count" id="count-milho">0</div>
-
       </div>
-
     </div>
-
     <div class="clientes-section">
-
       <h2 style="margin-top: 0;">📍 Lotes com Saldo a Entregar</h2>
-
       <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
-
         <input type="text" id="filterInput" placeholder="Filtrar por Cliente, Contrato ou Cidade...">
-
       </div>
-
       <div class="clientes-container" id="clientesContainer">
-
         <div class="empty">Carregando...</div>
-
       </div>
-
     </div>
-
   </div>
-
-
 
   <div id="resumoModal" class="modal-overlay">
-
     <div class="modal-content">
-
       <button class="modal-close" onclick="closeModal()">&times;</button>
-
       <div id="modalContentBody"></div>
-
     </div>
-
   </div>
 
-
-
 <script>
-
 const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
-
 const GID_ENTREGA = '1186247985'; // GID da aba "LOTES DE ENTREGA"
-
 const AUTO_UPDATE_INTERVAL = 300000;
-
-
 
 let globalData = [];
 
-
-
 // --- UTILS ---
-
 function normalizeHeader(h) {
-
   if (h === undefined || h === null) return '';
-
   return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
-
 }
-
 function normalizeText(text) {
-
   if (text === undefined || text === null) return '';
-
   return String(text).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-
 }
-
 function parseCSV(text) {
-
   if (!text) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
-
   const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
-
   if (lines.length === 0) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
-
   const parsed = lines.map(line =>
-
     line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim())
-
   );
-
   const headersOrig = parsed.shift().map(h => h || '');
-
   const headersNorm = headersOrig.map(h => normalizeHeader(h));
-
   const objects = parsed.map(cells => {
-
     const obj = {};
-
     headersNorm.forEach((key, idx) => {
-
       obj[key] = cells[idx] !== undefined ? cells[idx] : '';
-
     });
-
     return obj;
-
   });
-
   return { arrays: parsed, headersOrig, headersNorm, objects };
-
 }
-
 async function fetchSheetByGid(gid) {
-
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`;
-
   const r = await fetch(url);
-
   if (!r.ok) throw new Error('Erro ao buscar planilha: ' + r.status);
-
   const text = await r.text();
-
   return parseCSV(text);
-
 }
-
 function parseNumber(val) {
-
   if (val === undefined || val === null) return NaN;
-
   const s = String(val).replace(/\s/g, '').replace(/\./g, '').replace(/,/g, '.');
-
   return parseFloat(s.replace(/[^\d\.\-]/g, ''));
-
 }
-
 function formatNumber(value) {
-
   if (isNaN(value)) return '0';
-
   return new Intl.NumberFormat('pt-BR').format(Math.round(value));
-
 }
-
 function escapeHtml(s) {
-
   if (s === undefined || s === null) return '';
-
   return String(s).replace(/[&<>"'\/]/g, c => ({
-
     '&': '&amp;',
-
-    '<': '<',
-
-    '>': '>',
-
+    '<': '&lt;',
+    '>': '&gt;',
     '"': '&quot;',
-
     "'": '&#x2F;'
-
   }[c]));
-
 }
-
-
 
 // --- PROCESSAMENTO DOS DADOS ---
-
 function processData(rowsArr) {
-
   const grupos = {};
 
-
-
-  // Ignorar cabeçalho (linha 0)
-
-  for (let i = 1; i < rowsArr.length; i++) {
-
+  // rowsArr já NÃO contém o cabeçalho (parseCSV fez parsed.shift())
+  // Percorrer todas as linhas de dados (i = 0 ...)
+  for (let i = 0; i < rowsArr.length; i++) {
     const row = rowsArr[i];
+    if (!row || row.length < 9) continue; // precisa ter pelo menos 9 colunas (A..I)
 
-    if (!row || row.length < 9) continue;
+    // Mapeamento considerando que as colunas relevantes estão em B..I:
+    // B = índice 1, C = 2, D = 3, E = 4, F = 5, G = 6, H = 7, I = 8
+    const contrato = (row[1] || '').trim(); // Coluna B
+    const cliente = (row[2] || '').trim(); // Coluna C
+    const cidadeCompleta = row[3] || '';   // Coluna D
+    const produto = (row[4] || '').trim(); // Coluna E
+    const safra = (row[5] || '').trim();   // Coluna F
+    const volume = parseNumber(row[6]) || 0; // Coluna G
+    const embarcado = parseNumber(row[7]) || 0; // Coluna H
+    const falta = parseNumber(row[8]) || 0;     // Coluna I
 
-
-
-    const contrato = (row[0] || '').trim(); // Coluna B
-
-    const cliente = (row[1] || '').trim(); // Coluna C
-
-    const cidadeCompleta = row[2] || '';   // Coluna D
-
-    const produto = (row[3] || '').trim(); // Coluna E
-
-    const safra = (row[4] || '').trim();   // Coluna F
-
-    const volume = parseNumber(row[5]) || 0; // Coluna G
-
-    const embarcado = parseNumber(row[6]) || 0; // Coluna H
-
-    const falta = parseNumber(row[7]) || 0;     // ✅ Coluna I → ÍNDICE 7
-
-
-
-    // ✅ SÓ CONSIDERA SE FALTA > 0
-
+    // Só considera se falta > 0 e cliente existir
     if (falta <= 0 || !cliente) continue;
 
-
-
-    // Extrair cidade após o primeiro "-"
-
+    // Extrair cidade após o primeiro "-" (se houver)
     let cidade = cidadeCompleta;
-
     if (cidadeCompleta.includes('-')) {
-
       cidade = cidadeCompleta.split('-').slice(1).join('-').trim();
-
     }
-
-
 
     if (!grupos[cliente]) {
-
       grupos[cliente] = {
-
         cliente,
-
         cidadeRef: cidade,
-
         contratos: [],
-
         totalVolume: 0,
-
         totalEmbarcado: 0,
-
         totalFalta: 0,
-
         produtos: new Set()
-
       };
-
     }
 
-
-
     grupos[cliente].contratos.push({
-
       contrato,
-
       cidade,
-
       produto,
-
       safra,
-
       volume,
-
       embarcado,
-
       falta,
-
       searchKey: normalizeText(`${cliente} ${contrato} ${cidade} ${produto}`)
-
     });
 
-
-
     grupos[cliente].totalVolume += volume;
-
+    groupsSafeAddProduct(grupos[cliente], produto);
     grupos[cliente].totalEmbarcado += embarcado;
-
     grupos[cliente].totalFalta += falta;
-
-    if (produto) grupos[cliente].produtos.add(produto);
-
   }
 
-
-
   // Ordenar por saldo pendente (maior primeiro)
-
   return Object.values(grupos).sort((a, b) => b.totalFalta - a.totalFalta);
-
 }
 
-
+function groupsSafeAddProduct(group, produto) {
+  if (produto) group.produtos.add(produto);
+}
 
 // --- RENDERIZAÇÃO ---
-
 function renderCards(data, filter = '') {
-
   const container = document.getElementById('clientesContainer');
-
   const term = normalizeText(filter);
-
   const filtered = term
-
     ? data.filter(item =>
-
         normalizeText(item.cliente).includes(term) ||
-
         item.contratos.some(c => c.searchKey.includes(term))
-
       )
-
     : data;
 
-
-
   container.innerHTML = filtered.length
-
-    ? filtered.map((item, idx) => `
-
-      <div class="cliente-card" onclick="openModal(${idx})">
-
+    ? filtered.map((item) => `
+      <div class="cliente-card" onclick="openModalByClient(${JSON.stringify(item.cliente)})">
         <h3 class="cliente-name">${escapeHtml(item.cliente)}</h3>
-
         <div class="cliente-destino">${escapeHtml(item.cidadeRef)}</div>
-
         <div class="cliente-info" style="margin-top: 10px;">
-
           <span class="info-label">Contratos:</span>
-
           <span class="info-value">${item.contratos.length}</span>
-
         </div>
-
         <div class="cliente-info" style="margin-top: 6px;">
-
           <span class="info-label">Saldo a Entregar:</span>
-
           <span class="info-value status-pendente-tag">${formatNumber(item.totalFalta)} KG</span>
-
         </div>
-
         <div class="cliente-info" style="margin-top: 6px;">
-
           <span class="info-label">Total Embarcado:</span>
-
           <span class="info-value">${formatNumber(item.totalEmbarcado)} KG</span>
-
         </div>
-
         <div style="margin-top: 8px;">
-
           ${Array.from(item.produtos).map(p =>
-
             `<span class="cliente-produto" style="background-color: ${
-
               p.toLowerCase().includes('soja') ? 'var(--produto-soja)' :
-
               p.toLowerCase().includes('milho') ? 'var(--produto-milho)' :
-
               'var(--produto-sorgo)'
-
             }; color: white;">${escapeHtml(p)}</span>`
-
           ).join(' ')}
-
         </div>
-
       </div>
-
     `).join('')
-
     : '<div class="empty">Nenhum lote com saldo pendente encontrado.</div>';
 
-
-
-  // Atualizar contadores
-
+  // Atualizar contadores (baseados no conjunto completo recebido em `data`)
   document.getElementById('count-clientes').textContent = data.length;
-
   document.getElementById('count-contratos').textContent = data.reduce((acc, c) => acc + c.contratos.length, 0);
 
   const soja = data.reduce((acc, c) => acc + c.contratos
-
     .filter(ct => ct.produto.toLowerCase().includes('soja'))
-
     .reduce((sum, ct) => sum + ct.falta, 0), 0);
 
   const milho = data.reduce((acc, c) => acc + c.contratos
-
     .filter(ct => ct.produto.toLowerCase().includes('milho'))
-
     .reduce((sum, ct) => sum + ct.falta, 0), 0);
 
   document.getElementById('count-soja').textContent = formatNumber(soja);
-
   document.getElementById('count-milho').textContent = formatNumber(milho);
-
 }
 
-
-
-function openModal(index) {
-
-  const item = globalData[index];
-
+function openModalByClient(clienteName) {
+  const item = globalData.find(g => g.cliente === clienteName);
   if (!item) return;
 
-
-
   const contratosHtml = item.contratos.map(ct => `
-
     <div class="contrato-item">
-
       <p><strong>Contrato:</strong> ${escapeHtml(ct.contrato)}</p>
-
       <p><span class="info-label">Cidade:</span> ${escapeHtml(ct.cidade)}</p>
-
       <p><span class="info-label">Produto:</span> ${escapeHtml(ct.produto)}</p>
-
       <p><span class="info-label">Safra:</span> ${escapeHtml(ct.safra)}</p>
-
       <p><span class="info-label">Volume Contratado:</span> ${formatNumber(ct.volume)} KG</p>
-
       <p><span class="info-label">Embarcado:</span> ${formatNumber(ct.embarcado)} KG</p>
-
       <p><span class="info-label">Falta Embarcar:</span> <strong>${formatNumber(ct.falta)} KG</strong></p>
-
     </div>
-
   `).join('');
 
-
-
   document.getElementById('modalContentBody').innerHTML = `
-
     <div class="modal-header">
-
       <h3>${escapeHtml(item.cliente)} — ${escapeHtml(item.cidadeRef)}</h3>
-
     </div>
-
     <div class="modal-body">
-
       <p><span class="info-label">Total de Contratos:</span> ${item.contratos.length}</p>
-
       <p><span class="info-label">Saldo Total a Entregar:</span> <strong>${formatNumber(item.totalFalta)} KG</strong></p>
-
       <p><span class="info-label">Total Embarcado:</span> ${formatNumber(item.totalEmbarcado)} KG</p>
-
       <div style="margin-top: 20px;">
-
         <h4>Detalhes por Contrato:</h4>
-
         ${contratosHtml}
-
       </div>
-
     </div>
-
   `;
-
   document.getElementById('resumoModal').style.display = 'flex';
-
 }
-
-
 
 function closeModal() {
-
   document.getElementById('resumoModal').style.display = 'none';
-
 }
-
-
 
 function updateLastUpdateTime() {
-
   const now = new Date();
-
   document.getElementById('lastUpdateTop').innerHTML = `
-
     <i class="fas fa-check-circle" style="color: rgba(255,255,255,0.9);"></i>
-
     <span>Última atualização: ${now.toLocaleTimeString('pt-BR')} - ${now.toLocaleDateString('pt-BR')}</span>
-
   `;
-
 }
-
-
 
 // --- CARREGAMENTO ---
-
 async function loadAll(isAutoUpdate = false) {
-
   const container = document.getElementById('clientesContainer');
-
   if (isAutoUpdate) {
-
     container.innerHTML = '<div class="empty">Atualizando...</div>';
-
     document.getElementById('lastUpdateTop').innerHTML = `
-
       <i class="fas fa-hourglass-half" style="color: rgba(255,255,255,0.9);"></i>
-
       <span>Atualizando...</span>
-
     `;
-
   }
-
-
 
   try {
-
     const data = await fetchSheetByGid(GID_ENTREGA);
-
+    // processData espera rowsArr onde cada row é uma linha de dados (sem cabeçalho)
     const grouped = processData(data.arrays);
-
     globalData = grouped;
-
     renderCards(grouped);
-
     updateLastUpdateTime();
-
   } catch (err) {
-
     console.error('Erro ao carregar Lotes de Entrega:', err);
-
     container.innerHTML = '<div class="empty">Erro ao carregar dados. Verifique a planilha.</div>';
-
     document.getElementById('lastUpdateTop').innerHTML = `
-
       <i class="fas fa-exclamation-triangle" style="color: rgba(255,255,255,0.9);"></i>
-
       <span>Erro na atualização</span>
-
     `;
-
   }
-
 }
 
-
-
 // --- INIT ---
-
 document.addEventListener('DOMContentLoaded', () => {
-
   // Filtro
-
   document.getElementById('filterInput').addEventListener('input', (e) => {
-
     renderCards(globalData, e.target.value);
-
   });
-
-
 
   // Modal
-
   document.getElementById('resumoModal').addEventListener('click', (e) => {
-
     if (e.target === document.getElementById('resumoModal')) closeModal();
-
   });
-
   document.addEventListener('keydown', (e) => {
-
     if (e.key === 'Escape') closeModal();
-
   });
-
-
 
   // Carregar
-
   loadAll(true);
-
   setInterval(() => loadAll(true), AUTO_UPDATE_INTERVAL);
 
-
-
   document.addEventListener('visibilitychange', () => {
-
     if (!document.hidden) loadAll(true);
-
   });
-
 });
-
 </script>
-
 </body>
-
 </html>
