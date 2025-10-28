@@ -187,6 +187,15 @@ function escapeForJs(s) {
 }
 
 /* ---------- PROCESSAMENTO ---------- */
+function extractContractNumber(raw) {
+  if (!raw) return '';
+  const s = String(raw).trim();
+  // Se tiver '-', pegar coisa antes do primeiro '-'
+  if (s.includes('-')) return s.split('-')[0].trim();
+  // caso contrário, retornar inteiro
+  return s;
+}
+
 function processData(rowsArr) {
   const grupos = {};
   // rowsArr NÃO contém o cabeçalho (parseCSV removeu)
@@ -194,8 +203,10 @@ function processData(rowsArr) {
     const row = rowsArr[i];
     if (!row || row.length < 9) continue; // precisa ter A..I
 
-    // Fallback: contrato pode estar em B (índice 1) ou em A (índice 0)
-    const contrato = ((row[1] && String(row[1]).trim() !== '') ? String(row[1]).trim() : (row[0] || '')).toString().trim();
+    // Raw possível do contrato (fallback A ou B)
+    const contratoRaw = ((row[1] && String(row[1]).trim() !== '') ? String(row[1]).trim() : (row[0] || '')).toString().trim();
+    const contrato = extractContractNumber(contratoRaw); // agora extrai número antes do '-'
+
     const cliente = (row[2] || '').trim();  // C
     const cidadeCompleta = row[3] || '';    // D
     const produto = (row[4] || '').trim();  // E
