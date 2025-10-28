@@ -9,14 +9,14 @@
   :root{
     --primary:#2563eb; --accent:#0ea5e9; --bg:#f6fbff; --card:#fff; --text:#0f172a;
     --muted:#6b7280; --success:#10b981; --warning:#f59e0b;
-    --status-carregado: #10b981; /* Verde */
-    --status-embarque: #3b82f6; /* Azul */
-    --status-transito: #ef4444; /* Vermelho */
-    --status-contratar: #f97316; /* Laranja */
-    --produto-soja: #10b981; /* Verde para Soja */
-    --produto-milho: #fbbf24; /* Amarelo para Milho */
-    --produto-sorgo: #6b7280; /* Cinza para Sorgo */
-    --produto-total: #8b5cf6; /* Roxo para Total */
+    --status-carregado: #10b981;
+    --status-embarque: #3b82f6;
+    --status-transito: #ef4444;
+    --status-contratar: #f97316;
+    --produto-soja: #10b981;
+    --produto-milho: #fbbf24;
+    --produto-sorgo: #6b7280;
+    --produto-total: #8b5cf6;
   }
   *{box-sizing:border-box}
   body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:12px}
@@ -194,8 +194,8 @@ function processData(rowsArr) {
     const row = rowsArr[i];
     if (!row || row.length < 9) continue; // precisa ter A..I
 
-    // Mapeamento B..I => índices 1..8
-    const contrato = (row[1] || '').trim(); // B
+    // Fallback: contrato pode estar em B (índice 1) ou em A (índice 0)
+    const contrato = ((row[1] && String(row[1]).trim() !== '') ? String(row[1]).trim() : (row[0] || '')).toString().trim();
     const cliente = (row[2] || '').trim();  // C
     const cidadeCompleta = row[3] || '';    // D
     const produto = (row[4] || '').trim();  // E
@@ -236,7 +236,6 @@ function renderCards(data, filter = '') {
   ) : data;
 
   container.innerHTML = filtered.length ? filtered.map(item => {
-    // criar onclick com nome do cliente seguro (aspas simples)
     const safeName = escapeForJs(item.cliente);
     return `
       <div class="cliente-card" onclick="openModalByClient('${safeName}')">
@@ -279,7 +278,6 @@ function openModalByClient(clienteName) {
   const item = globalData.find(g => g.cliente === clienteName);
   if (!item) return;
 
-  // soma por produto
   const productTotals = {};
   item.contratos.forEach(ct => {
     const key = (ct.produto || 'Outros').trim();
