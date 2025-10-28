@@ -108,6 +108,67 @@
     border-radius: 6px;
     font-size: 14px;
   }
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  .modal-content {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: var(--muted);
+  }
+  .modal-header h3 {
+    margin-top: 0;
+    font-size: 18px;
+    color: var(--primary);
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+  }
+  .modal-body p {
+    margin: 5px 0;
+    font-size: 14px;
+  }
+  .modal-body .info-label {
+    font-weight: 600;
+    color: var(--text);
+    display: inline-block;
+    min-width: 160px;
+  }
+  .modal-body .info-value {
+    font-weight: 400;
+    color: var(--muted);
+  }
+  .contrato-item {
+    padding: 8px 0;
+    border-bottom: 1px dashed #eee;
+  }
+  .contrato-item:last-child {
+    border-bottom: none;
+  }
   @media (max-width:600px){
     body{padding:8px}
     .cliente-card{min-width:100%;padding:12px}
@@ -178,9 +239,18 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal de Detalhes -->
+  <div id="resumoModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <div id="modalContentBody"></div>
+    </div>
+  </div>
+
 <script>
 const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
-const GID_ENTREGA = '1186247985'; // GID da aba "LOTES DE ENTREGA"
+const GID_ENTREGA = '1186247985'; // aba "LOTES DE ENTREGA"
 const AUTO_UPDATE_INTERVAL = 300000;
 
 let globalData = [];
@@ -239,12 +309,12 @@ function escapeHtml(s) {
   }[c]));
 }
 
-// --- PROCESSAMENTO ---
-function processData(rowsArr, headersNorm) {
+// --- PROCESSAMENTO DOS DADOS ---
+function processData(rowsArr) {
   const grupos = {};
-  // Mapeamento baseado na estrutura da aba "LOTES DE ENTREGA":
-  // Colunas: A=Contrato, B=Cliente, C=Cidade, D=Produto, E=Safra, F=Volume, G=Embarcado, H=Falta (Saldo a Entregar)
-  // No CSV, índices: 0=A, 1=B, 2=C, 3=D, 4=E, 5=F, 6=G, 7=H
+  // Estrutura da aba LOTES DE ENTREGA (colunas A a I):
+  // A=Contrato, B=Cliente, C=Cidade, D=Produto, E=Safra, F=Volume, G=Embarcado, H=?, I=Saldo a Entregar
+  // Índices: 0=A, 1=B, 2=C, 3=D, 4=E, 5=F, 6=G, 7=H, 8=I
   for (let i = 0; i < rowsArr.length; i++) {
     const row = rowsArr[i];
     const contrato = row[0]?.trim() || '';
@@ -253,12 +323,11 @@ function processData(rowsArr, headersNorm) {
     const produto = row[3]?.trim() || '';
     const volume = parseNumber(row[5]) || 0;
     const embarcado = parseNumber(row[6]) || 0;
-    const falta = parseNumber(row[7]) || 0;
+    const saldo = parseNumber(row[8]) || 0; // ✅ COLUNA I = ÍNDICE 8
 
-    // ✅ SÓ MOSTRA SE SALDO A ENTREGAR > 0
-    if (falta <= 0 || !cliente) continue;
+    // ✅ SÓ MOSTRA SE SALDO > 0
+    if (saldo <= 0 || !cliente) continue;
 
-    // Extrair cidade (após primeiro "-")
     let cidade = cidadeCompleta;
     if (cidadeCompleta.includes('-')) {
       cidade = cidadeCompleta.split('-').slice(1).join('-').trim();
@@ -271,7 +340,7 @@ function processData(rowsArr, headersNorm) {
         contratos: [],
         totalVolume: 0,
         totalEmbarcado: 0,
-        totalFalta: 0,
+        totalSaldo: 0,
         produtos: new Set()
       };
     }
@@ -282,20 +351,20 @@ function processData(rowsArr, headersNorm) {
       produto,
       volume,
       embarcado,
-      falta,
+      saldo,
       searchKey: normalizeText(`${cliente} ${contrato} ${cidade} ${produto}`)
     });
 
     grupos[cliente].totalVolume += volume;
     grupos[cliente].totalEmbarcado += embarcado;
-    grupos[cliente].totalFalta += falta;
+    grupos[cliente].totalSaldo += saldo;
     if (produto) grupos[cliente].produtos.add(produto);
   }
 
-  return Object.values(grupos).sort((a, b) => b.totalFalta - a.totalFalta);
+  return Object.values(grupos).sort((a, b) => b.totalSaldo - a.totalSaldo);
 }
 
-// --- RENDER ---
+// --- RENDERIZAÇÃO ---
 function renderCards(data, filter = '') {
   const container = document.getElementById('clientesContainer');
   const term = normalizeText(filter);
@@ -307,8 +376,8 @@ function renderCards(data, filter = '') {
     : data;
 
   container.innerHTML = filtered.length
-    ? filtered.map(item => `
-      <div class="cliente-card">
+    ? filtered.map((item, idx) => `
+      <div class="cliente-card" onclick="openModal(${idx})">
         <h3 class="cliente-name">${escapeHtml(item.cliente)}</h3>
         <div class="cliente-destino">${escapeHtml(item.cidadeRef)}</div>
         <div class="cliente-info" style="margin-top: 10px;">
@@ -317,7 +386,7 @@ function renderCards(data, filter = '') {
         </div>
         <div class="cliente-info" style="margin-top: 6px;">
           <span class="info-label">Saldo a Entregar:</span>
-          <span class="info-value status-pendente-tag">${formatNumber(item.totalFalta)} KG</span>
+          <span class="info-value status-pendente-tag">${formatNumber(item.totalSaldo)} KG</span>
         </div>
         <div class="cliente-info" style="margin-top: 6px;">
           <span class="info-label">Total Embarcado:</span>
@@ -341,12 +410,48 @@ function renderCards(data, filter = '') {
   document.getElementById('count-contratos').textContent = data.reduce((acc, c) => acc + c.contratos.length, 0);
   const soja = data.reduce((acc, c) => acc + c.contratos
     .filter(ct => ct.produto.toLowerCase().includes('soja'))
-    .reduce((sum, ct) => sum + ct.falta, 0), 0);
+    .reduce((sum, ct) => sum + ct.saldo, 0), 0);
   const milho = data.reduce((acc, c) => acc + c.contratos
     .filter(ct => ct.produto.toLowerCase().includes('milho'))
-    .reduce((sum, ct) => sum + ct.falta, 0), 0);
+    .reduce((sum, ct) => sum + ct.saldo, 0), 0);
   document.getElementById('count-soja').textContent = formatNumber(soja);
   document.getElementById('count-milho').textContent = formatNumber(milho);
+}
+
+function openModal(index) {
+  const item = globalData[index];
+  if (!item) return;
+
+  const contratosHtml = item.contratos.map(ct => `
+    <div class="contrato-item">
+      <p><strong>Contrato:</strong> ${escapeHtml(ct.contrato)}</p>
+      <p><span class="info-label">Cidade:</span> ${escapeHtml(ct.cidade)}</p>
+      <p><span class="info-label">Produto:</span> ${escapeHtml(ct.produto)}</p>
+      <p><span class="info-label">Volume Total:</span> ${formatNumber(ct.volume)} KG</p>
+      <p><span class="info-label">Embarcado:</span> ${formatNumber(ct.embarcado)} KG</p>
+      <p><span class="info-label">Saldo a Entregar:</span> <strong>${formatNumber(ct.saldo)} KG</strong></p>
+    </div>
+  `).join('');
+
+  document.getElementById('modalContentBody').innerHTML = `
+    <div class="modal-header">
+      <h3>${escapeHtml(item.cliente)} — ${escapeHtml(item.cidadeRef)}</h3>
+    </div>
+    <div class="modal-body">
+      <p><span class="info-label">Total de Contratos:</span> ${item.contratos.length}</p>
+      <p><span class="info-label">Saldo Total a Entregar:</span> <strong>${formatNumber(item.totalSaldo)} KG</strong></p>
+      <p><span class="info-label">Total Embarcado:</span> ${formatNumber(item.totalEmbarcado)} KG</p>
+      <div style="margin-top: 20px;">
+        <h4>Detalhes por Contrato:</h4>
+        ${contratosHtml}
+      </div>
+    </div>
+  `;
+  document.getElementById('resumoModal').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('resumoModal').style.display = 'none';
 }
 
 function updateLastUpdateTime() {
@@ -370,7 +475,7 @@ async function loadAll(isAutoUpdate = false) {
 
   try {
     const data = await fetchSheetByGid(GID_ENTREGA);
-    const grouped = processData(data.arrays, data.headersNorm);
+    const grouped = processData(data.arrays);
     globalData = grouped;
     renderCards(grouped);
     updateLastUpdateTime();
@@ -386,10 +491,20 @@ async function loadAll(isAutoUpdate = false) {
 
 // --- INIT ---
 document.addEventListener('DOMContentLoaded', () => {
+  // Filtro
   document.getElementById('filterInput').addEventListener('input', (e) => {
     renderCards(globalData, e.target.value);
   });
 
+  // Modal close
+  document.getElementById('resumoModal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('resumoModal')) closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // Carregar
   loadAll(true);
   setInterval(() => loadAll(true), AUTO_UPDATE_INTERVAL);
 
