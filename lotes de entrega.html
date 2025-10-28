@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lotes de Entrega</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        #topo {
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        #pesquisa {
+            display: block;
+            width: 90%;
+            margin: 20px auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        #lotes-container {
+            padding: 10px 20px;
+        }
+        .cliente-card {
+            background-color: white;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            border-left: 5px solid #28a745; /* Cor de destaque para Entrega */
+        }
+        .cabecalho-card {
+            padding: 15px;
+            background-color: #e9f5ee; 
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+        }
+        .cabecalho-card:hover {
+            background-color: #d8eadf;
+        }
+        .titulo-cliente {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1em;
+        }
+        .resumo {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        .detalhes-lote {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out;
+            padding: 0 15px;
+            background-color: #f9f9f9;
+        }
+        /* Classe que expande o card */
+        .detalhes-lote.aberto {
+            max-height: 2000px; 
+            padding: 15px;
+        }
+        .item-contrato {
+            padding: 10px 0;
+            border-bottom: 1px dashed #eee;
+        }
+        .item-contrato:last-child {
+            border-bottom: none;
+        }
+        .item-contrato p {
+            margin: 5px 0;
+        }
+        .titulo-contrato {
+            font-weight: bold;
+            color: #28a745;
+        }
+        .label-detalhe {
+            font-weight: bold;
+            color: #555;
+            margin-right: 5px;
+        }
+        #loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+            color: #666;
+            display: none; /* Inicia escondido */
+        }
+    </style>
+</head>
+<body>
+    <div id="topo">
+        <h1>Lotes de Entrega</h1>
+    </div>
+    
+    <input type="text" id="pesquisa" placeholder="Buscar por Cliente, Contrato ou Cidade...">
+
+    <div id="loading">Carregando dados da planilha...</div>
+    <div id="lotes-container">
+        </div>
+
+    <script>
+        // Configurações da Planilha do Google Sheets
+        const SPREADSHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
+        // Buscamos colunas B até I (o índice 0 no retorno será a coluna B)
+        const RANGE = 'B:I'; 
+        const API_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&range=${RANGE}`;
+
+        /**
+         * Extrai a cidade removendo o que vem antes do primeiro traço '-'.
+         */
+        function extrairCidade(fullCityString) {
+            if (!fullCityString) return '';
+            const parts = fullCityString.split('-');
+            // Usa slice(1).join('-') para lidar com cidades com múltiplos traços após o primeiro
+            return parts.length > 1 ? parts.slice(1).join('-').trim() : fullCityString.trim();
+        }
+
+        /**
+         * Função para normalizar strings para busca (tirar acentos, lower case)
+         */
+        function normalizarTexto(text) {
+            return String(text).normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        }
+
+        /**
+         * Agrupa os contratos por cliente e calcula os totais.
+         */
+        function agruparPorCliente(dataRows) {
+            const groupedData = {};
+
+            // Mapeamento de Colunas (índices baseados no RANGE B:I)
+            // 0: Contrato (B) | 1: Cliente (C) | 2: Cidade (D) | 3: Produto (E)
+            // 4: Safra (F) | 5: Volume (G) | 6: Embarcado (H) | 7: Falta (I)
+            
+            // Ignora a primeira linha que é o cabeçalho
+            for (let i = 1; i < dataRows.length; i++) {
+                const row = dataRows[i].c; 
+                
+                // Função para obter o valor da célula (trata células vazias)
+                const getValue = (index) => row[index] && (row[index].v !== undefined || row[index].f !== undefined) ? 
+                                           String(row[index].v || row[index].f) : '';
+                
+                const clientName = getValue(1); // Coluna C
+                
+                if (clientName === '') continue; 
+
+                const fullCityString = getValue(2); // Coluna D
+                const cidade = extrairCidade(fullCityString);
+
+                // Converte volumes para float para cálculo de totais
+                // Usa .replace(',', '.') para garantir que funcione se o GSheets usar vírgula como separador decimal
+                const volume = parseFloat(getValue(5).replace(',', '.')) || 0;
+                const embarcado = parseFloat(getValue(6).replace(',', '.')) || 0;
+                const falta = parseFloat(getValue(7).replace(',', '.')) || 0;
+
+
+                const contract = {
+                    contrato: getValue(0),
+                    cliente: clientName,
+                    cidade: cidade,
+                    produto: getValue(3),
+                    safra: getValue(4),
+                    volume: volume,
+                    embarcado: embarcado,
+                    falta: falta,
+                    // Chave de busca para o filtro
+                    searchKey: normalizarTexto(`${clientName} ${getValue(0)} ${cidade} ${getValue(3)}`)
+                };
+
+                if (!groupedData[clientName]) {
+                    groupedData[clientName] = {
+                        contracts: [],
+                        totalVolume: 0,
+                        totalEmbarcado: 0,
+                        totalFalta: 0,
+                        cityRef: cidade 
+                    };
+                }
+
+                groupedData[clientName].contracts.push(contract);
+                groupedData[clientName].totalVolume += volume;
+                groupedData[clientName].totalEmbarcado += embarcado;
+                groupedData[clientName].totalFalta += falta;
+            }
+
+            return groupedData;
+        }
+
+        /**
+         * Renderiza os cards na página.
+         */
+        function renderizarCards(data) {
+            const container = document.getElementById('lotes-container');
+            container.innerHTML = ''; 
+            
+            const clients = Object.keys(data);
+
+            if (clients.length === 0) {
+                container.innerHTML = '<p id="loading">Nenhum lote de entrega encontrado.</p>';
+                return;
+            }
+
+            clients.forEach(clientName => {
+                const clientData = data[clientName];
+
+                // Formatação dos totais com separador de milhar e decimal do Brasil
+                const totalVolumeFmt = clientData.totalVolume.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const totalFaltaFmt = clientData.totalFalta.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                
+                const card = document.createElement('div');
+                card.className = 'cliente-card';
+                
+                const header = document.createElement('div');
+                header.className = 'cabecalho-card';
+                header.innerHTML = `
+                    <div>
+                        <span class="titulo-cliente">${clientName} - ${clientData.cityRef}</span>
+                        <div class="resumo">
+                            Vol. Total: ${totalVolumeFmt} | Falta Embarcar: ${totalFaltaFmt}
+                        </div>
+                    </div>
+                    <span>&#9654;</span> 
+                `;
+                
+                const content = document.createElement('div');
+                content.className = 'detalhes-lote';
+                
+                clientData.contracts.forEach(contract => {
+                    // Formatação para os dados do contrato
+                    const volumeFmt = contract.volume.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    const embarcadoFmt = contract.embarcado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    const faltaFmt = contract.falta.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                    const contractDiv = document.createElement('div');
+                    contractDiv.className = 'item-contrato';
+                    contractDiv.innerHTML = `
+                        <div class="titulo-contrato">Contrato: ${contract.contrato}</div>
+                        <p>
+                            <span class="label-detalhe">Produto:</span> ${contract.produto} 
+                            <span class="label-detalhe">| Safra:</span> ${contract.safra}
+                        </p>
+                        <p>
+                            <span class="label-detalhe">Vol. Contrato:</span> ${volumeFmt}
+                            <span class="label-detalhe">| Embarcado:</span> ${embarcadoFmt}
+                            <span class="label-detalhe">| Falta:</span> ${faltaFmt}
+                        </p>
+                    `;
+                    content.appendChild(contractDiv);
+                });
+                
+                card.appendChild(header);
+                card.appendChild(content);
+                container.appendChild(card);
+
+                // Adiciona a funcionalidade de expansão/colapso
+                header.addEventListener('click', () => {
+                    const isAberto = content.classList.toggle('aberto');
+                    // Altera a seta: &#9654; (Direita) e &#9660; (Para Baixo)
+                    header.querySelector('span').innerHTML = isAberto ? '&#9660;' : '&#9654;';
+                });
+            });
+        }
+        
+        /**
+         * Lógica de Filtragem (Search)
+         */
+        function filtrarCards() {
+            const termoBusca = normalizarTexto(document.getElementById('pesquisa').value);
+            const container = document.getElementById('lotes-container');
+            const cards = container.querySelectorAll('.cliente-card');
+
+            let encontrou = false;
+            cards.forEach(card => {
+                const header = card.querySelector('.cabecalho-card');
+                const clienteNome = normalizarTexto(header.querySelector('.titulo-cliente').textContent);
+                
+                // Texto de busca (combinando cliente e detalhes)
+                const detalhes = card.querySelector('.detalhes-lote');
+                const detalhesTexto = normalizarTexto(detalhes.textContent);
+                
+                const match = clienteNome.includes(termoBusca) || detalhesTexto.includes(termoBusca);
+
+                if (match) {
+                    card.style.display = 'block';
+                    encontrou = true;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Gerencia a mensagem de "sem resultados"
+            let noResults = document.getElementById('sem-resultados');
+            if (!noResults) {
+                noResults = document.createElement('p');
+                noResults.id = 'sem-resultados';
+                noResults.className = 'loading';
+                noResults.textContent = 'Nenhum lote corresponde à sua busca.';
+                container.appendChild(noResults);
+            }
+            noResults.style.display = encontrou ? 'none' : 'block';
+        }
+        
+        // Atacha o evento de filtro
+        document.getElementById('pesquisa').addEventListener('keyup', filtrarCards);
+
+
+        /**
+         * Função principal para buscar e processar os dados.
+         */
+        async function fetchAndRenderData() {
+            const loadingElement = document.getElementById('loading');
+            loadingElement.style.display = 'block';
+
+            try {
+                const response = await fetch(API_URL);
+                const text = await response.text();
+                
+                // Remove o wrapper do Google Visualization API
+                const jsonText = text.replace('google.visualization.Query.setResponse(', '').slice(0, -2);
+                const data = JSON.parse(jsonText);
+                
+                if (data.status === 'ok') {
+                    const dadosAgrupados = agruparPorCliente(data.table.rows);
+                    renderizarCards(dadosAgrupados);
+                    loadingElement.style.display = 'none'; // Esconde o loading
+                } else {
+                    loadingElement.innerHTML = `
+                        Erro ao carregar os dados: ${data.errors ? data.errors[0].message : 'Verifique o link ou a permissão da planilha.'}
+                        <br>Certifique-se de que a planilha está **pública**.
+                    `;
+                }
+
+            } catch (error) {
+                console.error("Erro ao buscar ou processar dados:", error);
+                loadingElement.innerHTML = `
+                    Erro de conexão ou processamento. Verifique o console para detalhes.
+                    <br>Certifique-se de que a planilha está **pública**.
+                `;
+            }
+        }
+
+        // Inicia o carregamento dos dados quando a página terminar de carregar
+        document.addEventListener('DOMContentLoaded', fetchAndRenderData);
+    </script>
+</body>
+</html>
