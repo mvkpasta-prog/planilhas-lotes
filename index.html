@@ -132,7 +132,8 @@
   .section-content{display:block;transition:all 0.3s ease;overflow:hidden}
   .section-content.collapsed{display:none}
   h2{color:var(--primary);margin:6px 0 12px 0;font-size:18px}
-  .card{background:var(--card);border-radius:8px;padding:12px;margin-bottom:16px;box-shadow:0 4px 12px rgba(16,24,40,0.06)}
+  .card{background:var(--card);border-radius:8px;padding:12px;margin-bottom:16px;box-shadow:0 4p
+  x 12px rgba(16,24,40,0.06)}
   .table-wrap{overflow-x:auto}
   table{width:100%;border-collapse:collapse;margin:0;font-size:12px;min-width:750px}
   th,td{border:1px solid #e6eefc;padding:8px;text-align:left;vertical-align:top}
@@ -188,6 +189,9 @@
       <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height: 22px; vertical-align: middle; margin-right: 8px;">
       Controle de Lotes — Entregas
     </div>
+    <a href="lotes de entrega.html" class="header-btn" title="Acessar Lista Detalhada de Entregas">
+      🚚 Lista de Entregas
+    </a>
     <a href="Retiradas.html" class="header-btn" title="Acessar Lotes de Retirada">
       📦 Lotes de Retirada
     </a>
@@ -279,8 +283,7 @@ function normalizeText(text) {
   return String(text).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 }
 /* Parse CSV tolerante (trata vírgulas dentro de aspas)
-   Retorna { arrays: [ [col1,col2,...], ... ], headersOrig: [], headersNorm: [], objects: [ {normKey: value}, ... ] }
-*/
+   Retorna { arrays: [ [col1,col2,...], ... ], headersOrig: [], headersNorm: [], objects: [ {normKey: value}, ... ] } */
 function parseCSV(text){
   if(!text) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
   // Corrigido: Expressão regular válida para dividir linhas
@@ -316,785 +319,359 @@ function parseNumber(val){
 /* util: parse date only (dd/mm/yyyy ou yyyy-mm-dd) -> Date (00:00:00) or null */
 function parseDateOnly(s){
   if(!s) return null;
-  const str = String(s).trim();
-  // dd/mm/yyyy
-  if(str.includes('/')){
-    const parts = str.split('/');
-    if(parts.length >= 3){
-      const d = parseInt(parts[0],10), m = parseInt(parts[1],10), y = parseInt(parts[2],10);
-      if(!isNaN(d) && !isNaN(m) && !isNaN(y)) return new Date(y, m-1, d);
+  const str = s.trim();
+  // Tenta formato dd/mm/yyyy
+  let match = str.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+  if (match) {
+    const day = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10) - 1; // Mês é 0-indexado
+    const year = parseInt(match[3], 10);
+    // Cria a data no fuso local, definindo hora para 00:00:00
+    const date = new Date(year, month, day, 0, 0, 0, 0);
+    if(date.getFullYear() === year && date.getMonth() === month && date.getDate() === day) {
+      return date;
     }
   }
-  // yyyy-mm-dd or yyyy/mm/dd
-  if(str.includes('-') || (str.includes('/') && str.indexOf('/') === 4)){
-    const sep = str.includes('-')? '-' : '/';
-    const parts = str.split(sep);
-    if(parts.length >= 3){
-      const y = parseInt(parts[0],10), m = parseInt(parts[1],10), d = parseInt(parts[2],10);
-      if(!isNaN(d) && !isNaN(m) && !isNaN(y)) return new Date(y, m-1, d);
+  // Tenta formato yyyy-mm-dd
+  match = str.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})$/);
+  if (match) {
+    const year = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10) - 1; // Mês é 0-indexado
+    const day = parseInt(match[3], 10);
+    const date = new Date(year, month, day, 0, 0, 0, 0);
+    if(date.getFullYear() === year && date.getMonth() === month && date.getDate() === day) {
+      return date;
     }
   }
-  const dt = new Date(str);
-  if(!isNaN(dt.getTime())) return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+  // Se não reconhecer o formato, tenta o new Date() genérico (pode ser inconsistente)
+  try {
+    const d = new Date(str);
+    if (!isNaN(d.getTime())) {
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+    }
+  } catch(e) { /* ignore */ }
   return null;
 }
-/* encontra header normalizado que contenha um dos padrões */
-function findHeaderKey(headersNorm, patterns){
-  for(const p of patterns){
-    const f = headersNorm.find(h => h.includes(p));
-    if(f) return f;
-  }
-  // fallbacks inteligentes
-  if(patterns.includes('saldoent')){
-    const f = headersNorm.find(h => h.includes('saldo') && (h.includes('ent') || h.includes('entrega') || h.includes('entkg')));
-    if(f) return f;
-  }
-  if(patterns.includes('saldoret')){
-    const f = headersNorm.find(h => h.includes('saldo') && (h.includes('ret') || h.includes('retirada') || h.includes('retkg')));
-    if(f) return f;
-  }
-  if(patterns.some(x => x.includes('contrato'))){
-    const f = headersNorm.find(h => h.includes('contrato'));
-    if(f) return f;
-  }
-  // any saldo
-  const f = headersNorm.find(h => h.includes('saldo'));
-  if(f) return f;
-  return null;
+/* util: format number to KG (ex: 30.000 KG) */
+function formatNumber(n){
+  if(isNaN(n)) return '0';
+  return n.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
-/* Formata número como moeda brasileira */
-function formatCurrencyBRL(value) {
-  if (isNaN(value)) return value;
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  }).format(value);
+/* util: format date to DD/MM/YYYY */
+function formatDate(date){
+  if(!date || isNaN(date.getTime())) return '-';
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
 }
-/* Formata o status da programação com cores específicas — CORRIGIDA */
-function formatStatusProgramacao(status) {
-  let className = 'status-programacao';
-  let text = status;
-  // Normalizar o status para comparação (remover acentos)
-  const statusNorm = normalizeText(status);
-  if (statusNorm.includes('carregado')) {
-    className += ' status-carregado';
-  } else if (statusNorm.includes('embarque') || statusNorm.includes('no embarque')) {
-    className += ' status-embarque';
-  } else if (statusNorm.includes('transito') || statusNorm.includes('em transito')) {
-    className += ' status-transito';
-  } else if (statusNorm.includes('contratar')) {
-    className += ' status-contratar';
-  } else {
-    // Status padrão (cinza)
-    className += ' status-aberto';
-  }
-  return `<span class="${className}">${escapeHtml(text)}</span>`;
+/* util: calcula a diferença em dias entre duas datas (date1 - date2) */
+function dateDiffInDays(date1, date2){
+    if(!date1 || !date2 || isNaN(date1.getTime()) || isNaN(date2.getTime())) return NaN;
+    const diffTime = date1.getTime() - date2.getTime();
+    // 1000 * 60 * 60 * 24 = milissegundos em um dia
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
 }
-/* build table HTML: rowsArrays = array of arrays; rowsObjects = array of objects keyed by normalized headers */
-function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts){
-  // opts: {hiddenNorm:[], removedNorm:[], numericKey: 'somenorm', forceColsNorm:[], currencyCols:[], statusCol: ''}
-  const hiddenNorm = opts.hiddenNorm || [];
-  const removedNorm = opts.removedNorm || [];
-  const numericKey = opts.numericKey || '';
-  const forceInclude = opts.forceInclude || [];
-  const currencyCols = opts.currencyCols || [];
-  const statusCol = opts.statusCol || '';
-  // visible columns: headersNorm minus removed
-  const visible = headersNorm.filter(h => !removedNorm.includes(h));
-  // display columns exclude hidden
-  let displayCols = visible.filter(h => !hiddenNorm.includes(h));
-  // ensure forced columns appear first
-  forceInclude.forEach(fc => {
-    if(visible.includes(fc) && !displayCols.includes(fc)) displayCols.unshift(fc);
-    else if(visible.includes(fc)) displayCols = [fc, ...displayCols.filter(x => x !== fc)];
-  });
-  if(displayCols.length === 0){
-    return '<div class="empty">Sem colunas para exibir.</div>';
-  }
-  // construct header titles using originals
-  let html = '<table><thead><tr>';
-  displayCols.forEach(h => {
-    const idx = headersNorm.indexOf(h);
-    const title = (idx>=0 ? headersOrig[idx] : h) || h;
-    html += `<th>${escapeHtml(title)}</th>`;
-  });
-  if(numericKey) html += '<th>Status</th>';
-  html += '</tr></thead><tbody>';
-  rowsObjects.forEach((obj, i) => {
-    const arr = rowsArrays[i] || [];
-    const n = numericKey ? parseNumber( obj[numericKey] || arr[numericKeyIndex(headersNorm, numericKey)] || '0' ) : NaN;
-    html += '<tr>';
-    displayCols.forEach(h => {
-      // prefer object value, fallback to array by index if available
-      const idx = headersNorm.indexOf(h);
-      let value = (obj[h] !== undefined && obj[h] !== '') ? obj[h] : (arr[idx] !== undefined ? arr[idx] : '');
-      // Formatar como moeda se for uma coluna de moeda
-      if(currencyCols.includes(h)) {
-        const numValue = parseNumber(value);
-        if(!isNaN(numValue)) {
-          value = formatCurrencyBRL(numValue);
-        }
-      }
-      // Formatar status da programação
-      if(h === statusCol) {
-        value = formatStatusProgramacao(value);
-        html += `<td>${value}</td>`;
-      } else {
-        html += `<td>${escapeHtml(value)}</td>`;
-      }
-    });
-    if(numericKey) html += `<td>${n>0?'<span class="status status-aberto">ABERTO</span>':'<span class="status status-fechado">FECHADO</span>'}</td>`;
-    html += '</tr>';
-  });
-  html += '</tbody></table>';
-  return html;
+/* util: gera uma cor de acordo com o status */
+function getStatusColor(status) {
+    const normStatus = normalizeText(status);
+    if (normStatus.includes('carregado')) return 'var(--status-carregado)';
+    if (normStatus.includes('embarque')) return 'var(--status-embarque)';
+    if (normStatus.includes('transito')) return 'var(--status-transito)';
+    if (normStatus.includes('contratar')) return 'var(--status-contratar)';
+    return 'var(--muted)';
 }
-// helper: get index of normalized key (or -1)
-function numericKeyIndex(headersNorm, key){ return headersNorm.indexOf(key); }
-/* util: helper to escape HTML entities */
-function escapeHtml(s){
-  if(s === undefined || s === null) return '';
-  // CORREÇÃO NA RAIZ: A chave para '/' estava faltando, causando a injeção de "undefined".
-  return String(s).replace(/[&<>"'\/]/g, c => ({
-    '&':'&amp;',
-    '<':'&lt;',
-    '>':'&gt;',
-    '"':'&quot;',
-    "'":'&#39;',
-    '/':'&#x2F;' // CORREÇÃO PRINCIPAL
-  }[c]));
-}
-/* Contar status da programação — CORRIGIDA */
-function countStatusProgramacao(rowsObjects, statusCol) {
-  let carregado = 0, embarque = 0, transito = 0, contratar = 0;
-  if(!statusCol) return {carregado, embarque, transito, contratar};
-  rowsObjects.forEach(obj => {
-    const status = obj[statusCol] || '';
-    const statusNorm = normalizeText(status); // Normaliza removendo acentos
-    if (statusNorm.includes('carregado')) {
-      carregado++;
-    } else if (statusNorm.includes('embarque') || statusNorm.includes('no embarque')) {
-      embarque++;
-    } else if (statusNorm.includes('transito') || statusNorm.includes('em transito')) {
-      transito++;
-    } else if (statusNorm.includes('contratar')) {
-      contratar++;
-    }
-  });
-  return {carregado, embarque, transito, contratar};
-}
-/* Extrair produto do texto (última parte após o último traço) */
-function extractProduto(text) {
-  if(!text) return '';
-  // Dividir por traços e pegar a última parte
-  const parts = text.split('-');
-  if(parts.length === 0) return '';
-  // Pegar a última parte e remover espaços
-  let produto = parts[parts.length - 1].trim().toLowerCase();
-  // Remover possíveis números ou caracteres especiais no final
-  produto = produto.replace(/[0-9\.\,\(\)\[\]]/g, '').trim();
-  return produto;
-}
-/* NOVA FUNÇÃO: Extrair informações do contrato da coluna C (INFORMAÇÕES DO DESTINO) */
-function extractContratoInfo(text) {
-  if(!text || text.trim() === '') return {contrato: '', cliente: '', destino: '', produto: '', isValid: false};
-  const parts = text.split(' - ').map(part => part.trim());
-  // Verificar se temos pelo menos 6 partes: contrato, cliente, cliente (repetido), destino, estado, produto
-  if(parts.length < 6) {
-    // fallback: tentar extrair contrato do primeiro trecho antes do primeiro traço
-    const first = text.split('-')[0] ? text.split('-')[0].trim() : '';
-    const contratoFallback = first.replace(/\D/g,'');
-    // tentar extrair cliente/destino de forma simples
-    const cliente = parts[1] || '';
-    const destino = parts[3] || '';
-    const produto = parts.slice(5).join(' - ').trim().toUpperCase() || (parts[parts.length-1]||'').toUpperCase();
-    const isValidFallback = contratoFallback !== '' && cliente !== '' && destino !== '';
-    return {
-      contrato: contratoFallback,
-      cliente: cliente,
-      destino: destino,
-      produto: produto,
-      isValid: isValidFallback
-    };
-  }
-  // Seguir exatamente o padrão fornecido:
-  // 0: contrato, 1: cliente, 2: cliente (repetido - ignorar), 3: destino, 4: estado (ignorar), 5+: produto
-  const contrato = parts[0].replace(/\D/g, ''); // Apenas números
-  const cliente = parts[1]; // Segunda parte (após o primeiro traço)
-  const destino = parts[3]; // Quarta parte (após o terceiro traço)
-  const produtoParts = parts.slice(5);
-  let produto = produtoParts.join(' - ').trim().toUpperCase();
-  if(!produto) {
-    produto = parts[parts.length - 1].trim().toUpperCase();
-  }
-  const isValid = contrato !== '' && cliente !== '' && destino !== '' && produto !== '';
-  return {
-    contrato: contrato,
-    cliente: cliente,
-    destino: destino,
-    produto: produto,
-    isValid: isValid
-  };
-}
-/* Calcular totais por produto - ADICIONADA DE VOLTA */
-function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, destinoColIndex) {
-  let soja = 0, milho = 0, sorgo = 0;
-  // A programação usa rowsArrays: rowsArrProgFiltered
-  rowsObjects.forEach(arr => {
-    // Verificar se tem informações na coluna C (destino) - índice 2
-    let destinoText = '';
-    if(destinoColIndex !== -1) {
-      if(Array.isArray(arr) && arr[destinoColIndex] !== undefined) {
-        destinoText = arr[destinoColIndex];
-      }
-    }
-    // Extrair informações do destino usando a nova função
-    const {isValid} = extractContratoInfo(destinoText);
-    // Só considerar se tiver informações válidas de destino
-    if(!isValid) return;
-    // Pegar o valor da coluna de produto (coluna B - índice 1)
-    let produtoText = '';
-    if(produtoColIndex !== -1) {
-      if(Array.isArray(arr) && arr[produtoColIndex] !== undefined) {
-        produtoText = arr[produtoColIndex];
-      }
-    }
-    // Extrair o produto
-    const produto = extractProduto(produtoText);
-    // Pegar o peso (coluna J - índice 9)
-    let pesoText = '';
-    if(pesoColIndex !== -1) {
-      if(Array.isArray(arr) && arr[pesoColIndex] !== undefined) {
-        pesoText = arr[pesoColIndex];
-      }
-    }
-    const peso = parseNumber(pesoText);
-    if(isNaN(peso)) return;
-    // Somar ao produto correspondente
-    if(produto.includes('soja')) {
-      soja += peso;
-    } else if(produto.includes('milho')) {
-      milho += peso;
-    } else if(produto.includes('sorgo')) {
-      sorgo += peso;
-    }
-  });
-  return {soja, milho, sorgo};
-}
-/* Atualizar o texto da última atualização (no topo) */
-function updateLastUpdateTime() {
-  const now = new Date();
-  const timeString = now.toLocaleTimeString('pt-BR');
-  const dateString = now.toLocaleDateString('pt-BR');
-  document.getElementById('lastUpdateTop').innerHTML = `
-    <i class="fas fa-check-circle" style="color: rgba(255,255,255,0.9);"></i>
-    <span>Última atualização: ${timeString} - ${dateString}</span>
-  `;
-}
-/* Formata número com separadores de milhar */
-function formatNumber(value) {
-  if(isNaN(value)) return '0';
-  return new Intl.NumberFormat('pt-BR').format(Math.round(value));
-}
-/* NOVA FUNÇÃO: Extrair peso da coluna I (ex: "LS - 6 EIXOS - 32 TON") */
-function extractWeightFromColumnI(text) {
-  if(!text || text.trim() === '') return 0;
-  // Dividir por traços e pegar a última parte
-  const parts = text.split('-');
-  if(parts.length === 0) return 0;
-  // Pegar a última parte
-  let lastPart = parts[parts.length - 1].trim();
-  // Extrair o número da última parte (antes de "TON" ou qualquer outra unidade)
-  const match = lastPart.match(/(\d+)/);
-  if(match && match[1]) {
-    const tons = parseInt(match[1], 10);
-    // Converter para KG (1 ton = 1000 kg)
-    return tons * 1000;
-  }
-  return 0;
-}
-/* Gerar HTML para os cards de clientes (agora por contrato) - ATUALIZADA PARA INCLUIR VALOR MÉDIO DO FRETE */
-function buildClientesHTML(clientes) {
-  if(clientes.length === 0) {
-    return '<div class="empty">Nenhum contrato encontrado para hoje.</div>';
-  }
-  let html = '';
-  clientes.forEach(cliente => {
-    // Definir cor do produto
-    let corProduto = '#6b7280'; // Cinza padrão
-    const produtoUp = (cliente.produto || '').toUpperCase();
-    if(produtoUp.includes('SOJA')) {
-      corProduto = '#10b981'; // Verde para Soja
-    } else if(produtoUp.includes('MILHO')) {
-      corProduto = '#fbbf24'; // Amarelo para Milho
-    } else if(produtoUp.includes('SORGO')) {
-      corProduto = '#6b7280'; // Cinza para Sorgo
-    }
-    // Calcular o saldo ajustado (subtrair peso de veículos em trânsito/embarque)
-    let saldoEntregaAjustado = cliente.saldoEntrega || 0;
-    if(cliente.pesoEmTransitoEmbarque && !isNaN(cliente.pesoEmTransitoEmbarque)) {
-      saldoEntregaAjustado -= cliente.pesoEmTransitoEmbarque;
-      // Permitir saldo negativo
-    }
-    // Formatar saldo de entrega ajustado (pode ser negativo)
-    const saldoEntregaDisplay = !isNaN(saldoEntregaAjustado) ? `${formatNumber(saldoEntregaAjustado)} KG` : '0 KG';
+
+/* Agrupamento e Renderização Principal */
+function groupAndRender(dataObjects){
+  // 1. Resetar totais
+  const statusCounts = {carregado:0, embarque:0, transito:0, contratar:0};
+  globalProdutosTotais = { soja: 0, milho: 0, sorgo: 0, total: 0 };
+  
+  // 2. Agrupar por Cliente + Destino
+  const groupedData = {};
+  dataObjects.forEach(row => {
+    // Normaliza status para contagem
+    const status = normalizeText(row.status);
+    if(status.includes('carregado')) statusCounts.carregado++;
+    else if(status.includes('embarque')) statusCounts.embarque++;
+    else if(status.includes('transito')) statusCounts.transito++;
+    else if(status.includes('contratar')) statusCounts.contratar++;
     
-    // Formatar valor médio do frete
-    const valorMedioFrete = !isNaN(cliente.valorMedioFrete) ? formatCurrencyBRL(cliente.valorMedioFrete) : 'N/A';
+    // Acumula total por produto
+    const peso = parseNumber(row.peso) || 0;
+    const produto = normalizeText(row.produto);
+    if(produto.includes('soja')) globalProdutosTotais.soja += peso;
+    else if(produto.includes('milho')) globalProdutosTotais.milho += peso;
+    else if(produto.includes('sorgo')) globalProdutosTotais.sorgo += peso;
+    globalProdutosTotais.total += peso;
     
-    html += `
-      <div class="cliente-card">
-        <h3 class="cliente-name">${escapeHtml(cliente.cliente)} - ${escapeHtml(cliente.destino)}</h3>
-        <div class="cliente-contrato">Contrato: ${escapeHtml(cliente.contrato)} <span class="cliente-produto" style="background-color: ${corProduto}; color: white; margin-left: 8px;">${escapeHtml(cliente.produto)}</span></div>
-        <div class="caminhoes-info">
-          <div class="caminhoes-separados">
-            <span class="status-carregado-tag">Carregados: ${cliente.totalCaminhoesCarregados}</span>
-            <span class="status-pendente-tag">Pendentes: ${cliente.totalCaminhoesPendentes}</span>
-          </div>
-        </div>
-        <div class="cliente-info" style="margin-top: 8px;">
-          <span class="info-label">Peso Carregado:</span>
-          <span class="info-value">${formatNumber(cliente.totalPesoCarregado)} KG</span>
-        </div>
-        <div class="cliente-info" style="margin-top: 6px;">
-          <span class="info-label">Saldo a entregar:</span>
-          <span class="info-value">${escapeHtml(saldoEntregaDisplay)}</span>
-        </div>
-        <div class="cliente-info" style="margin-top: 6px;">
-          <span class="info-label">Valor Médio Frete:</span>
-          <span class="info-value">${valorMedioFrete}</span>
-        </div>
-        ${cliente.pesoEmTransitoEmbarque && cliente.pesoEmTransitoEmbarque > 0 ? 
-          `<div class="cliente-info" style="margin-top: 6px; font-size: 12px; color: #ef4444;">
-            <span class="info-label">Peso em Trânsito/Embarque:</span>
-            <span class="info-value">${formatNumber(cliente.pesoEmTransitoEmbarque)} KG
-          </div>` : ''}
-      </div>
-    `;
-  });
-  return html;
-}
-/* Atualizar o resumo de clientes - REMOVIDO conforme solicitação */
-function updateClientesSummary(clientes) {
-  // Função intencionalmente deixada vazia - não exibimos mais o resumo
-}
-/* --- FUNÇÃO QUE AGRUPA POR CONTRATO --- */
-async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusColIndex, freteColIndex, transportadoraColIndex, includeFutureDates = false) {
-  const grupos = {};
-  // Se includeFutureDates for false, filtramos apenas por data de hoje
-  let rowsToProcess = rowsProg;
-  if (!includeFutureDates) {
-    const today = new Date();
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
-    const dateIndexProg = 0; // assumindo que a data está na primeira coluna
-    rowsToProcess = rowsProg.filter(arr => {
-      let dtVal = '';
-      if(arr && arr[dateIndexProg] !== undefined) dtVal = arr[dateIndexProg];
-      const dt = parseDateOnly(dtVal);
-      return dt && dt.getTime() === todayStart;
-    });
-  }
-  // Processar cada linha
-  rowsToProcess.forEach(arr => {
-    // Extrair informações da coluna C (índice fornecido)
-    let destinoText = '';
-    if(destinoColIndex !== -1) {
-      if(Array.isArray(arr) && arr[destinoColIndex] !== undefined) {
-        destinoText = arr[destinoColIndex];
-      }
-    }
-    // Usar a função para extrair contrato, cliente, destino e produto
-    const {contrato, cliente, destino, produto, isValid} = extractContratoInfo(destinoText);
-    // Só processar se tivermos um contrato válido
-    if(!isValid || !contrato) return;
-    const key = `contrato_${contrato}`;
-    // Pegar peso real da coluna J (índice 9)
-    let pesoRealText = '';
-    if(Array.isArray(arr) && arr[9] !== undefined) {
-      pesoRealText = arr[9];
-    }
-    const pesoReal = parseNumber(pesoRealText) || 0;
-    // Pegar placa da coluna H (índice 7)
-    let placa = '';
-    if(placaColIndex !== -1) {
-      if(Array.isArray(arr) && arr[placaColIndex] !== undefined) {
-        placa = arr[placaColIndex];
-      }
-    }
-    // Pegar status da coluna STATUS (statusColIndex)
-    let status = '';
-    if(statusColIndex !== -1) {
-      if(Array.isArray(arr) && arr[statusColIndex] !== undefined) {
-        status = arr[statusColIndex];
-      }
-    }
-    const statusNorm = normalizeText(status);
-    const isCarregado = statusNorm.includes('carregado');
-    const isEmbarque = statusNorm.includes('embarque') || statusNorm.includes('no embarque');
-    const isTransito = statusNorm.includes('transito') || statusNorm.includes('em transito');
-    // Inicializar grupo se não existir
-    if(!grupos[key]) {
-      grupos[key] = {
-        contrato: contrato,
-        cliente: cliente,
-        destino: destino,
-        produto: produto,
+    // Chave de agrupamento: Cliente + Destino
+    const key = `${row.cliente || 'S/ Cliente'}-${row.destino || 'S/ Destino'}`;
+    if(!groupedData[key]){
+      groupedData[key] = {
+        cliente: row.cliente || 'S/ Cliente',
+        destino: row.destino || 'S/ Destino',
         totalPeso: 0,
-        totalPesoCarregado: 0,
-        totalPesoPendente: 0,
-        placas: new Set(),
-        placasCarregadas: new Set(),
-        placasPendentes: new Set(),
-        count: 0,
-        pesoEmTransitoEmbarque: 0, // Novo campo para armazenar peso em trânsito/embarque
-        valoresFrete: [], // Array para armazenar os valores de frete para cálculo da média
-        valorMedioFrete: 0 // Valor médio do frete
+        totalCarregado: 0,
+        lotes: []
       };
     }
-    // Atualizar valores gerais
-    grupos[key].totalPeso += pesoReal;
-    if(placa && placa.trim() !== '') {
-      grupos[key].placas.add(placa.trim());
+    
+    groupedData[key].totalPeso += peso;
+    const pesoCarregado = parseNumber(row.pesocarregado) || 0;
+    groupedData[key].totalCarregado += pesoCarregado;
+    
+    groupedData[key].lotes.push(row);
+  });
+  
+  // 3. Renderizar Cards de Clientes
+  const container = document.getElementById('clientesContainer');
+  container.innerHTML = '';
+  
+  Object.values(groupedData).forEach(group => {
+    // Determinar status principal para o card: contratado, carregado, ou pendente/embarque
+    let principalStatus = 'contratar';
+    let pesoFaltante = group.totalPeso - group.totalCarregado;
+    let lotesFaltantes = group.lotes.filter(l => parseNumber(l.pesofaltante) > 0).length;
+
+    if (lotesFaltantes === 0 && group.lotes.length > 0) {
+        principalStatus = 'carregado';
+    } else if (lotesFaltantes > 0) {
+        principalStatus = 'embarque'; // Ou transito/contratar, mas 'embarque' é um bom default para pendente
     }
-    // Separar por status
-    if(isCarregado) {
-      grupos[key].totalPesoCarregado += pesoReal;
-      if(placa && placa.trim() !== '') {
-        grupos[key].placasCarregadas.add(placa.trim());
-      }
-    } else {
-      grupos[key].totalPesoPendente += pesoReal;
-      if(placa && placa.trim() !== '') {
-        grupos[key].placasPendentes.add(placa.trim());
-      }
-    }
-    grupos[key].count++;
-    // Se estiver em trânsito ou no embarque, extrair peso da coluna I e somar
-    if(isEmbarque || isTransito) {
-      let textoColunaI = '';
-      if(Array.isArray(arr) && arr[8] !== undefined) { // Coluna I = índice 8
-        textoColunaI = arr[8];
-      }
-      const pesoExtraido = extractWeightFromColumnI(textoColunaI);
-      grupos[key].pesoEmTransitoEmbarque += pesoExtraido;
-    }
-    // Extrair e calcular valor do frete da coluna E (índice 4) - AGORA COM VERIFICAÇÃO DE TRANSPORTADORA
-    if(freteColIndex !== -1 && transportadoraColIndex !== -1) {
-      let freteText = '';
-      let transportadoraText = '';
+    
+    // Gerar HTML dos lotes detalhados para o modal (não usado no card principal)
+    const lotesHtml = group.lotes.map(lote => {
+      const loteStatus = normalizeText(lote.status);
+      const isCarregado = loteStatus.includes('carregado');
+      const tagClass = isCarregado ? 'status-carregado-tag' : 'status-pendente-tag';
+      const tagText = isCarregado ? 'CARREGADO' : 'PENDENTE';
+      const pesoFalta = parseNumber(lote.pesofaltante) || 0;
+      const pesoCarregado = parseNumber(lote.pesocarregado) || 0;
       
-      if(Array.isArray(arr) && arr[freteColIndex] !== undefined) {
-        freteText = arr[freteColIndex];
-      }
-      
-      if(Array.isArray(arr) && arr[transportadoraColIndex] !== undefined) {
-        transportadoraText = arr[transportadoraColIndex];
-      }
-      
-      const freteValue = parseNumber(freteText);
-      // Ajuste: Só processa frete se ele for um número válido e a transportadora não for MVK.
-      // E também só se a transportadora não estiver vazia.
-      if(!isNaN(freteValue) && freteValue > 0) {
-        let freteReal = freteValue;
+      return `
+        <div class="cliente-info">
+            <span class="info-label">${lote.contrato}</span>
+            <span class="info-value">
+                <span class="${tagClass}">${tagText}</span>
+            </span>
+        </div>
+        <div class="cliente-info">
+            <span class="info-label">Volume:</span>
+            <span class="info-value">${formatNumber(parseNumber(lote.peso) || 0)} KG</span>
+        </div>
+        <div class="cliente-info">
+            <span class="info-label">Carregado:</span>
+            <span class="info-value">${formatNumber(pesoCarregado)} KG</span>
+        </div>
+        <div class="cliente-info">
+            <span class="info-label" style="font-weight:700;">Falta:</span>
+            <span class="info-value" style="font-weight:700; color: ${pesoFalta > 0 ? 'var(--status-transito)' : 'var(--status-carregado)'};">${formatNumber(pesoFalta)} KG</span>
+        </div>
+        ${lote.cidade ? `<div class="cliente-produto" style="background-color: var(--muted); color: white;">📍 ${lote.cidade}</div>` : ''}
+        ${lote.produto ? `<div class="cliente-produto" style="background-color: var(--produto-${normalizeText(lote.produto)}); color: white;">${lote.produto}</div>` : ''}
+        <hr style="border:0; border-top: 1px dashed #eee; margin: 8px 0;">
+      `;
+    }).join('');
+
+    // Conta caminhões
+    const caminhoesTotais = group.lotes.reduce((acc, lote) => {
+        const pesoFalta = parseNumber(lote.pesofaltante) || 0;
+        // Se a quantidade de caminhões estiver disponível (a ser adicionada na planilha se necessário), usar.
+        // Por enquanto, estimativa simples. 30.000 KG por caminhão.
+        const caminhoesNecessarios = Math.ceil(pesoFalta / 30000);
+        return acc + caminhoesNecessarios;
+    }, 0);
+    
+    // Calcula o percentual carregado
+    const percentCarregado = group.totalPeso > 0 ? Math.round((group.totalCarregado / group.totalPeso) * 100) : 0;
+    
+    // Renderiza o card
+    const cardHtml = `
+      <div class="cliente-card" style="border-left-color: ${getStatusColor(principalStatus)};">
+        <div class="cliente-name">${group.cliente}</div>
+        <div class="cliente-destino">Destino: ${group.destino}</div>
         
-        // Verificar se a transportadora NÃO é MVK (case-insensitive e não vazia)
-        const isMVK = normalizeText(transportadoraText).includes('mvk');
-        const isTransportadoraEmpty = transportadoraText.trim() === '';
+        <div class="cliente-info">
+            <span class="info-label">Volume Total:</span>
+            <span class="info-value">${formatNumber(group.totalPeso)} KG</span>
+        </div>
+        <div class="cliente-info">
+            <span class="info-label">Total Carregado:</span>
+            <span class="info-value">${formatNumber(group.totalCarregado)} KG</span>
+        </div>
+        <div class="cliente-info">
+            <span class="info-label" style="font-weight:700;">Falta Carregar:</span>
+            <span class="info-value" style="font-weight:700; color: ${pesoFaltante > 0 ? 'var(--status-transito)' : 'var(--status-carregado)'};">${formatNumber(pesoFaltante)} KG</span>
+        </div>
         
-        // Aplicar o cálculo (/0.92) apenas se NÃO for MVK e o campo estiver preenchido
-        // O valor 0.92 é usado para encontrar o valor do frete antes da dedução de 8% de impostos.
-        if(!isMVK && !isTransportadoraEmpty) {
-          freteReal = freteValue / 0.92;
-        }
+        <div style="background:#eee; height:8px; border-radius:4px; margin-top:10px;">
+            <div style="width:${percentCarregado}%; height:100%; background:${getStatusColor(principalStatus)}; border-radius:4px; transition:width 0.5s ease;"></div>
+        </div>
+        <div style="font-size:11px; color:var(--muted); margin-top:4px; text-align:right;">
+            ${percentCarregado}% Carregado
+        </div>
+
+        <div class="caminhoes-info">
+            <div class="caminhoes-separados" title="${lotesFaltantes} Lote(s) com saldo a embarcar.">
+                <i class="fas fa-boxes" style="color:var(--muted);"></i>
+                <span style="font-weight:700; font-size:13px; color:var(--text);">${lotesFaltantes}</span>
+                <span style="font-size:11px; color:var(--muted);">Lotes Pendentes</span>
+            </div>
+        </div>
         
-        grupos[key].valoresFrete.push(freteReal);
-      }
+      </div>
+    `;
+    container.insertAdjacentHTML('beforeend', cardHtml);
+  });
+  
+  // 4. Atualizar os Tótems (Totais)
+  document.getElementById('count-carregado').textContent = formatNumber(statusCounts.carregado);
+  document.getElementById('count-embarque').textContent = formatNumber(statusCounts.embarque);
+  document.getElementById('count-transito').textContent = formatNumber(statusCounts.transito);
+  document.getElementById('count-contratar').textContent = formatNumber(statusCounts.contratar);
+  
+  document.getElementById('count-soja').textContent = `${formatNumber(globalProdutosTotais.soja)} KG`;
+  document.getElementById('count-milho').textContent = `${formatNumber(globalProdutosTotais.milho)} KG`;
+  document.getElementById('count-sorgo').textContent = `${formatNumber(globalProdutosTotais.sorgo)} KG`;
+  document.getElementById('count-total').textContent = `${formatNumber(globalProdutosTotais.total)} KG`;
+}
+
+/* Renderização da Tabela de Programação */
+function renderProgramacao(dataObjects, headersNorm, headersOrig){
+  const content = document.getElementById('programacaoContent');
+  if(dataObjects.length === 0){
+    content.innerHTML = '<div class="empty">Nenhuma programação encontrada.</div>';
+    return;
+  }
+  
+  // Cria a tabela
+  let tableHtml = '<table><thead><tr>';
+  
+  // Monta o cabeçalho
+  const visibleHeadersNorm = [];
+  headersNorm.forEach((hNorm, index) => {
+    if(!REMOVED_COMMON.includes(hNorm) && !REMOVED_PROGRAMACAO.includes(hNorm)){
+      tableHtml += `<th>${headersOrig[index]}</th>`;
+      visibleHeadersNorm.push(hNorm);
     }
   });
-  // Converter para array e formatar
-  return Object.values(grupos).map(grupo => {
-    // Calcular valor médio do frete
-    let valorMedioFrete = 0;
-    if(grupo.valoresFrete.length > 0) {
-      const somaFrete = grupo.valoresFrete.reduce((acc, val) => acc + val, 0);
-      valorMedioFrete = somaFrete / grupo.valoresFrete.length;
-    }
-    return {
-      ...grupo,
-      totalPeso: Math.round(grupo.totalPeso),
-      totalPesoCarregado: Math.round(grupo.totalPesoCarregado),
-      totalPesoPendente: Math.round(grupo.totalPesoPendente),
-      totalCaminhoes: grupo.placas.size,
-      totalCaminhoesCarregados: grupo.placasCarregadas.size,
-      totalCaminhoesPendentes: grupo.placasPendentes.size,
-      placas: Array.from(grupo.placas),
-      placasCarregadas: Array.from(grupo.placasCarregadas),
-      placasPendentes: Array.from(grupo.placasPendentes),
-      pesoEmTransitoEmbarque: Math.round(grupo.pesoEmTransitoEmbarque), // Arredondar para exibição
-      valorMedioFrete: valorMedioFrete // Adicionar valor médio do frete
-    };
-  }).sort((a, b) => b.totalPeso - a.totalPeso); // Ordenar por peso total decrescente
-}
-
-/* --- NOVO: Função para obter a saudação correta --- */
-function getSaudacao() {
-  const hora = new Date().getHours();
-  if (hora >= 5 && hora < 12) {
-    return 'Bom dia';
-  } else if (hora >= 12 && hora < 18) {
-    return 'Boa tarde';
-  } else {
-    return 'Boa noite';
-  }
-}
-
-/* --- FUNÇÃO ATUALIZADA: Função para formatar a mensagem de resumo --- */
-function formatResumoMessage(soja, milho, sorgo, total) {
-  const saudacao = getSaudacao();
-  const sojaKg = formatNumber(soja);
-  const milhoKg = formatNumber(milho);
-  const sorgoKg = formatNumber(sorgo);
-  const totalKg = formatNumber(total);
-
-  // Ícones condicionais: só aparecem se o peso for > 0
-  const icones = [];
-  if (soja > 0) icones.push('🌱');
-  if (milho > 0) icones.push('🌽');
-  if (sorgo > 0) icones.push('🌾');
-  const iconesLine = icones.join(' ');
-
-  // Linhas condicionais
-  const sojaLine = `Soja: ${sojaKg} kg`;
-  const milhoLine = `Milho: ${milhoKg} kg`;
-  const sorgoLine = sorgo > 0 ? `Sorgo: ${sorgoKg} kg` : '';
-
-  // Construir a mensagem final
-  let message = `${saudacao}\nEmbarque encerrado ${iconesLine}\n`;
-  message += `${sojaLine}\n`;
-  message += `${milhoLine}\n`;
-  if (sorgoLine) {
-    message += `${sorgoLine}\n`;
-  }
-  message += `Total embarcado: ${totalKg} kg\nBom descanso a todos 🙌🏻🙏🏻`;
-
-  // Remover a quebra de linha extra se sorgoLine for vazio
-  return message.trim();
-}
-
-/* --- NOVO: Handler para o clique no card de total embarcado --- */
-function handleTotalCardClick() {
-  const { soja, milho, sorgo, total } = globalProdutosTotais;
-  const message = formatResumoMessage(soja, milho, sorgo, total);
-
-  // Tenta copiar para a área de transferência
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(message).then(() => {
-      // Usar a mensagem formatada para exibição no alert também
-      alert(`Mensagem copiada para a área de transferência:\n\n${message}`);
-    }).catch(err => {
-      // Falha na cópia, exibe no alert para cópia manual
-      console.error('Falha ao copiar:', err);
-      alert(`Falha ao copiar. Copie a mensagem manualmente:\n\n${message}`);
+  tableHtml += '</tr></thead><tbody>';
+  
+  // Monta as linhas
+  dataObjects.forEach(row => {
+    tableHtml += '<tr>';
+    visibleHeadersNorm.forEach(hNorm => {
+      let cellContent = row[hNorm] || '-';
+      let cellClass = '';
+      
+      // Formatação especial para Status
+      if(hNorm === 'status'){
+        const statusText = normalizeText(cellContent);
+        let statusClass = 'status-contratar'; // Default
+        if(statusText.includes('carregado')) statusClass = 'status-carregado';
+        else if(statusText.includes('embarque')) statusClass = 'status-embarque';
+        else if(statusText.includes('transito')) statusClass = 'status-transito';
+        
+        cellContent = `<span class="status-programacao ${statusClass}">${row[hNorm]}</span>`;
+      } 
+      // Formatação para Data
+      else if(hNorm.includes('data')){
+          const date = parseDateOnly(cellContent);
+          cellContent = formatDate(date);
+      }
+      // Formatação para Peso
+      else if(hNorm.includes('peso') || hNorm.includes('volume')){
+          const peso = parseNumber(cellContent);
+          cellContent = isNaN(peso) ? '-' : `${formatNumber(peso)} KG`;
+      }
+      
+      tableHtml += `<td>${cellContent}</td>`;
     });
-  } else {
-    // navigator.clipboard não disponível, exibe no alert para cópia manual
-    alert(`Copie a mensagem manualmente:\n\n${message}`);
-  }
+    tableHtml += '</tr>';
+  });
+  
+  tableHtml += '</tbody></table>';
+  content.innerHTML = tableHtml;
 }
 
-/* --- Main load function --- */
-async function loadAll(isAutoUpdate = false){
+/* Função principal de carregamento */
+async function loadAll(forceUpdate = false){
+  // Se não estiver forçando a atualização, checar se está visível
+  if(!forceUpdate && document.hidden) return;
+
+  const statusElement = document.getElementById('lastUpdateTop');
+  const body = document.body;
+
+  // 1. Atualizar Status (Começando)
+  body.classList.add('updating');
+  statusElement.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>Atualizando...</span>`;
+  
   try{
-    if(isAutoUpdate) {
-      // NOVO: Adicionar o ícone de ampulheta (loading) no início da atualização
-      document.getElementById('lastUpdateTop').innerHTML = `
-        <i class="fas fa-hourglass-half" style="color: rgba(255,255,255,0.9);"></i>
-        <span>Atualizando...</span>
-      `;
-      document.body.classList.add('updating');
-    }
-    // ===== PROGRAMAÇÃO (agora em primeiro lugar) =====
-    const prog = await fetchSheetByGid(GIDS.programacao);
-    const rowsArrProg = prog.arrays;
-    const headersOrigProg = prog.headersOrig;
-    const headersNormProg = prog.headersNorm;
-    const objsProg = prog.objects;
-    // Encontrar a coluna "STATUS"
-    const statusKey = headersNormProg.find(h => h.includes('status') && !h.includes('agendamento')) || null;
-    const statusIndex = headersNormProg.indexOf(statusKey);
-    // Encontrar a coluna de frete (coluna E - índice 4)
-    const freteIndex = 4; // Coluna E = índice 4
-    // Encontrar a coluna de transportadora (coluna F - índice 5)
-    const transportadoraIndex = 5; // Coluna F = índice 5
-    // find date key (fallback index 0)
-    const dateKeyProg = findHeaderKey(headersNormProg, ['data','dataprogramacao','dataprog','dataentrega']) || headersNormProg[0] || null;
-    const dateIndexProg = 0;
-    const today = new Date(); const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
-    const rowsArrProgFiltered = [];
-    const rowsObjProgFiltered = [];
-    for(let i=0;i<rowsArrProg.length;i++){
-      const arr = rowsArrProg[i];
-      const obj = objsProg[i] || {};
-      // get date
-      let dtVal = '';
-      if(dateKeyProg && obj[dateKeyProg]) dtVal = obj[dateKeyProg];
-      else if(arr[dateIndexProg] !== undefined) dtVal = arr[dateIndexProg];
-      const dt = parseDateOnly(dtVal);
-      if(dt && dt.getTime() === todayStart){
-        rowsArrProgFiltered.push(arr);
-        rowsObjProgFiltered.push(obj);
-      }
-    }
-    // ===== LOTES DE ENTREGA: buscar e construir mapa de saldo por contrato (MESMO QUE NÃO EXIBIDO) =====
-    const ent = await fetchSheetByGid(GIDS.entrega);
-    const rowsArrEnt = ent.arrays;
-    const headersOrigEnt = ent.headersOrig;
-    const headersNormEnt = ent.headersNorm;
-    const objsEnt = ent.objects;
-    // detect keys úteis
-    const infoDestinoKey = headersNormEnt.find(h => h.includes('informacoesdestino') || h.includes('informacaodestino') || h.includes('destino'));
-    const saldoKeyEnt = findHeaderKey(headersNormEnt, ['saldoent','saldoentrega','saldoentkg']) || null;
-    const saldoIndexEnt = 8; // coluna I -> índice 8 (fallback)
-    const existingContratoKeys = headersNormEnt.filter(h => h.includes('contrato') || h.includes('ncontrato') || h.includes('numerocontrato'));
-    // Mapa de saldo por contrato (normalizando o contrato para somente dígitos)
-    const saldoPorContrato = {};
-    for(let i=0;i<rowsArrEnt.length;i++){
-      const arr = rowsArrEnt[i] || [];
-      const obj = objsEnt[i] || {};
-      // extrair contrato preferencialmente da coluna B (arr[1]) ou da infoDestinoKey
-      let contratoRaw = '';
-      if(infoDestinoKey && obj[infoDestinoKey]) {
-        // tentar obter a parte antes do primeiro traço
-        contratoRaw = String(obj[infoDestinoKey]).split('-')[0].trim();
-      } else if(arr[1] !== undefined && String(arr[1]).trim() !== '') {
-        contratoRaw = String(arr[1]).trim();
-      } else {
-        // fallback: qualquer coluna de contrato existente no header
-        for(const k of existingContratoKeys) {
-          if(obj[k]) { contratoRaw = String(obj[k]).trim(); break; }
-        }
-      }
-      // normalizar para somente dígitos (mesma lógica do extractContratoInfo)
-      let contratoNorm = String(contratoRaw || '').replace(/\D/g,'').trim();
-      if(!contratoNorm) {
-        // se não houver dígitos, usar o raw como fallback (sem espaços)
-        contratoNorm = String(contratoRaw || '').trim();
-      }
-      // pegar saldo preferencialmente pelo header encontrado, senão pela posição
-      let saldoVal = '';
-      if(saldoKeyEnt && obj[saldoKeyEnt] !== undefined && obj[saldoKeyEnt] !== '') saldoVal = obj[saldoKeyEnt];
-      else if(arr[saldoIndexEnt] !== undefined) saldoVal = arr[saldoIndexEnt];
-      const n = parseNumber(saldoVal || '0');
-      if(!isNaN(n) && contratoNorm) {
-        saldoPorContrato[contratoNorm] = (saldoPorContrato[contratoNorm]||0) + n;
-      }
-    }
-    // ===== LOTES DE RETIRADA (MESMO QUE NÃO EXIBIDO) =====
-    const ret = await fetchSheetByGid(GIDS.retirada);
-    // O restante do processamento de Lotes de Entrega e Retirada foi removido/mantido no backend para evitar erros de dependência.
-    // ...
-
-    // ===== CONTADORES E TABELA DE PROGRAMAÇÃO =====
-    // Contar status para os cards (aqui usamos os objetos filtrados)
-    const statusCounts = countStatusProgramacao(rowsObjProgFiltered, statusKey);
-    document.getElementById('count-carregado').textContent = statusCounts.carregado;
-    document.getElementById('count-embarque').textContent = statusCounts.embarque;
-    document.getElementById('count-transito').textContent = statusCounts.transito;
-    document.getElementById('count-contratar').textContent = statusCounts.contratar;
-    // Calcular totais por produto (coluna B = índice 1, coluna J = índice 9, coluna C = índice 2)
-    const produtosTotais = calculateProdutosTotais(rowsArrProgFiltered, 1, 9, 2);
-    // Armazenar no objeto global para a funcionalidade de clique
-    globalProdutosTotais.soja = produtosTotais.soja;
-    globalProdutosTotais.milho = produtosTotais.milho;
-    globalProdutosTotais.sorgo = produtosTotais.sorgo;
-    // Calcular e exibir TOTAL EMBARCADO
-    const totalEmbarcado = produtosTotais.soja + produtosTotais.milho + produtosTotais.sorgo;
-    globalProdutosTotais.total = totalEmbarcado; // Armazenar o total
-    // Atualizar cards de produto com "KG" ao lado
-    document.getElementById('count-soja').textContent = `${formatNumber(produtosTotais.soja)} KG`;
-    document.getElementById('count-milho').textContent = `${formatNumber(produtosTotais.milho)} KG`;
-    document.getElementById('count-sorgo').textContent = `${formatNumber(produtosTotais.sorgo)} KG`;
-    document.getElementById('count-total').textContent = `${formatNumber(totalEmbarcado)} KG`;
-    // Agrupar por contrato (usa rowsArrProgFiltered) - agora passando o índice da coluna de frete (4) e transportadora (5)
-    // Primeiro: calcular peso em trânsito/embarque considerando TODAS as datas
-    const clientesComPesoFuturo = await groupByContract(rowsArrProg, 2, 7, statusIndex, freteIndex, transportadoraIndex, true);
-    // Segundo: agrupar apenas para hoje (para exibição)
-    const clientesParaHoje = await groupByContract(rowsArrProgFiltered, 2, 7, statusIndex, freteIndex, transportadoraIndex, false);
-    // --- AQUI: AMARRAR O SALDO DA ABA ENTREGA AO CONTRATO DOS CARDS ---
-    // Note: groupByContract cria cliente.contrato já apenas com dígitos (mesma normalização)
-    clientesParaHoje.forEach(c => {
-      // normalizar chave tal qual fizemos ao criar saldoPorContrato
-      const key = String(c.contrato || '').replace(/\D/g,'').trim() || String(c.contrato||'').trim();
-      c.saldoEntrega = saldoPorContrato[key] || 0;
-      // Buscar o peso em trânsito/embarque calculado com todas as datas
-      const clienteFuturo = clientesComPesoFuturo.find(cf => cf.contrato === c.contrato);
-      if(clienteFuturo) {
-        c.pesoEmTransitoEmbarque = clienteFuturo.pesoEmTransitoEmbarque || 0;
-      }
-    });
-    // Atualizar DOM: cards e resumo
-    document.getElementById('clientesContainer').innerHTML = buildClientesHTML(clientesParaHoje);
-    updateClientesSummary(clientesParaHoje); // Esta função está vazia agora
-    // Build programacao table: remove removedProg columns, format status and currency
-    let removedProg = [...REMOVED_COMMON.map(normalizeHeader), ...REMOVED_PROGRAMACAO.map(normalizeHeader)];
-    // Se tivermos colunas suficientes, remover a penúltima
-    if(headersNormProg.length > 1) {
-      const visibleCols = headersNormProg.filter(h => !removedProg.includes(h));
-      if(visibleCols.length > 1) {
-        const penultimaCol = visibleCols[visibleCols.length - 2];
-        removedProg.push(penultimaCol);
-      }
-    }
-    const freteEmpresaKey = headersNormProg.find(h => h.includes('freteempresa') || h.includes('frete') && h.includes('empresa')) || null;
-    const tableProgHTML = buildTableHTML(rowsArrProgFiltered, rowsObjProgFiltered, headersOrigProg, headersNormProg, {
-      hiddenNorm: HIDDEN_COLS.map(normalizeHeader),
-      removedNorm: removedProg,
-      numericKey: '',
-      currencyCols: freteEmpresaKey ? [freteEmpresaKey] : [],
-      statusCol: statusKey
-    });
-    // Inserir tabelas nas seções
-    document.getElementById('programacaoContent').innerHTML = tableProgHTML || '<div class="empty">Nenhuma programação para hoje.</div>';
-    // O conteúdo de Entrega e Retirada NÃO SÃO MAIS INSERIDOS NO DOM
+    // 2. Buscar dados de Entregas (Lotes)
+    const entregaData = await fetchSheetByGid(GIDS.entrega);
     
-    // Inicialmente colapsar todas as seções
-    document.getElementById('content-programacao').classList.add('collapsed');
-    document.getElementById('toggle-programacao').classList.add('collapsed');
-    // Atualizar o texto da última atualização
-    updateLastUpdateTime();
-    document.body.classList.remove('updating');
+    // 3. Renderizar Entregas e Totais
+    groupAndRender(entregaData.objects);
+    
+    // 4. Buscar dados de Programação
+    const programacaoData = await fetchSheetByGid(GIDS.programacao);
+    
+    // 5. Renderizar Programação
+    renderProgramacao(programacaoData.objects, programacaoData.headersNorm, programacaoData.headersOrig);
+    
+    // 6. Atualizar Status (Finalizado)
+    const now = new Date();
+    const formattedTime = now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit', second: '2-digit'});
+    
+    statusElement.innerHTML = `
+      <i class="far fa-clock"></i> <span>Última atualização: ${formattedTime}</span>
+    `;
+    body.classList.remove('updating');
   }
   catch(err){
     console.error('Erro loadAll:', err);
-    // Mensagens de erro atualizadas para refletir apenas a seção de Programação e Contratos
-    document.getElementById('programacaoContent').innerHTML = '<div class="empty">Erro ao carregar dados da Programação (ver console).</div>';
-    document.getElementById('clientesContainer').innerHTML = '<div class="empty">Erro ao carregar dados dos contratos (ver console).</div>';
-    document.getElementById('lastUpdateTop').innerHTML = `
+    document.getElementById('clientesContainer').innerHTML = '<div class="empty">Erro ao carregar dados. Verifique a conexão ou as configurações da planilha (ver console).</div>';
+    document.getElementById('programacaoContent').innerHTML = '<div class="empty">Erro ao carregar dados. Verifique a conexão ou as configurações da planilha (ver console).</div>';
+    statusElement.innerHTML = `
       <i class="fas fa-exclamation-triangle" style="color: rgba(255,255,255,0.9);"></i>
       <span>Erro na atualização</span>
     `;
-    document.body.classList.remove('updating');
+    body.classList.remove('updating');
   }
 }
-/* Toggle sections */
-function setupToggleHandlers() {
-  // REMOVIDO: Handlers de toggle para Entrega e Retirada
-  /*
-  document.getElementById('toggle-entrega').addEventListener('click', function() {
-    toggleSection('entrega');
+
+/* Toggle handlers para as seções expansíveis */
+function setupToggleHandlers(){
+  const toggleProgramacao = document.getElementById('toggle-programacao');
+  const contentProgramacao = document.getElementById('content-programacao');
+  
+  toggleProgramacao.addEventListener('click', () => {
+    toggleSection(toggleProgramacao, contentProgramacao);
   });
-  document.getElementById('toggle-retirada').addEventListener('click', function() {
-    toggleSection('retirada');
-  });
-  */
-  document.getElementById('toggle-programacao').addEventListener('click', function() {
-    toggleSection('programacao');
-  });
+  
+  // Manter Programação fechada por padrão ao carregar
+  contentProgramacao.classList.add('collapsed');
+  toggleProgramacao.classList.add('collapsed');
 }
-function toggleSection(sectionId) {
-  const content = document.getElementById(`content-${sectionId}`);
-  const header = document.getElementById(`toggle-${sectionId}`);
-  const isCollapsed = content.classList.contains('collapsed');
+
+/* Handler de clique no card total para abrir a programação */
+function handleTotalCardClick(event) {
+    const toggleProgramacao = document.getElementById('toggle-programacao');
+    const contentProgramacao = document.getElementById('content-programacao');
+    // Se a programação estiver fechada, abre
+    if (contentProgramacao.classList.contains('collapsed')) {
+        toggleSection(toggleProgramacao, contentProgramacao);
+    }
+    // Rola para a seção
+    toggleProgramacao.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* Função de toggle universal */
+function toggleSection(header, content){
+  let isCollapsed = content.classList.contains('collapsed');
   if(isCollapsed) {
     content.classList.remove('collapsed');
     header.classList.remove('collapsed');
