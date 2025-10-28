@@ -88,14 +88,6 @@
   .status-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
   .status-card h3{margin:0 0 6px 0;font-size:14px;color:var(--text);font-weight:600}
   .status-card .count{font-size:22px;font-weight:700;margin:6px 0}
-  .produto-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
-  .produto-card{background:var(--card);border-radius:8px;padding:8px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:140px;text-align:center;transition:all 0.3s ease;border-top:3px solid transparent; cursor: pointer;}
-  .produto-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
-  .produto-card h3{margin:0 0 4px 0;font-size:13px;color:var(--text);font-weight:600}
-  .produto-card .count{font-size:18px;font-weight:700;margin:4px 0}
-  .produto-soja{border-top-color: var(--produto-soja);}
-  .produto-milho{border-top-color: var(--produto-milho);}
-  .produto-sorgo{border-top-color: var(--produto-sorgo);}
   .clientes-section{margin-bottom:24px}
   .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px}
   .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all 0.3s ease; cursor: pointer;}
@@ -177,7 +169,7 @@
       </div>
     </div>
     <div class="clientes-section">
-      <h2 style="margin-top: 0;">📍 Lotes de Entrega com Saldo Pendente</h2>
+      <h2 style="margin-top: 0;">📍 Lotes com Saldo a Entregar</h2>
       <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
         <input type="text" id="filterInput" placeholder="Filtrar por Cliente, Contrato ou Cidade...">
       </div>
@@ -187,34 +179,55 @@
     </div>
   </div>
 <script>
-const SPREADSHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
-const RANGE = 'B:I';
-const API_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&range=${RANGE}`;
+const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
+const GID_ENTREGA = '1186247985'; // GID da aba "LOTES DE ENTREGA"
 const AUTO_UPDATE_INTERVAL = 300000;
 
 let globalData = [];
 
-function extrairCidade(fullCityString) {
-  if (!fullCityString) return '';
-  const parts = fullCityString.split('-');
-  return parts.length > 1 ? parts.slice(1).join('-').trim() : fullCityString.trim();
+// --- UTILS ---
+function normalizeHeader(h) {
+  if (h === undefined || h === null) return '';
+  return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
 }
-
-function normalizarTexto(text) {
-  return String(text).normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase();
+function normalizeText(text) {
+  if (text === undefined || text === null) return '';
+  return String(text).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
-
+function parseCSV(text) {
+  if (!text) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
+  const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+  if (lines.length === 0) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
+  const parsed = lines.map(line =>
+    line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim())
+  );
+  const headersOrig = parsed.shift().map(h => h || '');
+  const headersNorm = headersOrig.map(h => normalizeHeader(h));
+  const objects = parsed.map(cells => {
+    const obj = {};
+    headersNorm.forEach((key, idx) => {
+      obj[key] = cells[idx] !== undefined ? cells[idx] : '';
+    });
+    return obj;
+  });
+  return { arrays: parsed, headersOrig, headersNorm, objects };
+}
+async function fetchSheetByGid(gid) {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('Erro ao buscar planilha: ' + r.status);
+  const text = await r.text();
+  return parseCSV(text);
+}
 function parseNumber(val) {
-  if (!val) return NaN;
-  const s = String(val).replace(/\s/g,'').replace(/\./g,'').replace(/,/g,'.');
-  return parseFloat(s.replace(/[^\d\.\-]/g,''));
+  if (val === undefined || val === null) return NaN;
+  const s = String(val).replace(/\s/g, '').replace(/\./g, '').replace(/,/g, '.');
+  return parseFloat(s.replace(/[^\d\.\-]/g, ''));
 }
-
 function formatNumber(value) {
   if (isNaN(value)) return '0';
   return new Intl.NumberFormat('pt-BR').format(Math.round(value));
 }
-
 function escapeHtml(s) {
   if (s === undefined || s === null) return '';
   return String(s).replace(/[&<>"'\/]/g, c => ({
@@ -226,28 +239,33 @@ function escapeHtml(s) {
   }[c]));
 }
 
-function agruparPorCliente(dataRows) {
-  const groupedData = {};
-  // Índices baseados em RANGE B:I → 0=B, 1=C, ..., 7=I
-  for (let i = 1; i < dataRows.length; i++) {
-    const row = dataRows[i].c;
-    const getValue = (idx) => row?.[idx]?.v !== undefined ? String(row[idx].v) : '';
+// --- PROCESSAMENTO ---
+function processData(rowsArr, headersNorm) {
+  const grupos = {};
+  // Mapeamento baseado na estrutura da aba "LOTES DE ENTREGA":
+  // Colunas: A=Contrato, B=Cliente, C=Cidade, D=Produto, E=Safra, F=Volume, G=Embarcado, H=Falta (Saldo a Entregar)
+  // No CSV, índices: 0=A, 1=B, 2=C, 3=D, 4=E, 5=F, 6=G, 7=H
+  for (let i = 0; i < rowsArr.length; i++) {
+    const row = rowsArr[i];
+    const contrato = row[0]?.trim() || '';
+    const cliente = row[1]?.trim() || '';
+    const cidadeCompleta = row[2] || '';
+    const produto = row[3]?.trim() || '';
+    const volume = parseNumber(row[5]) || 0;
+    const embarcado = parseNumber(row[6]) || 0;
+    const falta = parseNumber(row[7]) || 0;
 
-    const contrato = getValue(0) || '';
-    const cliente = getValue(1)?.trim() || '';
-    const cidadeCompleta = getValue(2) || '';
-    const produto = getValue(3) || '';
-    const volume = parseNumber(getValue(5)) || 0;
-    const embarcado = parseNumber(getValue(6)) || 0;
-    const falta = parseNumber(getValue(7)) || 0;
-
-    // ✅ FILTRO: só inclui se falta > 0
+    // ✅ SÓ MOSTRA SE SALDO A ENTREGAR > 0
     if (falta <= 0 || !cliente) continue;
 
-    const cidade = extrairCidade(cidadeCompleta);
+    // Extrair cidade (após primeiro "-")
+    let cidade = cidadeCompleta;
+    if (cidadeCompleta.includes('-')) {
+      cidade = cidadeCompleta.split('-').slice(1).join('-').trim();
+    }
 
-    if (!groupedData[cliente]) {
-      groupedData[cliente] = {
+    if (!grupos[cliente]) {
+      grupos[cliente] = {
         cliente,
         cidadeRef: cidade,
         contratos: [],
@@ -258,30 +276,32 @@ function agruparPorCliente(dataRows) {
       };
     }
 
-    groupedData[cliente].contratos.push({
+    grupos[cliente].contratos.push({
       contrato,
       cidade,
       produto,
       volume,
       embarcado,
       falta,
-      searchKey: normalizarTexto(`${cliente} ${contrato} ${cidade} ${produto}`)
+      searchKey: normalizeText(`${cliente} ${contrato} ${cidade} ${produto}`)
     });
 
-    groupedData[cliente].totalVolume += volume;
-    groupedData[cliente].totalEmbarcado += embarcado;
-    groupedData[cliente].totalFalta += falta;
-    if (produto) groupedData[cliente].produtos.add(produto);
+    grupos[cliente].totalVolume += volume;
+    grupos[cliente].totalEmbarcado += embarcado;
+    grupos[cliente].totalFalta += falta;
+    if (produto) grupos[cliente].produtos.add(produto);
   }
-  return Object.values(groupedData).sort((a, b) => b.totalFalta - a.totalFalta);
+
+  return Object.values(grupos).sort((a, b) => b.totalFalta - a.totalFalta);
 }
 
+// --- RENDER ---
 function renderCards(data, filter = '') {
   const container = document.getElementById('clientesContainer');
-  const term = normalizarTexto(filter);
+  const term = normalizeText(filter);
   const filtered = term
     ? data.filter(item =>
-        normalizarTexto(item.cliente).includes(term) ||
+        normalizeText(item.cliente).includes(term) ||
         item.contratos.some(c => c.searchKey.includes(term))
       )
     : data;
@@ -337,7 +357,8 @@ function updateLastUpdateTime() {
   `;
 }
 
-async function fetchAndRenderData(isAutoUpdate = false) {
+// --- CARREGAMENTO ---
+async function loadAll(isAutoUpdate = false) {
   const container = document.getElementById('clientesContainer');
   if (isAutoUpdate) {
     container.innerHTML = '<div class="empty">Atualizando...</div>';
@@ -348,22 +369,14 @@ async function fetchAndRenderData(isAutoUpdate = false) {
   }
 
   try {
-    const response = await fetch(API_URL);
-    const text = await response.text();
-    const jsonText = text.replace('google.visualization.Query.setResponse(', '').slice(0, -2);
-    const data = JSON.parse(jsonText);
-
-    if (data.status === 'ok') {
-      const grouped = agruparPorCliente(data.table.rows);
-      globalData = grouped;
-      renderCards(grouped);
-      updateLastUpdateTime();
-    } else {
-      container.innerHTML = '<div class="empty">Erro na planilha. Verifique permissões.</div>';
-    }
+    const data = await fetchSheetByGid(GID_ENTREGA);
+    const grouped = processData(data.arrays, data.headersNorm);
+    globalData = grouped;
+    renderCards(grouped);
+    updateLastUpdateTime();
   } catch (err) {
     console.error('Erro ao carregar Lotes de Entrega:', err);
-    container.innerHTML = '<div class="empty">Erro de conexão ou processamento.</div>';
+    container.innerHTML = '<div class="empty">Erro ao carregar dados. Verifique a planilha.</div>';
     document.getElementById('lastUpdateTop').innerHTML = `
       <i class="fas fa-exclamation-triangle" style="color: rgba(255,255,255,0.9);"></i>
       <span>Erro na atualização</span>
@@ -371,19 +384,17 @@ async function fetchAndRenderData(isAutoUpdate = false) {
   }
 }
 
+// --- INIT ---
 document.addEventListener('DOMContentLoaded', () => {
-  // Filtro
   document.getElementById('filterInput').addEventListener('input', (e) => {
     renderCards(globalData, e.target.value);
   });
 
-  // Carregar inicial
-  fetchAndRenderData(true);
-  setInterval(() => fetchAndRenderData(true), AUTO_UPDATE_INTERVAL);
+  loadAll(true);
+  setInterval(() => loadAll(true), AUTO_UPDATE_INTERVAL);
 
-  // Atualizar ao voltar à aba
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) fetchAndRenderData(true);
+    if (!document.hidden) loadAll(true);
   });
 });
 </script>
