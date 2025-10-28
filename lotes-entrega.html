@@ -309,20 +309,28 @@ function escapeHtml(s) {
 // --- PROCESSAMENTO DOS DADOS ---
 function processData(rowsArr) {
   const grupos = {};
-  // Estrutura da aba LOTES DE ENTREGA:
-  // CSV: coluna B = índice 0, C=1, D=2, E=3, F=4, G=5, H=6, I=7
+  // Estrutura da aba LOTES DE ENTREGA (CSV):
+  // 0: Contrato (B)
+  // 1: Cliente (C)
+  // 2: Cidade (D)
+  // 3: Produto (E)
+  // 4: Safra (F)
+  // 5: Volume (G)
+  // 6: Embarcado (H)
+  // 7: Saldo a Entregar (I) ← CORRETO
   for (let i = 0; i < rowsArr.length; i++) {
     const row = rowsArr[i];
-    const contrato = row[0]?.trim() || '';
-    const cliente = row[1]?.trim() || '';
-    const cidadeCompleta = row[2] || '';
-    const produto = row[3]?.trim() || '';
-    const volume = parseNumber(row[5]) || 0;      // Coluna G = índice 5
-    const embarcado = parseNumber(row[6]) || 0;   // Coluna H = índice 6
-    const saldo = parseNumber(row[7]) || 0;       // ✅ COLUNA I = ÍNDICE 7 (CORRIGIDO!)
+    // Pular linha se não tiver contrato ou cliente
+    if (!row || row.length < 8) continue;
+    const contrato = (row[0] || '').trim();
+    const cliente = (row[1] || '').trim();
+    if (!contrato || !cliente) continue;
 
-    // ✅ SÓ MOSTRA SE SALDO > 0
-    if (saldo <= 0 || !cliente) continue;
+    const cidadeCompleta = row[2] || '';
+    const produto = (row[3] || '').trim();
+    const volume = parseNumber(row[5]) || 0;
+    const embarcado = parseNumber(row[6]) || 0;
+    const saldo = parseNumber(row[7]) || 0; // ✅ COLUNA I = ÍNDICE 7
 
     let cidade = cidadeCompleta;
     if (cidadeCompleta.includes('-')) {
@@ -357,7 +365,10 @@ function processData(rowsArr) {
     if (produto) grupos[cliente].produtos.add(produto);
   }
 
-  return Object.values(grupos).sort((a, b) => b.totalSaldo - a.totalSaldo);
+  // ✅ SÓ RETORNA CLIENTES COM TOTAL DE SALDO > 0
+  return Object.values(grupos)
+    .filter(g => g.totalSaldo > 0)
+    .sort((a, b) => b.totalSaldo - a.totalSaldo);
 }
 
 // --- RENDERIZAÇÃO ---
