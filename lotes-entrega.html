@@ -73,16 +73,11 @@
     font-weight: 700;
     font-size: 13px;
     text-decoration: none;
-    transition: background 0.2s ease, opacity 0.2s ease;
+    transition:background 0.2s ease, opacity 0.2s ease;
     white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    display:flex;align-items:center;gap:6px;
   }
-  .header-btn:hover {
-    background: var(--bg);
-    opacity: 0.95;
-  }
+  .header-btn:hover {background: var(--bg); opacity: 0.95;}
   .status-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
   .status-card{background:var(--card);border-radius:8px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:150px;text-align:center;transition:all 0.3s ease}
   .status-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
@@ -100,94 +95,30 @@
   .cliente-produto{padding:3px 7px;border-radius:5px;font-size:11px;font-weight:600;display:inline-block;margin-top:4px}
   .status-pendente-tag{background-color: var(--status-embarque);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
   .empty{color:var(--muted);font-style:italic;padding:10px;text-align:center;}
-  #filterInput {
-    flex-grow: 1;
-    min-width: 200px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 14px;
-  }
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.6);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
-  .modal-content {
-    background: var(--card);
-    padding: 20px;
-    border-radius: 8px;
-    max-width: 600px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  .modal-close {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 22px;
-    cursor: pointer;
-    color: var(--muted);
-  }
-  .modal-header h3 {
-    margin-top: 0;
-    font-size: 18px;
-    color: var(--primary);
-    border-bottom: 2px solid var(--accent);
-    padding-bottom: 8px;
-    margin-bottom: 15px;
-  }
-  .modal-body p {
-    margin: 5px 0;
-    font-size: 14px;
-  }
-  .modal-body .info-label {
-    font-weight: 600;
-    color: var(--text);
-    display: inline-block;
-    min-width: 160px;
-  }
-  .modal-body .info-value {
-    font-weight: 400;
-    color: var(--muted);
-  }
-  .contrato-item {
-    padding: 8px 0;
-    border-bottom: 1px dashed #eee;
-  }
-  .contrato-item:last-child {
-    border-bottom: none;
-  }
+  #filterInput {flex-grow:1;min-width:200px;padding:10px;border:1px solid #ccc;border-radius:6px;font-size:14px}
+  .modal-overlay {position: fixed;top: 0;left: 0;width: 100%;height: 100%;background: rgba(0,0,0,0.6);display: none;justify-content: center;align-items: center;z-index: 1000;}
+  .modal-content {background: var(--card);padding: 20px;border-radius: 8px;max-width: 900px;width: 95%;max-height: 90vh;overflow-y: auto;position:relative;}
+  .modal-close {position: absolute;top: 10px;right: 10px;background: none;border: none;font-size: 22px;cursor: pointer;color: var(--muted);}
+  .modal-header h3 {margin-top: 0;font-size: 18px;color: var(--primary);border-bottom: 2px solid var(--accent);padding-bottom: 8px;margin-bottom: 15px;}
+  .modal-body p {margin: 5px 0;font-size: 14px;}
+  .modal-body .info-label {font-weight: 600;color: var(--text);display:inline-block;min-width:160px;}
+  .modal-body .info-value {font-weight: 400;color: var(--muted);}
+  .contrato-item {padding: 8px 0;border-bottom: 1px dashed #eee;}
+  .contrato-item:last-child {border-bottom: none;}
+  /* Tabela dentro do modal */
+  .contracts-table {width:100%;border-collapse:collapse;margin-top:12px}
+  .contracts-table th, .contracts-table td {padding:8px;border:1px solid #eee;font-size:13px;text-align:left}
+  .contracts-table th {background:#fafafa;font-weight:700}
+  .product-breakdown {display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+  .product-chip {padding:6px 10px;border-radius:999px;font-weight:700;font-size:13px;color:#fff;display:inline-block}
+  @media (max-width:900px){ .modal-content{max-width: 95%} .contracts-table th, .contracts-table td{font-size:12px} }
   @media (max-width:600px){
     body{padding:8px}
     .cliente-card{min-width:100%;padding:12px}
-    header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 10px;
-    }
-    .header-btn {
-      width: 100%;
-      justify-content: center;
-      order: 2;
-    }
-    .header-title {
-        width: 100%;
-        justify-content: space-between;
-    }
-    .last-update-top {
-        order: 3;
-    }
+    header {flex-direction: column;align-items: flex-start;gap: 10px;}
+    .header-btn {width: 100%;justify-content: center;order: 2;}
+    .header-title {width: 100%;justify-content: space-between;}
+    .last-update-top {order: 3;}
   }
 </style>
 </head>
@@ -209,6 +140,7 @@
       <i class="fas fa-hourglass-half"></i> <span>Atualizando...</span>
     </div>
   </header>
+
   <div class="wrap">
     <div class="status-cards">
       <div class="status-card">
@@ -228,6 +160,7 @@
         <div class="count" id="count-milho">0</div>
       </div>
     </div>
+
     <div class="clientes-section">
       <h2 style="margin-top: 0;">📍 Lotes com Saldo a Entregar</h2>
       <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
@@ -240,7 +173,7 @@
   </div>
 
   <div id="resumoModal" class="modal-overlay">
-    <div class="modal-content">
+    <div class="modal-content" role="dialog" aria-modal="true">
       <button class="modal-close" onclick="closeModal()">&times;</button>
       <div id="modalContentBody"></div>
     </div>
@@ -361,17 +294,13 @@ function processData(rowsArr) {
     });
 
     grupos[cliente].totalVolume += volume;
-    groupsSafeAddProduct(grupos[cliente], produto);
+    if (produto) grupos[cliente].produtos.add(produto);
     grupos[cliente].totalEmbarcado += embarcado;
     grupos[cliente].totalFalta += falta;
   }
 
   // Ordenar por saldo pendente (maior primeiro)
   return Object.values(grupos).sort((a, b) => b.totalFalta - a.totalFalta);
-}
-
-function groupsSafeAddProduct(group, produto) {
-  if (produto) group.produtos.add(produto);
 }
 
 // --- RENDERIZAÇÃO ---
@@ -435,16 +364,32 @@ function openModalByClient(clienteName) {
   const item = globalData.find(g => g.cliente === clienteName);
   if (!item) return;
 
-  const contratosHtml = item.contratos.map(ct => `
-    <div class="contrato-item">
-      <p><strong>Contrato:</strong> ${escapeHtml(ct.contrato)}</p>
-      <p><span class="info-label">Cidade:</span> ${escapeHtml(ct.cidade)}</p>
-      <p><span class="info-label">Produto:</span> ${escapeHtml(ct.produto)}</p>
-      <p><span class="info-label">Safra:</span> ${escapeHtml(ct.safra)}</p>
-      <p><span class="info-label">Volume Contratado:</span> ${formatNumber(ct.volume)} KG</p>
-      <p><span class="info-label">Embarcado:</span> ${formatNumber(ct.embarcado)} KG</p>
-      <p><span class="info-label">Falta Embarcar:</span> <strong>${formatNumber(ct.falta)} KG</strong></p>
-    </div>
+  // Quebra por produto (soma de falta por produto)
+  const productTotals = {};
+  item.contratos.forEach(ct => {
+    const key = (ct.produto || 'Outros').trim();
+    if (!productTotals[key]) productTotals[key] = 0;
+    productTotals[key] += (ct.falta || 0);
+  });
+
+  const productChipsHtml = Object.keys(productTotals).map(p => {
+    const val = productTotals[p];
+    const bg = p.toLowerCase().includes('soja') ? 'var(--produto-soja)' :
+               p.toLowerCase().includes('milho') ? 'var(--produto-milho)' :
+               'var(--produto-sorgo)';
+    return `<span class="product-chip" style="background:${bg}">${escapeHtml(p)}: ${formatNumber(val)} KG</span>`;
+  }).join(' ');
+
+  const contratosHtmlRows = item.contratos.map(ct => `
+    <tr>
+      <td>${escapeHtml(ct.contrato)}</td>
+      <td>${escapeHtml(ct.cidade)}</td>
+      <td>${escapeHtml(ct.produto)}</td>
+      <td>${escapeHtml(ct.safra)}</td>
+      <td style="text-align:right">${formatNumber(ct.volume)}</td>
+      <td style="text-align:right">${formatNumber(ct.embarcado)}</td>
+      <td style="text-align:right">${formatNumber(ct.falta)}</td>
+    </tr>
   `).join('');
 
   document.getElementById('modalContentBody').innerHTML = `
@@ -455,13 +400,40 @@ function openModalByClient(clienteName) {
       <p><span class="info-label">Total de Contratos:</span> ${item.contratos.length}</p>
       <p><span class="info-label">Saldo Total a Entregar:</span> <strong>${formatNumber(item.totalFalta)} KG</strong></p>
       <p><span class="info-label">Total Embarcado:</span> ${formatNumber(item.totalEmbarcado)} KG</p>
-      <div style="margin-top: 20px;">
-        <h4>Detalhes por Contrato:</h4>
-        ${contratosHtml}
+
+      <div style="margin-top:14px;">
+        <h4>Quebra por Produto</h4>
+        <div class="product-breakdown">${productChipsHtml}</div>
+      </div>
+
+      <div style="margin-top:18px;">
+        <h4>Contratos</h4>
+        <div style="overflow:auto;">
+          <table class="contracts-table" aria-describedby="contracts-desc">
+            <thead>
+              <tr>
+                <th>Contrato</th>
+                <th>Cidade</th>
+                <th>Produto</th>
+                <th>Safra</th>
+                <th style="text-align:right">Volume</th>
+                <th style="text-align:right">Embarcado</th>
+                <th style="text-align:right">Falta</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${contratosHtmlRows}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   `;
+
   document.getElementById('resumoModal').style.display = 'flex';
+  // colocar foco de acessibilidade no botão fechar
+  const closeBtn = document.querySelector('.modal-close');
+  if (closeBtn) closeBtn.focus();
 }
 
 function closeModal() {
@@ -511,10 +483,11 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCards(globalData, e.target.value);
   });
 
-  // Modal
+  // Modal: fechar ao clicar fora
   document.getElementById('resumoModal').addEventListener('click', (e) => {
     if (e.target === document.getElementById('resumoModal')) closeModal();
   });
+  // ESC para fechar
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeModal();
   });
