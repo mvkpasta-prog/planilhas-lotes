@@ -54,79 +54,56 @@
   .wrap{max-width:1400px;margin:0 auto;width:100%}
   .header-btn { background:#fff; color:var(--primary); border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:700; font-size:13px; text-decoration:none; transition:background .2s, opacity .2s; display:flex; align-items:center; gap:6px; }
   .header-btn:hover { background:var(--bg); opacity:.95; }
-
-  /* novo layout dos status cards: grid com duas colunas; produtos ficam numa linha abaixo em 4 colunas */
   .status-cards {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
     margin-bottom: 20px;
   }
-
   .status-card{background:var(--card);border-radius:8px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);text-align:center;transition:all .3s; min-height:72px; display:flex; flex-direction:column; justify-content:center;}
-  .status-card:hover{transform:translateY(-2px);box-shadow:0 5p...
+  .status-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
   .status-card h3{margin:0 0 6px 0;font-size:14px;color:var(--text);font-weight:600}
   .status-card .count{font-size:22px;font-weight:700;margin:6px 0}
-
-  /* area que ocupa a segunda linha com 4 cards de produto */
   .product-row {
-    grid-column: 1 / -1; /* ocupa as 2 colunas da grid pai */
+    grid-column: 1 / -1;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 12px;
   }
-
   .clientes-section{margin-bottom:24px}
   .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px}
   .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all .3s; cursor:pointer;}
   .cliente-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
   .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 6px 0}
-  .cliente-destino{font-weight:600;color:var(--accent);margin:0 0 10px 0;font-size:13px} /* MANTIDO PARA LOTES POR CIDADE */
   .cliente-info{display:flex;justify-content:space-between;margin-bottom:6px;align-items:center}
   .info-label{font-weight:600;color:var(--muted);font-size:12px}
   .info-value{font-weight:700;font-size:13px}
   .cliente-produto{padding:3px 7px;border-radius:5px;font-size:11px;font-weight:600;display:inline-block;margin-top:4px}
   .status-pendente-tag{background-color: var(--status-embarque);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
   .empty{color:var(--muted);font-style:italic;padding:10px;text-align:center;}
-  
-  /* ESTILOS PADRONIZADOS PARA FILTRO E NAVEGAÇÃO ENTRE VISTAS */
-  .actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
   #filterInput {flex-grow:1; min-width:200px; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:14px}
-
-
   .modal-overlay {position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.6); display:none; justify-content:center; align-items:center; z-index:1000}
-  /* PADRONIZAÇÃO: max-width ajustado para ser mais compacto */
-  .modal-content {background:var(--card); padding:20px; border-radius:8px; max-width:700px; width:95%; max-height:90vh; overflow-y:auto; position:relative;}
+  .modal-content {background:var(--card); padding:20px; border-radius:8px; max-width:500px; width:90%; max-height:90vh; overflow-y:auto; position:relative;}
   .modal-close {position:absolute; top:10px; right:10px; background:none; border:none; font-size:22px; cursor:pointer; color:var(--muted)}
-  .modal-header h3 {margin-top:0; font-size:18px; color:var(--primary); border-bottom:2px solid var(--accent); padding-bottom:8px; margin-bottom:15px;}
+  .modal-header h3 {margin-top:0; font-size:18px; color:var(--primary); border-bottom:2px solid var(--accent); padding-bottom:8px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;}
   .modal-body p {margin:5px 0; font-size:14px}
-  
-  /* ESTILOS PADRONIZADOS PARA DETALHES DENTRO DO MODAL (Como em Retiradas.html) */
-  .modal-body .info-label {font-weight:600; color:var(--text); display:inline-block; min-width:180px;}
+  .modal-body .info-label {font-weight:600; color:var(--text); display:inline-block; min-width:160px;}
   .modal-body .info-value {font-weight:400; color:var(--muted);}
-  .contrato-item {padding:8px 0; border-bottom:1px dashed #eee; margin-bottom:10px;}
-  .contrato-item:last-child {border-bottom:none;}
-  
-  /* CLASSES ANTIGAS REMOVIDAS DO USO, MAS MANTIDAS NO CSS SE NECESSÁRIO EM OUTRAS PARTES: */
-  .contracts-table {width:100%; border-collapse:collapse; margin-top:12px}
-  .contracts-table th, .contracts-table td {padding:8px; border:1px solid #eee; font-size:13px; text-align:left}
-  .contracts-table th {background:#fafafa; font-weight:700}
-  
+  .modal-clientes-list {margin-top:15px; padding-top:10px; border-top:1px dashed #ddd;}
+  .modal-clientes-list h4 {margin-top:0; margin-bottom:8px; font-size:14px; color:var(--accent);}
+  .modal-clientes-list span {display:block; padding:3px 0; font-size:13px; color:var(--text);}
   .product-breakdown {display:flex; gap:10px; flex-wrap:wrap; margin-top:8px}
   .product-chip {padding:6px 10px; border-radius:999px; font-weight:700; font-size:13px; color:#fff; display:inline-block}
-  @media (max-width:1100px){ .product-row { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width:1100px){
+    .product-row { grid-template-columns: repeat(2, 1fr); }
+  }
   @media (max-width:700px){
     .status-cards { grid-template-columns: 1fr; }
     .product-row { grid-template-columns: repeat(2,1fr); }
   }
-  @media (max-width:480px){ .product-row { grid-template-columns: 1fr; } }
+  @media (max-width:480px){
+    .product-row { grid-template-columns: 1fr; }
+  }
   @media (max-width:600px){
     body{padding:8px}
     .cliente-card{min-width:100%; padding:12px}
@@ -134,451 +111,343 @@
     .header-btn {width:100%; justify-content:center; order:2}
     .header-title {width:100%; justify-content:space-between}
     .last-update-top {order:3}
-    /* Ajuste para mobile na área de filtro/view-toggle */
-    .actions {flex-direction: column; align-items: stretch;}
-    #filterInput {min-width: 100%;}
-    .view-toggle {width: 100%; justify-content: space-around;}
-    .view-toggle button {flex: 1;}
-  } 
-  
-  /* estilos para o modal de cidade */
-  .city-modal-overlay {position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.6); display:none; justify-content:center; align-items:center; z-index:1000}
-  .city-modal-content {background:var(--card); padding:20px; border-radius:8px; max-width:800px; width:95%; max-height:90vh; overflow-y:auto; position:relative;}
-  .city-modal-close {position:absolute; top:10px; right:10px; background:none; border:none; font-size:22px; cursor:pointer; color:var(--muted)}
-  .city-modal-header h3 {margin-top:0; font-size:18px; color:var(--primary); border-bottom:2px solid var(--accent); padding-bottom:8px; margin-bottom:15px;}
-  .city-client-list{margin-top:15px}
-  .city-client-card{background:#f8faff;border:1px solid #e0e7ff;border-radius:6px;padding:12px;margin-bottom:10px;cursor:pointer;transition:background .2s}
-  .city-client-card:hover{background:#edf2ff}
-  .city-client-name{font-weight:700;font-size:15px;color:var(--text);margin:0 0 5px 0}
-  .city-client-info{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
-  .city-client-info-label{font-weight:600;color:var(--muted)}
-  .city-client-info-value{font-weight:700}
-  .city-product-list{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;padding-top:6px;border-top:1px dashed #ddd}
-  .city-product-chip{padding:3px 7px;border-radius:5px;font-size:11px;font-weight:600;display:inline-block;}
+  }
+  .toggle-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .toggle-btn.secondary {
+    background: #ffffff;
+    color: var(--primary);
+    border: 2px solid rgba(255,255,255,0.15);
+  }
+  .toggle-btn:hover { opacity: 0.95; }
 </style>
 </head>
 <body>
   <header>
     <div class="header-title">
-      <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height: 22px; vertical-align: middle; margin-right: 8px;">
+      <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height:22px; vertical-align:middle; margin-right:8px;">
       Controle de Lotes — Lotes de Entrega
     </div>
-    <a href="index.html" class="header-btn" title="Voltar para o Resumo de Entregas">
-      <i class="fas fa-arrow-left"></i> Voltar p/ Resumo
-    </a>
-    <div class="last-update-top" id="lastUpdateTop">
-      <i class="fas fa-hourglass-half"></i> <span>Atualizando...</span>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <a href="index.html" class="header-btn" title="Voltar para a página principal"><i class="fas fa-home"></i> Página Inicial</a>
+      <a href="Retiradas.html" class="header-btn" title="Acessar Lotes de Retirada"><i class="fas fa-box"></i> Lotes de Retirada</a>
     </div>
+    <div class="last-update-top" id="lastUpdateTop"><i class="fas fa-hourglass-half"></i> <span>Atualizando...</span></div>
   </header>
   <div class="wrap">
-    
     <div class="status-cards">
+      <div class="status-card">
+        <h3>CLIENTES</h3>
+        <div class="count" id="count-clientes">0</div>
       </div>
-
-    <div class="product-row">
+      <div class="status-card">
+        <h3>CONTRATOS</h3>
+        <div class="count" id="count-contratos">0</div>
       </div>
-    
+      <div class="product-row">
+        <div class="status-card produto-soja">
+          <h3>SOJA (KG)</h3>
+          <div class="count" id="count-soja">0</div>
+        </div>
+        <div class="status-card produto-milho">
+          <h3>MILHO (KG)</h3>
+          <div class="count" id="count-milho">0</div>
+        </div>
+        <div class="status-card">
+          <h3>SORGO (KG)</h3>
+          <div class="count" id="count-sorgo">0</div>
+        </div>
+        <div class="status-card">
+          <h3>TOTAL (KG)</h3>
+          <div class="count" id="count-total">0</div>
+        </div>
+      </div>
+    </div>
     <div class="clientes-section">
-      <div class="actions">
-          <input type="text" id="filterInput" placeholder="Filtrar por nome, cidade, status..." title="Filtrar lotes">
-          <div class="view-toggle" id="viewToggle" style="display:flex;gap:8px;">
-              <button id="viewClienteBtn" class="header-btn" style="padding:10px 14px;background:var(--primary);color:white;min-width:150px">Lotes por Cliente</button>
-              <button id="viewCityBtn" class="header-btn" style="padding:10px 14px;background:#eee;color:var(--text);min-width:150px">Lotes por Cidade</button>
-          </div>
+      <h2 style="margin-top:0;">📍 Lotes com Saldo a Entregar</h2>
+      <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
+        <input type="text" id="filterInput" placeholder="Filtrar por Cliente, Contrato ou Cidade...">
+        <button class="toggle-btn" id="toggleViewBtn" onclick="toggleView()"><i class="fas fa-sync-alt"></i> Mudar para Locais</button>
       </div>
       <div class="clientes-container" id="clientesContainer">
-        </div>
-      <div class="empty" id="emptyMessage" style="display:none;">Nenhum lote encontrado.</div>
-    </div>
-
-    <div class="modal-overlay" id="resumoModal">
-      <div class="modal-content">
-        <button class="modal-close" onclick="closeModal()">×</button>
-        <div class="modal-header">
-          <h3 id="modalTitle">Detalhes do Lote</h3>
-        </div>
-        <div class="modal-body" id="modalBody">
-          </div>
+        <div class="empty">Carregando...</div>
       </div>
     </div>
-
-    <div class="city-modal-overlay" id="cityModal">
-      <div class="city-modal-content">
-        <button class="city-modal-close" onclick="closeCityModal()">×</button>
-        <div class="city-modal-header">
-          <h3 id="cityModalTitle">Lotes na Cidade</h3>
-        </div>
-        <div class="city-client-list" id="cityModalBody">
-          </div>
-      </div>
+  </div>
+  <div id="resumoModal" class="modal-overlay">
+    <div class="modal-content" role="dialog" aria-modal="true">
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <div id="modalContentBody"></div>
     </div>
-    
   </div>
 <script>
-/* ====== CONFIG - coloque aqui seu SHEET_ID se mudar ====== */
-const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4'; 
-const GID_ENTREGA = '1186247985'; 
-
-// Configuração do intervalo de atualização automática (em milissegundos)
-const AUTO_UPDATE_INTERVAL = 300000; 
-
-/* colunas que ficam ocultas em exibição (aparecem em detalhes) - normalizadas */
-const HIDDEN_COLS = ['nfp','royalties','safra']; 
-/* colunas removidas (normalizadas) de todas as tabelas */
-const REMOVED_COMMON = ['localizacao','idorigemymvk1']; 
-
+const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
+const GID_ENTREGA = '1186247985';
+const AUTO_UPDATE_INTERVAL = 300000;
 let globalData = [];
-let currentView = 'cliente'; // Estado inicial
-const clientContainer = document.getElementById('clientesContainer');
-const emptyMessage = document.getElementById('emptyMessage');
+let currentView = localStorage.getItem('lotes_entregas_view') || 'cliente';
 
-/* Normaliza cabeçalho: remove acento, espaços e pontuação */
-function normalizeHeader(h){
-    if(h === undefined || h === null) return '';
-    return h.toLowerCase().replace(/[^a-z0-9]/g, '');
+function normalizeHeader(h) { if (h==null) return ''; return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,''); }
+function normalizeText(t) { if (t==null) return ''; return String(t).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+function parseCSV(text) {
+  if (!text) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
+  const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+  if (lines.length === 0) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
+  const parsed = lines.map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g,'').trim()));
+  const headersOrig = parsed.shift().map(h => h || '');
+  const headersNorm = headersOrig.map(h => normalizeHeader(h));
+  const objects = parsed.map(cells => {
+    const obj = {};
+    headersNorm.forEach((key, idx) => { obj[key] = cells[idx] !== undefined ? cells[idx] : ''; });
+    return obj;
+  });
+  return { arrays: parsed, headersOrig, headersNorm, objects };
 }
-
-/* Formatação de número para KG */
-function formatNumber(num) {
-    if (typeof num === 'string') {
-        num = parseFloat(num.replace(/\./g, '').replace(',', '.'));
+async function fetchSheetByGid(gid) {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('Erro ao buscar planilha: ' + r.status);
+  const text = await r.text();
+  return parseCSV(text);
+}
+function parseNumber(val) {
+  if (val===undefined || val===null) return NaN;
+  const s = String(val).replace(/\s/g,'').replace(/\./g,'').replace(/,/g,'.');
+  return parseFloat(s.replace(/[^\d\.\-]/g,''));
+}
+function formatNumber(value) {
+  if (isNaN(value)) return '0';
+  return new Intl.NumberFormat('pt-BR').format(Math.round(value));
+}
+function escapeHtml(s) {
+  if (s===undefined || s===null) return '';
+  return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'<','>':'>','"':'&quot;',"'":'&#x2F;'}[c]));
+}
+function escapeForJs(s) {
+  if (s===undefined || s===null) return '';
+  return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r/g,'').replace(/\n/g,'\\n');
+}
+function extractContractNumber(raw) {
+  if (!raw) return '';
+  const s = String(raw).trim();
+  if (s.includes('-')) return s.split('-')[0].trim();
+  return s;
+}
+function processData(rowsArr) {
+  const grupos = {};
+  for (let i = 0; i < rowsArr.length; i++) {
+    const row = rowsArr[i];
+    if (!row || row.length < 9) continue;
+    const contratoRaw = ((row[1] && String(row[1]).trim() !== '') ? String(row[1]).trim() : (row[0] || '')).toString().trim();
+    const contrato = extractContractNumber(contratoRaw);
+    const cliente = (row[2] || '').trim();
+    const cidadeCompleta = row[3] || '';
+    const produto = (row[4] || '').trim();
+    const safra = (row[5] || '').trim();
+    const volume = parseNumber(row[6]) || 0;
+    const embarcado = parseNumber(row[7]) || 0;
+    const falta = parseNumber(row[8]) || 0;
+    if (falta <= 0 || !cliente) continue;
+    let cidade = cidadeCompleta;
+    if (cidadeCompleta.includes('-')) cidade = cidadeCompleta.split('-').slice(1).join('-').trim();
+    if (!grupos[cliente]) {
+      grupos[cliente] = { cliente, cidadeRef: cidade, contratos: [], totalVolume:0, totalEmbarcado:0, totalFalta:0, produtos: new Set() };
     }
-    if (isNaN(num)) return '0';
-    return num.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
-}
-
-/* Escapar HTML para evitar XSS */
-function escapeHtml(str) {
-    if (str === null || str === undefined) return '';
-    return str.toString().replace(/[&<>"']/g, function(m) {
-        return ({
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        })[m];
+    grupos[cliente].contratos.push({
+      contrato, cidade, produto, safra, volume, embarcado, falta,
+      searchKey: normalizeText(`${cliente} ${contrato} ${cidade} ${produto}`)
     });
-}
-
-/* Processa os dados para agrupar por Cliente (Vista Padrão) */
-function processData(data) {
-    const clients = new Map();
-    const headers = data[0];
-    const normalizedHeaders = headers.map(normalizeHeader);
-
-    for (let i = 1; i < data.length; i++) {
-        const row = data[i];
-        const item = {};
-
-        normalizedHeaders.forEach((key, index) => {
-            item[key] = row[index];
-        });
-        
-        const clientName = item.nome;
-        const key = clientName; 
-
-        if (!clients.has(key)) {
-            clients.set(key, { 
-                nome: clientName, 
-                destino: item.destino,
-                produto: item.produto,
-                status: item.status,
-                peso: 0,
-                caminhoes: 0,
-                data: [] 
-            });
-        }
-        
-        const client = clients.get(key);
-        // Soma peso e caminhões
-        client.peso += parseFloat(item.peso || 0);
-        client.caminhoes += parseInt(item.caminhoes || 0);
-        
-        // Adiciona todos os dados da linha como um "contrato"
-        client.data.push(item);
-    }
-    
-    return Array.from(clients.values());
-}
-
-/* Processa os dados para agrupar por Cidade (Vista Alternativa) */
-function processDataByCity(data) {
-    const cities = new Map();
-    const headers = data[0];
-    const normalizedHeaders = headers.map(normalizeHeader);
-
-    for (let i = 1; i < data.length; i++) {
-        const row = data[i];
-        const item = {};
-
-        normalizedHeaders.forEach((key, index) => {
-            item[key] = row[index];
-        });
-
-        const cityName = item.destino;
-        const key = cityName;
-
-        if (!cities.has(key)) {
-            cities.set(key, { 
-                nome: cityName, 
-                peso: 0,
-                caminhoes: 0,
-                data: [] 
-            });
-        }
-
-        const city = cities.get(key);
-        city.peso += parseFloat(item.peso || 0);
-        city.caminhoes += parseInt(item.caminhoes || 0);
-        city.data.push(item);
-    }
-
-    return Array.from(cities.values());
-}
-
-/* Renderiza os cards agrupados por Cliente */
-function renderClientCards(clients, filter) {
-    let cardsHtml = '';
-    const filteredClients = clients.filter(client => {
-        if (!filter) return true;
-        const searchTerm = filter.toLowerCase();
-        return client.nome.toLowerCase().includes(searchTerm) || 
-               client.destino.toLowerCase().includes(searchTerm) ||
-               client.data.some(item => item.status && item.status.toLowerCase().includes(searchTerm));
-    });
-
-    if (filteredClients.length === 0) {
-        clientContainer.innerHTML = '';
-        emptyMessage.style.display = 'block';
-        return;
-    }
-
-    filteredClients.forEach(client => {
-        // Encontrar o status mais crítico para exibição no card
-        const statusMap = { 'CONTRATAR': 4, 'EM TRÂNSITO': 3, 'NO EMBARQUE': 2, 'CARREGADO': 1 };
-        let mostCriticalStatus = 'CARREGADO'; 
-        let criticalLevel = 0;
-
-        client.data.forEach(item => {
-            const currentLevel = statusMap[item.status] || 0;
-            if (currentLevel > criticalLevel) {
-                criticalLevel = currentLevel;
-                mostCriticalStatus = item.status;
-            }
-        });
-
-        const statusTagClass = `status-${normalizeHeader(mostCriticalStatus)}`;
-
-        // REMOÇÃO DA CIDADE/DESTINO DO CARD, CONFORME SOLICITADO
-        const cardHtml = `
-            <div class="cliente-card" onclick="openModal('${escapeHtml(client.nome)}', '${escapeHtml(client.destino)}', ${escapeHtml(JSON.stringify(client.data))})">
-                <h4 class="cliente-name">${escapeHtml(client.nome)}</h4>
-                <div class="cliente-info">
-                    <span class="info-label">Contratos Abertos</span>
-                    <span class="info-value">${client.data.length}</span>
-                </div>
-                <div class="cliente-info">
-                    <span class="info-label">Peso Total</span>
-                    <span class="info-value">${formatNumber(client.peso)} KG</span>
-                </div>
-                <div class="cliente-info">
-                    <span class="info-label">Caminhões</span>
-                    <span class="info-value">${client.caminhoes}</span>
-                </div>
-                <div style="margin-top:10px; text-align:right;">
-                    <span class="status-pendente-tag ${statusTagClass}">${escapeHtml(mostCriticalStatus)}</span>
-                </div>
-            </div>
-        `;
-        cardsHtml += cardHtml;
-    });
-
-    clientContainer.innerHTML = cardsHtml;
-    emptyMessage.style.display = 'none';
-}
-
-/* Renderiza os cards agrupados por Cidade */
-function renderCityCards(cities, filter) {
-    let cardsHtml = '';
-    const filteredCities = cities.filter(city => {
-        if (!filter) return true;
-        const searchTerm = filter.toLowerCase();
-        return city.nome.toLowerCase().includes(searchTerm) ||
-               city.data.some(item => item.produto && item.produto.toLowerCase().includes(searchTerm)) ||
-               city.data.some(item => item.status && item.status.toLowerCase().includes(searchTerm));
-    });
-
-    if (filteredCities.length === 0) {
-        clientContainer.innerHTML = '';
-        emptyMessage.style.display = 'block';
-        return;
-    }
-
-    filteredCities.forEach(city => {
-        // Contagem de produtos para exibição
-        const productCounts = city.data.reduce((acc, item) => {
-            const produto = normalizeHeader(item.produto);
-            acc[produto] = (acc[produto] || 0) + 1;
-            return acc;
-        }, {});
-
-        const productChipsHtml = Object.keys(productCounts).map(prod => {
-            const colorClass = `produto-${prod}`;
-            return `<span class="city-product-chip ${colorClass}" style="color:white;">${productCounts[prod]}x ${prod.toUpperCase()}</span>`;
-        }).join('');
-        
-        const cardHtml = `
-            <div class="cliente-card" onclick="openCityModal('${escapeHtml(city.nome)}', ${escapeHtml(JSON.stringify(city.data))})">
-                <h4 class="cliente-name">📍 ${escapeHtml(city.nome)}</h4>
-                <div class="cliente-info">
-                    <span class="info-label">Lotes Abertos</span>
-                    <span class="info-value">${city.data.length}</span>
-                </div>
-                <div class="cliente-info">
-                    <span class="info-label">Peso Total</span>
-                    <span class="info-value">${formatNumber(city.peso)} KG</span>
-                </div>
-                <div class="cliente-info">
-                    <span class="info-label">Caminhões</span>
-                    <span class="info-value">${city.caminhoes}</span>
-                </div>
-                <div class="city-product-list" style="margin-top:10px; padding-top:10px; border-top:1px solid #eee;">
-                    ${productChipsHtml}
-                </div>
-            </div>
-        `;
-        cardsHtml += cardHtml;
-    });
-
-    clientContainer.innerHTML = cardsHtml;
-    emptyMessage.style.display = 'none';
-}
-
-
-/* FUNÇÕES DO MODAL/POPUP DE DETALHES - PADRONIZADA COM RETIRADAS */
-function openModal(clientName, clientDestino, clientDataJson) {
-    const clientData = JSON.parse(clientDataJson);
-    
-    document.getElementById('modalTitle').textContent = clientName;
-    
-    let modalBodyHtml = `
-        <div class="contrato-item">
-            <h4 style="margin:5px 0;font-size:14px;color:var(--accent);">Informações Principais</h4>
-            <p><span class="info-label">📍 Cidade / Destino:</span> <span class="info-value">${escapeHtml(clientDestino)}</span></p>
-            <p><span class="info-label">⚖️ Peso Total:</span> <span class="info-value">${formatNumber(clientData.reduce((sum, item) => sum + parseFloat(item.peso || 0), 0))} KG</span></p>
-            <p><span class="info-label">🚚 Caminhões:</span> <span class="info-value">${clientData.reduce((sum, item) => sum + parseInt(item.caminhoes || 0), 0)}</span></p>
-        </div>
-    `;
-
-    // Loop para exibir cada contrato como item de lista (PADRONIZAÇÃO)
-    clientData.forEach((item, index) => {
-        const statusClass = `status-${normalizeHeader(item.status)}`;
-        modalBodyHtml += `
-            <div class="contrato-item">
-                <h4 style="margin:10px 0 5px 0;font-size:14px;color:var(--primary);">Contrato ${item.contrato}</h4>
-                <p><span class="info-label">📦 Produto:</span> <span class="info-value">${escapeHtml(item.produto)}</span></p>
-                <p><span class="info-label">⚖️ Peso do Contrato:</span> <span class="info-value">${formatNumber(item.peso)} KG</span></p>
-                <p><span class="info-label">🚚 Caminhões:</span> <span class="info-value">${item.caminhoes}</span></p>
-                <p><span class="info-label">🟢 Status:</span> <span class="info-value"><span class="status-programacao ${statusClass}">${escapeHtml(item.status)}</span></span></p>
-                
-                <h5 style="margin:10px 0 5px 0;font-size:13px;color:var(--muted);border-top:1px dashed #eee;padding-top:5px;">Detalhes Adicionais</h5>
-                ${item.datadecarga ? `<p><span class="info-label">🗓 Data Carga:</span> <span class="info-value">${item.datadecarga}</span></p>` : ''}
-                ${item.datanf ? `<p><span class="info-label">📅 Data NF:</span> <span class="info-value">${item.datanf}</span></p>` : ''}
-                ${item.dacte ? `<p><span class="info-label">📄 DACTE:</span> <span class="info-value">${escapeHtml(item.dacte)}</span></p>` : ''}
-                ${item.notafiscal ? `<p><span class="info-label"># Nota Fiscal:</span> <span class="info-value">${escapeHtml(item.notafiscal)}</span></p>` : ''}
-                ${item.observacoes ? `<p><span class="info-label">💬 Observações:</span> <span class="info-value">${escapeHtml(item.observacoes)}</span></p>` : ''}
-            </div>
-        `;
-    });
-    
-    document.getElementById('modalBody').innerHTML = modalBodyHtml;
-    document.getElementById('resumoModal').style.display = 'flex';
-}
-
-function closeModal() {
-    document.getElementById('resumoModal').style.display = 'none';
-    document.getElementById('modalBody').innerHTML = ''; // Limpa o conteúdo
-}
-
-function openCityModal(cityName, cityDataJson) {
-    const cityData = JSON.parse(cityDataJson);
-    document.getElementById('cityModalTitle').textContent = `Lotes em ${cityName}`;
-    
-    // ... (city modal content generation logic, maintained from original)
-    let bodyHtml = '';
-    
-    // Agrupar os lotes por cliente dentro da cidade
-    const clientsInCity = cityData.reduce((acc, item) => {
-        const clientName = item.nome;
-        if (!acc[clientName]) {
-            acc[clientName] = { 
-                nome: clientName, 
-                pesoTotal: 0,
-                caminhoesTotal: 0,
-                lotes: [] 
-            };
-        }
-        acc[clientName].pesoTotal += parseFloat(item.peso || 0);
-        acc[clientName].caminhoesTotal += parseInt(item.caminhoes || 0);
-        acc[clientName].lotes.push(item);
-        return acc;
-    }, {});
-    
-    const sortedClients = Object.values(clientsInCity).sort((a, b) => a.nome.localeCompare(b.nome));
-
-    sortedClients.forEach(client => {
-        const lotesHtml = client.lotes.map(lote => {
-             const statusClass = `status-${normalizeHeader(lote.status)}`;
-             return `<div style="padding:4px 0;border-bottom:1px dashed #f0f0f0;">
-                        <div class="city-client-info">
-                            <span class="city-client-info-label">${escapeHtml(lote.produto)} (${lote.contrato})</span>
-                            <span class="city-client-info-value">${formatNumber(lote.peso)} KG</span>
-                        </div>
-                        <div class="city-client-info">
-                            <span class="city-client-info-label">Status:</span>
-                            <span class="city-client-info-value"><span class="status-programacao ${statusClass}">${escapeHtml(lote.status)}</span></span>
-                        </div>
-                     </div>`;
-        }).join('');
-        
-        bodyHtml += `
-            <div class="city-client-card" onclick="openModal('${escapeHtml(client.nome)}', '${escapeHtml(cityName)}', ${escapeHtml(JSON.stringify(client.lotes))})">
-                <h4 class="city-client-name">${escapeHtml(client.nome)}</h4>
-                <div class="city-client-info" style="font-weight:700;">
-                    <span class="city-client-info-label">Total Lotes: ${client.lotes.length}</span>
-                    <span class="city-client-info-value">Total Peso: ${formatNumber(client.pesoTotal)} KG</span>
-                </div>
-                <div style="margin-top:10px;padding-top:10px;border-top:1px solid #ddd;">
-                    ${lotesHtml}
-                </div>
-            </div>
-        `;
-    });
-    
-    document.getElementById('cityModalBody').innerHTML = bodyHtml;
-    document.getElementById('cityModal').style.display = 'flex';
-}
-
-function closeCityModal() {
-    document.getElementById('cityModal').style.display = 'none';
-    document.getElementById('cityModalBody').innerHTML = '';
-}
-/* FUNÇÕES FINAIS */
-
-function renderCurrentView() {
-  const filter = document.getElementById('filterInput').value;
-  document.getElementById('viewClienteBtn').style.background = currentView === 'cliente' ? 'var(--primary)' : '#eee';
-  document.getElementById('viewClienteBtn').style.color = currentView === 'cliente' ? 'white' : 'var(--text)';
-  document.getElementById('viewCityBtn').style.background = currentView === 'city' ? 'var(--primary)' : '#eee';
-  document.getElementById('viewCityBtn').style.color = currentView === 'city' ? 'white' : 'var(--text)';
-  
-  if (globalData.length === 0) {
-      clientContainer.innerHTML = '';
-      emptyMessage.style.display = 'block';
-      return;
+    grupos[cliente].totalVolume += volume;
+    if (produto) grupos[cliente].produtos.add(produto);
+    grupos[cliente].totalEmbarcado += embarcado;
+    grupos[cliente].totalFalta += falta;
   }
-  
+  return Object.values(grupos).sort((a,b) => b.totalFalta - a.totalFalta);
+}
+function processDataByCity(rowsArr) {
+  const grupos = {};
+  for (let i = 0; i < rowsArr.length; i++) {
+    const row = rowsArr[i];
+    if (!row || row.length < 9) continue;
+    const contratoRaw = ((row[1] && String(row[1]).trim() !== '') ? String(row[1]).trim() : (row[0] || '')).toString().trim();
+    const contrato = extractContractNumber(contratoRaw);
+    const cliente = (row[2] || '').trim();
+    const cidadeCompleta = row[3] || '';
+    const produto = (row[4] || '').trim();
+    const safra = (row[5] || '').trim();
+    const volume = parseNumber(row[6]) || 0;
+    const embarcado = parseNumber(row[7]) || 0;
+    const falta = parseNumber(row[8]) || 0;
+    if (falta <= 0 || !cidadeCompleta) continue;
+    let cidade = cidadeCompleta;
+    if (cidadeCompleta.includes('-')) cidade = cidadeCompleta.split('-').slice(1).join('-').trim();
+    if (!grupos[cidade]) {
+      grupos[cidade] = { cidade, contratos: [], clientes: new Set(), totalVolume:0, totalEmbarcado:0, totalFalta:0, produtos: new Set() };
+    }
+    grupos[cidade].contratos.push({
+      contrato, cliente, produto, safra, volume, embarcado, falta,
+      searchKey: normalizeText(`${cliente} ${contrato} ${cidade} ${produto}`)
+    });
+    grupos[cidade].clientes.add(cliente);
+    grupos[cidade].totalVolume += volume;
+    if (produto) grupos[cidade].produtos.add(produto);
+    grupos[cidade].totalEmbarcado += embarcado;
+    grupos[cidade].totalFalta += falta;
+  }
+  return Object.values(grupos).sort((a,b) => b.totalFalta - a.totalFalta);
+}
+function renderClientCards(data, filter = '') {
+  const container = document.getElementById('clientesContainer');
+  container.innerHTML = '';
+  if (!data || data.length === 0) {
+    container.innerHTML = '<div class="empty">Nenhum lote com saldo a entregar.</div>';
+    return;
+  }
+  const f = normalizeText(filter || '');
+  let totalClientes = data.length;
+  let totalContratos = 0;
+  let totalSoja = 0, totalMilho = 0, totalSorgo = 0;
+  data.forEach(group => {
+    const contratosFiltrados = group.contratos.filter(c => c.searchKey.includes(f));
+    if (f && contratosFiltrados.length === 0) return;
+    totalContratos += group.contratos.length;
+    group.contratos.forEach(c => {
+      const prod = (c.produto || '').toLowerCase();
+      if (prod.includes('soja')) totalSoja += c.falta;
+      else if (prod.includes('milho')) totalMilho += c.falta;
+      else if (prod.includes('sorgo')) totalSorgo += c.falta;
+    });
+    const card = document.createElement('div');
+    card.className = 'cliente-card';
+    const prodList = Array.from(group.produtos).slice(0,3).map(p => `<span class="cliente-produto" style="background-color:var(--produto-soja); color:#fff">${escapeHtml(p)}</span>`).join(' ');
+    const inner = `
+      <div class="cliente-name">${escapeHtml(group.cliente)}</div>
+      <div class="cliente-info">
+        <div><span class="info-label">Saldo (kg)</span> <div class="info-value">${formatNumber(group.totalFalta)}</div></div>
+        <div><span class="info-label">Contratos</span> <div class="info-value">${group.contratos.length}</div></div>
+      </div>
+      <div style="margin-top:8px">${prodList}</div>
+    `;
+    card.innerHTML = inner;
+    card.onclick = () => openClientModal(group);
+    container.appendChild(card);
+  });
+  document.getElementById('count-clientes').innerText = totalClientes;
+  document.getElementById('count-contratos').innerText = totalContratos;
+  document.getElementById('count-soja').innerText = formatNumber(totalSoja);
+  document.getElementById('count-milho').innerText = formatNumber(totalMilho);
+  document.getElementById('count-sorgo').innerText = formatNumber(totalSorgo);
+  document.getElementById('count-total').innerText = formatNumber(totalSoja + totalMilho + totalSorgo);
+}
+function renderCityCards(data, filter = '') {
+  const container = document.getElementById('clientesContainer');
+  container.innerHTML = '';
+  if (!data || data.length === 0) {
+    container.innerHTML = '<div class="empty">Nenhuma cidade com saldo a entregar.</div>';
+    return;
+  }
+  const f = normalizeText(filter || '');
+  let totalCidades = data.length;
+  let totalContratos = 0;
+  let totalSoja = 0, totalMilho = 0, totalSorgo = 0;
+  data.forEach(group => {
+    const contratosFiltrados = group.contratos.filter(c => c.searchKey.includes(f));
+    if (f && contratosFiltrados.length === 0) return;
+    totalContratos += group.contratos.length;
+    group.contratos.forEach(c => {
+      const prod = (c.produto || '').toLowerCase();
+      if (prod.includes('soja')) totalSoja += c.falta;
+      else if (prod.includes('milho')) totalMilho += c.falta;
+      else if (prod.includes('sorgo')) totalSorgo += c.falta;
+    });
+    const card = document.createElement('div');
+    card.className = 'cliente-card';
+    const clientesList = Array.from(group.clientes).slice(0,3).map(p => `<div style="font-size:13px">${escapeHtml(p)}</div>`).join('');
+    const prodList = Array.from(group.produtos).slice(0,3).map(p => `<span class="cliente-produto" style="background-color:var(--produto-soja); color:#fff">${escapeHtml(p)}</span>`).join(' ');
+    const inner = `
+      <div class="cliente-name">${escapeHtml(group.cidade)}</div>
+      <div class="cliente-destino">${escapeHtml(group.clientes.size + ' cliente(s)')}</div>
+      <div class="cliente-info">
+        <div><span class="info-label">Saldo (kg)</span> <div class="info-value">${formatNumber(group.totalFalta)}</div></div>
+        <div><span class="info-label">Contratos</span> <div class="info-value">${group.contratos.length}</div></div>
+      </div>
+      <div style="margin-top:8px">${prodList}</div>
+      <div style="margin-top:8px; color:var(--muted); font-size:13px">${clientesList}</div>
+    `;
+    card.innerHTML = inner;
+    card.onclick = () => openCityModal(group);
+    container.appendChild(card);
+  });
+  document.getElementById('count-clientes').innerText = totalCidades;
+  document.getElementById('count-contratos').innerText = totalContratos;
+  document.getElementById('count-soja').innerText = formatNumber(totalSoja);
+  document.getElementById('count-milho').innerText = formatNumber(totalMilho);
+  document.getElementById('count-sorgo').innerText = formatNumber(totalSorgo);
+  document.getElementById('count-total').innerText = formatNumber(totalSoja + totalMilho + totalSorgo);
+}
+function openClientModal(group) {
+  const body = document.getElementById('modalContentBody');
+  let html = `<div class="modal-header"><h3>${escapeHtml(group.cliente)}</h3></div>`;
+  html += `<div class="modal-body">`;
+  html += `<p><span class="info-label">Cidade (ref):</span> <span class="info-value">${escapeHtml(group.cidadeRef)}</span></p>`;
+  html += `<p><span class="info-label">Saldo total (kg):</span> <span class="info-value">${formatNumber(group.totalFalta)} KG</span></p>`;
+  html += `<div class="modal-clientes-list">`;
+  html += `<h4>Contratos (${group.contratos.length}):</h4>`;
+  group.contratos.forEach(c => {
+    html += `<span><strong>Contrato:</strong> ${escapeHtml(c.contrato)} — <strong>Produto:</strong> ${escapeHtml(c.produto)} — <strong>Cidade:</strong> ${escapeHtml(c.cidade)} — <strong>Saldo:</strong> ${formatNumber(c.falta)} KG</span>`;
+  });
+  html += `</div></div>`;
+  body.innerHTML = html;
+  document.getElementById('resumoModal').style.display = 'flex';
+}
+function openCityModal(group) {
+  const body = document.getElementById('modalContentBody');
+  let html = `<div class="modal-header"><h3>${escapeHtml(group.cidade)}</h3></div>`;
+  html += `<div class="modal-body">`;
+  html += `<p><span class="info-label">Clientes:</span> <span class="info-value">${Array.from(group.clientes).join(', ')}</span></p>`;
+  html += `<p><span class="info-label">Saldo total (kg):</span> <span class="info-value">${formatNumber(group.totalFalta)} KG</span></p>`;
+  html += `<div class="modal-clientes-list">`;
+  html += `<h4>Contratos (${group.contratos.length}):</h4>`;
+  group.contratos.forEach(c => {
+    html += `<span><strong>Contrato:</strong> ${escapeHtml(c.contrato)} — <strong>Cliente:</strong> ${escapeHtml(c.cliente)} — <strong>Produto:</strong> ${escapeHtml(c.produto)} — <strong>Saldo:</strong> ${formatNumber(c.falta)} KG</span>`;
+  });
+  html += `</div></div>`;
+  body.innerHTML = html;
+  document.getElementById('resumoModal').style.display = 'flex';
+}
+function closeModal() {
+  document.getElementById('resumoModal').style.display = 'none';
+}
+function updateToggleButton() {
+  const btn = document.getElementById('toggleViewBtn');
+  if (!btn) return;
+  if (currentView === 'cliente') {
+    btn.innerHTML = '<i class="fas fa-sync-alt"></i> Mudar para Locais';
+  } else {
+    btn.innerHTML = '<i class="fas fa-sync-alt"></i> Mudar para Clientes';
+  }
+}
+function toggleView() {
+  currentView = (currentView === 'cliente') ? 'local' : 'cliente';
+  localStorage.setItem('lotes_entregas_view', currentView);
+  updateToggleButton();
+  renderCurrentView();
+}
+function renderCurrentView() {
+  const filter = document.getElementById('filterInput').value || '';
   if (currentView === 'cliente') {
     const clients = processData(globalData);
     renderClientCards(clients, filter);
@@ -587,48 +456,10 @@ function renderCurrentView() {
     renderCityCards(cities, filter);
   }
 }
-
-function updateView(view) {
-    if (view !== currentView) {
-        currentView = view;
-        renderCurrentView();
-    }
-}
-
-
-/* ---------- FETCH / AUTO-UPDATE ---------- */
-async function fetchSheetByGid(gid) {
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${gid}`;
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`Erro de rede: ${response.statusText}`);
-    }
-    const text = await response.text();
-    // Extrai o JSON da resposta do Google Sheets
-    const jsonString = text.match(/google.visualization.Query.setResponse\(([\s\S]*)\);/)[1];
-    const json = JSON.parse(jsonString);
-    
-    if (json.errors) {
-        throw new Error(`Erro na query: ${json.errors[0].message}`);
-    }
-
-    const table = json.table;
-    const headers = table.cols.map(col => col.label);
-    const arrays = [headers];
-    
-    table.rows.forEach(row => {
-        const rowData = row.c.map(cell => cell ? (cell.v !== undefined ? cell.v : cell.f) : '');
-        arrays.push(rowData);
-    });
-
-    return { arrays: arrays };
-}
-
 async function loadDataAndRender() {
   try {
     document.getElementById('lastUpdateTop').querySelector('span').innerText = 'Atualizando...';
     const parsed = await fetchSheetByGid(GID_ENTREGA);
-    // parsed.arrays contains raw arrays
     globalData = parsed.arrays || [];
     renderCurrentView();
     document.getElementById('lastUpdateTop').querySelector('span').innerText = `Última atualização: ${new Date().toLocaleString('pt-BR')}`;
@@ -638,29 +469,15 @@ async function loadDataAndRender() {
     document.getElementById('lastUpdateTop').querySelector('span').innerText = 'Erro na atualização';
   }
 }
-
-/* LISTENERS */
 document.getElementById('filterInput').addEventListener('input', (e) => {
   renderCurrentView();
 });
-
-document.getElementById('viewClienteBtn').addEventListener('click', () => updateView('cliente'));
-document.getElementById('viewCityBtn').addEventListener('click', () => updateView('city'));
-
-// modal fechar ao clicar no overlay
 document.getElementById('resumoModal').addEventListener('click', (e) => {
   if (e.target === document.getElementById('resumoModal')) closeModal();
 });
-document.getElementById('cityModal').addEventListener('click', (e) => {
-  if (e.target === document.getElementById('cityModal')) closeCityModal();
-});
-
-// inicial
-document.addEventListener('DOMContentLoaded', function() {
-  loadDataAndRender();
-  setInterval(loadDataAndRender, AUTO_UPDATE_INTERVAL);
-});
-
+updateToggleButton();
+loadDataAndRender();
+setInterval(loadDataAndRender, AUTO_UPDATE_INTERVAL);
 </script>
 </body>
 </html>
