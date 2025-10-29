@@ -75,8 +75,7 @@
   .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all .3s; cursor:pointer;}
   .cliente-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
   .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 6px 0}
-  .cliente-destino{font-weight:600;color:var(--accent);margin:0 0 10px 0;font-size:13px}
-  .cliente-info{display:flex;justify-content:space-between;margin-bottom:6px;align-items:center}
+  .cliente-info{display:flex;justify-content:space-between;margin-bottom:6px;align-items:center; flex-wrap: wrap;}
   .info-label{font-weight:600;color:var(--muted);font-size:12px}
   .info-value{font-weight:700;font-size:13px}
   .cliente-produto{
@@ -264,6 +263,12 @@ function getProdutoCorClasse(produto) {
   if (p.includes('sorgo')) return 'var(--produto-sorgo)';
   return 'var(--produto-sorgo)';
 }
+function extractContractNumber(raw) {
+  if (!raw) return '';
+  const s = String(raw).trim();
+  if (s.includes('-')) return s.split('-')[0].trim();
+  return s;
+}
 function processData(rowsArr) {
   const grupos = {};
   for (let i = 0; i < rowsArr.length; i++) {
@@ -327,12 +332,6 @@ function processDataByCity(rowsArr) {
   }
   return Object.values(grupos).sort((a,b) => b.totalFalta - a.totalFalta);
 }
-function extractContractNumber(raw) {
-  if (!raw) return '';
-  const s = String(raw).trim();
-  if (s.includes('-')) return s.split('-')[0].trim();
-  return s;
-}
 function renderClientCards(data, filter = '') {
   const container = document.getElementById('clientesContainer');
   container.innerHTML = '';
@@ -362,9 +361,11 @@ function renderClientCards(data, filter = '') {
     }).join(' ');
     const inner = `
       <div class="cliente-name">${escapeHtml(group.cliente)}</div>
-      <div class="cliente-destino">${escapeHtml(group.cidadeRef)}</div>
       <div class="cliente-info">
+        <div><span class="info-label">Volume (kg)</span> <div class="info-value">${formatNumber(group.totalVolume)}</div></div>
         <div><span class="info-label">Saldo (kg)</span> <div class="info-value">${formatNumber(group.totalFalta)}</div></div>
+      </div>
+      <div class="cliente-info">
         <div><span class="info-label">Contratos</span> <div class="info-value">${group.contratos.length}</div></div>
       </div>
       <div style="margin-top:8px">${prodList}</div>
@@ -410,9 +411,11 @@ function renderCityCards(data, filter = '') {
     }).join(' ');
     const inner = `
       <div class="cliente-name">${escapeHtml(group.cidade)}</div>
-      <div class="cliente-destino">${escapeHtml(group.clientes.size + ' cliente(s)')}</div>
       <div class="cliente-info">
+        <div><span class="info-label">Volume (kg)</span> <div class="info-value">${formatNumber(group.totalVolume)}</div></div>
         <div><span class="info-label">Saldo (kg)</span> <div class="info-value">${formatNumber(group.totalFalta)}</div></div>
+      </div>
+      <div class="cliente-info">
         <div><span class="info-label">Contratos</span> <div class="info-value">${group.contratos.length}</div></div>
       </div>
       <div style="margin-top:8px">${prodList}</div>
