@@ -75,7 +75,7 @@
   .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all .3s; cursor:pointer;}
   .cliente-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
   .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 6px 0}
-  .cliente-info{display:flex;justify-content:space-between;margin-bottom:6px;align-items:center; flex-wrap: wrap;}
+  .cliente-info{display:flex;justify-content:space-between;margin-bottom:6px;align-items:center}
   .info-label{font-weight:600;color:var(--muted);font-size:12px}
   .info-value{font-weight:700;font-size:13px}
   .cliente-produto{
@@ -284,8 +284,8 @@ function processData(rowsArr) {
     const embarcado = parseNumber(row[7]) || 0;
     const falta = parseNumber(row[8]) || 0;
     if (falta <= 0 || !cliente) continue;
-    let cidade = cidadeCompleta;
-    if (cidadeCompleta.includes('-')) cidade = cidadeCompleta.split('-').slice(1).join('-').trim();
+    // ✅ CORREÇÃO: Pegar apenas o que vem ANTES do primeiro "-"
+    let cidade = cidadeCompleta.split('-')[0]?.trim() || cidadeCompleta.trim();
     if (!grupos[cliente]) {
       grupos[cliente] = { cliente, cidadeRef: cidade, contratos: [], totalVolume:0, totalEmbarcado:0, totalFalta:0, produtos: new Set() };
     }
@@ -315,8 +315,8 @@ function processDataByCity(rowsArr) {
     const embarcado = parseNumber(row[7]) || 0;
     const falta = parseNumber(row[8]) || 0;
     if (falta <= 0 || !cidadeCompleta) continue;
-    let cidade = cidadeCompleta;
-    if (cidadeCompleta.includes('-')) cidade = cidadeCompleta.split('-').slice(1).join('-').trim();
+    // ✅ CORREÇÃO: Pegar apenas o que vem ANTES do primeiro "-"
+    let cidade = cidadeCompleta.split('-')[0]?.trim() || cidadeCompleta.trim();
     if (!grupos[cidade]) {
       grupos[cidade] = { cidade, contratos: [], clientes: new Set(), totalVolume:0, totalEmbarcado:0, totalFalta:0, produtos: new Set() };
     }
