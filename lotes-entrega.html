@@ -122,9 +122,6 @@
     border-bottom: 2px solid var(--accent);
     padding-bottom: 8px;
     margin-bottom: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
   }
   .modal-body p {
     margin: 5px 0;
@@ -147,15 +144,30 @@
   }
   .modal-clientes-list h4 {
     margin-top: 0;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
     font-size: 14px;
     color: var(--accent);
   }
-  .modal-clientes-list span {
-    display: block;
-    padding: 3px 0;
+  .contrato-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
     font-size: 13px;
     color: var(--text);
+    flex-wrap: wrap;
+  }
+  .contrato-label {
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .produto-tag {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    color: white;
+    font-size: 12px;
+    white-space: nowrap;
   }
   .toggle-btn {
     background: var(--primary);
@@ -305,6 +317,13 @@ function extractContractNumber(raw) {
   const s = String(raw).trim();
   if (s.includes('-')) return s.split('-')[0].trim();
   return s;
+}
+function getProdutoCor(produto) {
+  const p = (produto || '').toLowerCase();
+  if (p.includes('soja')) return '--produto-soja';
+  if (p.includes('milho')) return '--produto-milho';
+  if (p.includes('sorgo')) return '--produto-sorgo';
+  return '--produto-sorgo';
 }
 function processData(rowsArr) {
   const grupos = {};
@@ -467,7 +486,16 @@ function openClientModal(group) {
   html += `<div class="modal-clientes-list">`;
   html += `<h4>Contratos (${group.contratos.length}):</h4>`;
   group.contratos.forEach(c => {
-    html += `<span><strong>Contrato:</strong> ${escapeHtml(c.contrato)} — <strong>Produto:</strong> ${escapeHtml(c.produto)} — <strong>Cidade:</strong> ${escapeHtml(c.cidade)} — <strong>Saldo:</strong> ${formatNumber(c.falta)} KG</span>`;
+    const corVar = getProdutoCor(c.produto);
+    html += `
+      <div class="contrato-item">
+        <span class="contrato-label">Contrato:</span>
+        <span>${escapeHtml(c.contrato)}</span>
+        <span class="produto-tag" style="background-color: var(${corVar});">${escapeHtml(c.produto)}</span>
+        <span>${escapeHtml(c.cidade)}</span>
+        <span>Saldo: ${formatNumber(c.falta)} KG</span>
+      </div>
+    `;
   });
   html += `</div></div>`;
   body.innerHTML = html;
@@ -482,7 +510,17 @@ function openCityModal(group) {
   html += `<div class="modal-clientes-list">`;
   html += `<h4>Contratos (${group.contratos.length}):</h4>`;
   group.contratos.forEach(c => {
-    html += `<span><strong>Contrato:</strong> ${escapeHtml(c.contrato)} — <strong>Cliente:</strong> ${escapeHtml(c.cliente)} — <strong>Produto:</strong> ${escapeHtml(c.produto)} — <strong>Saldo:</strong> ${formatNumber(c.falta)} KG</span>`;
+    const corVar = getProdutoCor(c.produto);
+    html += `
+      <div class="contrato-item">
+        <span class="contrato-label">Contrato:</span>
+        <span>${escapeHtml(c.contrato)}</span>
+        <span class="produto-tag" style="background-color: var(${corVar});">${escapeHtml(c.produto)}</span>
+        <span>${escapeHtml(c.cliente)}</span>
+        <span>${escapeHtml(c.cidade)}</span>
+        <span>Saldo: ${formatNumber(c.falta)} KG</span>
+      </div>
+    `;
   });
   html += `</div></div>`;
   body.innerHTML = html;
