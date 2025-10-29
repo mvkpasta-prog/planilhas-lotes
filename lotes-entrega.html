@@ -82,35 +82,80 @@
   .status-pendente-tag{background-color: var(--status-embarque);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
   .empty{color:var(--muted);font-style:italic;padding:10px;text-align:center;}
   #filterInput {flex-grow:1; min-width:200px; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:14px}
-  .modal-overlay {position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.6); display:none; justify-content:center; align-items:center; z-index:1000}
-  .modal-content {background:var(--card); padding:20px; border-radius:8px; max-width:500px; width:90%; max-height:90vh; overflow-y:auto; position:relative;}
-  .modal-close {position:absolute; top:10px; right:10px; background:none; border:none; font-size:22px; cursor:pointer; color:var(--muted)}
-  .modal-header h3 {margin-top:0; font-size:18px; color:var(--primary); border-bottom:2px solid var(--accent); padding-bottom:8px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;}
-  .modal-body p {margin:5px 0; font-size:14px}
-  .modal-body .info-label {font-weight:600; color:var(--text); display:inline-block; min-width:160px;}
-  .modal-body .info-value {font-weight:400; color:var(--muted);}
-  .modal-clientes-list {margin-top:15px; padding-top:10px; border-top:1px dashed #ddd;}
-  .modal-clientes-list h4 {margin-top:0; margin-bottom:8px; font-size:14px; color:var(--accent);}
-  .modal-clientes-list span {display:block; padding:3px 0; font-size:13px; color:var(--text);}
-  .product-breakdown {display:flex; gap:10px; flex-wrap:wrap; margin-top:8px}
-  .product-chip {padding:6px 10px; border-radius:999px; font-weight:700; font-size:13px; color:#fff; display:inline-block}
-  @media (max-width:1100px){
-    .product-row { grid-template-columns: repeat(2, 1fr); }
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
   }
-  @media (max-width:700px){
-    .status-cards { grid-template-columns: 1fr; }
-    .product-row { grid-template-columns: repeat(2,1fr); }
+  .modal-content {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
   }
-  @media (max-width:480px){
-    .product-row { grid-template-columns: 1fr; }
+  .modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--muted);
   }
-  @media (max-width:600px){
-    body{padding:8px}
-    .cliente-card{min-width:100%; padding:12px}
-    header {flex-direction:column; align-items:flex-start; gap:10px}
-    .header-btn {width:100%; justify-content:center; order:2}
-    .header-title {width:100%; justify-content:space-between}
-    .last-update-top {order:3}
+  .modal-header h3 {
+    margin-top: 0;
+    font-size: 18px;
+    color: var(--primary);
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-body p {
+    margin: 5px 0;
+    font-size: 14px;
+  }
+  .modal-body .info-label {
+    font-weight: 600;
+    color: var(--text);
+    display: inline-block;
+    min-width: 180px;
+  }
+  .modal-body .info-value {
+    font-weight: 400;
+    color: var(--muted);
+  }
+  .modal-clientes-list {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px dashed #ddd;
+  }
+  .modal-clientes-list h4 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: var(--accent);
+  }
+  .modal-clientes-list span {
+    display: block;
+    padding: 3px 0;
+    font-size: 13px;
+    color: var(--text);
   }
   .toggle-btn {
     background: var(--primary);
@@ -133,6 +178,24 @@
     border: 2px solid rgba(255,255,255,0.15);
   }
   .toggle-btn:hover { opacity: 0.95; }
+  @media (max-width:1100px){
+    .product-row { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width:700px){
+    .status-cards { grid-template-columns: 1fr; }
+    .product-row { grid-template-columns: repeat(2,1fr); }
+  }
+  @media (max-width:480px){
+    .product-row { grid-template-columns: 1fr; }
+  }
+  @media (max-width:600px){
+    body{padding:8px}
+    .cliente-card{min-width:100%; padding:12px}
+    header {flex-direction:column; align-items:flex-start; gap:10px}
+    .header-btn {width:100%; justify-content:center; order:2}
+    .header-title {width:100%; justify-content:space-between}
+    .last-update-top {order:3}
+  }
 </style>
 </head>
 <body>
@@ -236,10 +299,7 @@ function escapeHtml(s) {
   if (s===undefined || s===null) return '';
   return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'<','>':'>','"':'&quot;',"'":'&#x2F;'}[c]));
 }
-function escapeForJs(s) {
-  if (s===undefined || s===null) return '';
-  return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r/g,'').replace(/\n/g,'\\n');
-}
+
 function extractContractNumber(raw) {
   if (!raw) return '';
   const s = String(raw).trim();
