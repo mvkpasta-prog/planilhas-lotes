@@ -269,6 +269,14 @@ function extractContractNumber(raw) {
   if (s.includes('-')) return s.split('-')[0].trim();
   return s;
 }
+function extractCidadeFromDestino(texto) {
+  if (!texto) return '';
+  const partes = texto.split(' - ');
+  if (partes.length > 3) {
+    return partes[3].trim();
+  }
+  return '';
+}
 function processData(rowsArr) {
   const grupos = {};
   for (let i = 0; i < rowsArr.length; i++) {
@@ -284,8 +292,8 @@ function processData(rowsArr) {
     const embarcado = parseNumber(row[7]) || 0;
     const falta = parseNumber(row[8]) || 0;
     if (falta <= 0 || !cliente) continue;
-    // ✅ CORREÇÃO: Pegar apenas o que vem ANTES do primeiro "-"
-    let cidade = cidadeCompleta.split('-')[0]?.trim() || cidadeCompleta.trim();
+    // ✅ EXTRAÇÃO CORRETA DA CIDADE
+    let cidade = extractCidadeFromDestino(cidadeCompleta);
     if (!grupos[cliente]) {
       grupos[cliente] = { cliente, cidadeRef: cidade, contratos: [], totalVolume:0, totalEmbarcado:0, totalFalta:0, produtos: new Set() };
     }
@@ -315,8 +323,8 @@ function processDataByCity(rowsArr) {
     const embarcado = parseNumber(row[7]) || 0;
     const falta = parseNumber(row[8]) || 0;
     if (falta <= 0 || !cidadeCompleta) continue;
-    // ✅ CORREÇÃO: Pegar apenas o que vem ANTES do primeiro "-"
-    let cidade = cidadeCompleta.split('-')[0]?.trim() || cidadeCompleta.trim();
+    // ✅ EXTRAÇÃO CORRETA DA CIDADE
+    let cidade = extractCidadeFromDestino(cidadeCompleta);
     if (!grupos[cidade]) {
       grupos[cidade] = { cidade, contratos: [], clientes: new Set(), totalVolume:0, totalEmbarcado:0, totalFalta:0, produtos: new Set() };
     }
