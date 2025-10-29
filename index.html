@@ -9,21 +9,20 @@
   :root{
     --primary:#2563eb; --accent:#0ea5e9; --bg:#f6fbff; --card:#fff; --text:#0f172a;
     --muted:#6b7280; --success:#10b981; --warning:#f59e0b;
-    --status-carregado: #10b981; /* Verde */
-    --status-embarque: #3b82f6; /* Azul */
-    --status-transito: #ef4444; /* Vermelho */
-    --status-contratar: #f97316; /* Laranja */
-    --produto-soja: #10b981; /* Verde para Soja */
-    --produto-milho: #fbbf24; /* Amarelo para Milho */
-    --produto-sorgo: #6b7280; /* Cinza para Sorgo */
-    --produto-total: #8b5cf6; /* Roxo para Total */
+    --status-carregado: #10b981;
+    --status-embarque: #3b82f6;
+    --status-transito: #ef4444;
+    --status-contratar: #f97316;
+    --produto-soja: #10b981;
+    --produto-milho: #fbbf24;
+    --produto-sorgo: #6b7280;
+    --produto-total: #8b5cf6;
   }
   *{box-sizing:border-box}
   body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:12px}
-  /* NOVO: Estilo do Logo MVK como Background/Watermark */
   body::before {
     content: '';
-    position: fixed; /* Fixar no viewport */
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
@@ -31,10 +30,10 @@
     background-image: url('https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png');
     background-repeat: no-repeat;
     background-position: center center;
-    background-size: 80vh; /* Ocupa 80% da altura do viewport */
-    opacity: 0.05; /* Nível de transparência para efeito sutil de marca d'água */
-    z-index: -1; /* Garantir que fique atrás do conteúdo */
-    pointer-events: none; /* Permite interagir com o conteúdo por baixo */
+    background-size: 80vh;
+    opacity: 0.05;
+    z-index: -1;
+    pointer-events: none;
   }
   header{
     background:linear-gradient(90deg,var(--primary),var(--accent));
@@ -48,9 +47,7 @@
     align-items:center;
     justify-content:space-between;
     gap:8px;
-    position: relative;
-    /* Ajuste para alinhar o conteúdo principal do header e o botão */
-    flex-wrap: wrap; 
+    flex-wrap: wrap;
   }
   .header-title {
     display: flex;
@@ -64,31 +61,30 @@
     align-items:center;
     gap: 6px;
   }
-  /* Removido o CSS de animação para o spinner */
-  .updating .last-update-top i{ /* A classe updating não tem mais efeito de rotação */ }
   .wrap{max-width:1400px;margin:0 auto;width:100%}
   .actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px}
   .btn{background:var(--primary);color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px}
   .btn:hover{opacity:.95}
-  /* NOVO: Estilo para o botão no header */
   .header-btn {
-    background: #fff; /* Fundo branco */
-    color: var(--primary); /* Texto na cor primária */
+    background: #fff;
+    color: var(--primary);
     border: none;
-    padding: 6px 10px; /* Um pouco menor que o btn padrão */
+    padding: 6px 10px;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 700;
-    font-size: 13px; /* Fonte ligeiramente menor */
-    text-decoration: none; /* Remover sublinhado do link */
+    font-size: 13px;
+    text-decoration: none;
     transition: background 0.2s ease, opacity 0.2s ease;
-    white-space: nowrap; /* Não quebrar a linha */
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
   .header-btn:hover {
-    background: var(--bg); /* Ligeiro cinza claro no hover */
+    background: var(--bg);
     opacity: 0.95;
   }
-  /* Cards de Status no topo - versão compacta (ligeiramente menores) */
   .status-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
   .status-card{background:var(--card);border-radius:8px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:150px;text-align:center;transition:all 0.3s ease}
   .status-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
@@ -98,9 +94,8 @@
   .status-card-embarque{border-top:3px solid var(--status-embarque);}
   .status-card-transito{border-top:3px solid var(--status-transito);}
   .status-card-contratar{border-top:3px solid var(--status-contratar);}
-  /* Cards de Produtos - versão compacta (ligeiramente menores) */
   .produto-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
-  .produto-card{background:var(--card);border-radius:8px;padding:8px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:140px;text-align:center;transition:all 0.3s ease;border-top:3px solid transparent; cursor: pointer;} /* Adicionado cursor: pointer; */
+  .produto-card{background:var(--card);border-radius:8px;padding:8px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:140px;text-align:center;transition:all 0.3s ease;border-top:3px solid transparent; cursor: pointer;}
   .produto-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
   .produto-card h3{margin:0 0 4px 0;font-size:13px;color:var(--text);font-weight:600}
   .produto-card .count{font-size:18px;font-weight:700;margin:4px 0}
@@ -108,12 +103,11 @@
   .produto-milho{border-top-color: var(--produto-milho);}
   .produto-sorgo{border-top-color: var(--produto-sorgo);}
   .produto-total{border-top-color: var(--produto-total);}
-  /* Seção de Clientes e Destinos */
   .clientes-section{margin-bottom:24px}
   .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px}
   .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all 0.3s ease}
   .cliente-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
-  .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 6px 0} /* AUMENTADO DE 15px para 16px */
+  .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 6px 0}
   .cliente-destino{font-weight:600;color:var(--accent);margin:0 0 10px 0;font-size:13px}
   .cliente-info{display:flex;justify-content:space-between;margin-bottom:6px;align-items:center}
   .info-label{font-weight:600;color:var(--muted);font-size:12px}
@@ -123,7 +117,6 @@
   .status-pendente-tag{background-color: var(--status-embarque);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
   .caminhoes-info{display:flex;gap:8px;margin-top:6px;padding-top:6px;border-top:1px solid #eee}
   .caminhoes-separados{display:flex;gap:6px;align-items:center}
-  /* Títulos expansíveis */
   .section-header{background:linear-gradient(90deg,var(--primary),var(--accent));color:white;padding:12px;border-radius:8px;margin-bottom:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:700;transition:all 0.3s ease;font-size:15px}
   .section-header:hover{opacity:0.95}
   .section-header .toggle-icon{transition:transform 0.3s ease}
@@ -140,7 +133,6 @@
   .status{display:inline-block;padding:5px 9px;border-radius:14px;color:#fff;font-weight:700;font-size:11px}
   .status-aberto{background:var(--warning)}
   .status-fechado{background:var(--success)}
-  /* Estilos para os novos status da programação */
   .status-programacao{display:inline-block;padding:5px 10px;border-radius:14px;color:#fff;font-weight:700;font-size:11px;min-width:90px;text-align:center}
   .status-carregado{background-color: var(--status-carregado);}
   .status-embarque{background-color: var(--status-embarque);}
@@ -160,7 +152,6 @@
     .cliente-card{min-width:100%;padding:12px}
     .status-card{min-width:140px;padding:10px}
     .produto-card{min-width:130px;padding:8px}
-    /* Ajuste para mobile para que o botão e o título do header caibam */
     header {
       flex-direction: column;
       align-items: flex-start;
@@ -171,11 +162,11 @@
       justify-content: space-between;
     }
     .last-update-top {
-      order: 3; /* Move para baixo no mobile */
+      order: 3;
     }
     .header-btn {
-      order: 2; /* Posição intermediária no mobile */
-      width: 100%; /* Ocupa a largura total no mobile */
+      order: 2;
+      width: 100%;
       text-align: center;
     }
   }
@@ -187,13 +178,9 @@
       <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height: 22px; vertical-align: middle; margin-right: 8px;">
       Controle de Lotes — Entregas
     </div>
-    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-      <a href="Retiradas.html" class="header-btn" title="Acessar Lotes de Retirada">
-        📦 Lotes de Retirada
-      </a>
-      <a href="lotes-entrega.html" class="header-btn" title="Acessar Lotes de Entrega">
-        🚚 Lotes de Entrega
-      </a>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <a href="lotes-entregas.html" class="header-btn" title="Acessar Lotes de Entrega"><i class="fas fa-truck"></i> Lotes de Entrega</a>
+      <a href="Retiradas.html" class="header-btn" title="Acessar Lotes de Retirada"><i class="fas fa-box"></i> Lotes de Retirada</a>
     </div>
     <div class="last-update-top" id="lastUpdateTop">
       <i class="fas fa-hourglass-half"></i> <span>Atualizando...</span>
@@ -249,44 +236,31 @@
     </div>
     </div>
 <script>
-/* ====== CONFIG - coloque aqui seu SHEET_ID se mudar ====== */
 const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
 const GIDS = {
-  entrega: '1186247985',    // aba LOTES DE ENTREGA
-  retirada: '1984691910',   // aba LOTES RETIRADA
-  programacao: '1183141602'// aba PROGRAMAÇÃO (mantido o original '1CZZgYJiZic9pyFFTdyldm_gVwn2K-zSGY9uhFJ5Nz6Q' para este GID, mas o SHEET_ID foi alterado)
+  entrega: '1186247985',
+  retirada: '1984691910',
+  programacao: '1183141602'
 };
-// Configuração do intervalo de atualização automática (em milissegundos)
-// 300000 = 5 minutos (5 * 60 * 1000)
 const AUTO_UPDATE_INTERVAL = 300000;
-/* colunas que ficam ocultas em exibição (aparecem em detalhes) - normalizadas */
 const HIDDEN_COLS = ['nfp','royalties','safra'];
-/* colunas removidas (normalizadas) de todas as tabelas */
 const REMOVED_COMMON = ['localizacao','idorigemymvk1'];
-/* colunas removidas especificamente da Programação (normalizadas) */
 const REMOVED_PROGRAMACAO = [
   'observacoes','ordem','notafiscal','dacte','mdfe','conftipocam','agendamento',
   'descarga','comprovantededescarga','horarioprev','classificacaodestino','chaveid',
-  'frete', 'statusagendamento', 'datadedescarga', 'notafiscal' // Adicionadas conforme solicitação
+  'frete', 'statusagendamento', 'datadedescarga', 'notafiscal'
 ];
-/* Variável global para armazenar os totais de produto para o resumo */
 let globalProdutosTotais = { soja: 0, milho: 0, sorgo: 0, total: 0 };
-/* Normaliza cabeçalho: remove acento, espaços e pontuação */
 function normalizeHeader(h){
   if(h === undefined || h === null) return '';
   return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
 }
-/* Normaliza texto: remove acentos — reutilizável para status */
 function normalizeText(text) {
   if(text === undefined || text === null) return '';
   return String(text).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 }
-/* Parse CSV tolerante (trata vírgulas dentro de aspas)
-   Retorna { arrays: [ [col1,col2,...], ... ], headersOrig: [], headersNorm: [], objects: [ {normKey: value}, ... ] }
-*/
 function parseCSV(text){
   if(!text) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
-  // Corrigido: Expressão regular válida para dividir linhas
   const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
   if(lines.length === 0) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
   const parsed = lines.map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g,'').trim()));
@@ -301,7 +275,6 @@ function parseCSV(text){
   });
   return {arrays: parsed, headersOrig, headersNorm, objects};
 }
-/* fetch CSV via gviz - retorna parseCSV result */
 async function fetchSheetByGid(gid){
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`;
   const r = await fetch(url);
@@ -309,18 +282,15 @@ async function fetchSheetByGid(gid){
   const text = await r.text();
   return parseCSV(text);
 }
-/* util: parse number tolerant */
 function parseNumber(val){
   if(val === undefined || val === null) return NaN;
   const s = String(val).replace(/\s/g,'').replace(/\./g,'').replace(/,/g,'.');
   const n = parseFloat(s.replace(/[^\d\.\-]/g,''));
   return isNaN(n) ? NaN : n;
 }
-/* util: parse date only (dd/mm/yyyy ou yyyy-mm-dd) -> Date (00:00:00) or null */
 function parseDateOnly(s){
   if(!s) return null;
   const str = String(s).trim();
-  // dd/mm/yyyy
   if(str.includes('/')){
     const parts = str.split('/');
     if(parts.length >= 3){
@@ -328,7 +298,6 @@ function parseDateOnly(s){
       if(!isNaN(d) && !isNaN(m) && !isNaN(y)) return new Date(y, m-1, d);
     }
   }
-  // yyyy-mm-dd or yyyy/mm/dd
   if(str.includes('-') || (str.includes('/') && str.indexOf('/') === 4)){
     const sep = str.includes('-')? '-' : '/';
     const parts = str.split(sep);
@@ -341,13 +310,11 @@ function parseDateOnly(s){
   if(!isNaN(dt.getTime())) return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
   return null;
 }
-/* encontra header normalizado que contenha um dos padrões */
 function findHeaderKey(headersNorm, patterns){
   for(const p of patterns){
     const f = headersNorm.find(h => h.includes(p));
     if(f) return f;
   }
-  // fallbacks inteligentes
   if(patterns.includes('saldoent')){
     const f = headersNorm.find(h => h.includes('saldo') && (h.includes('ent') || h.includes('entrega') || h.includes('entkg')));
     if(f) return f;
@@ -360,12 +327,10 @@ function findHeaderKey(headersNorm, patterns){
     const f = headersNorm.find(h => h.includes('contrato'));
     if(f) return f;
   }
-  // any saldo
   const f = headersNorm.find(h => h.includes('saldo'));
   if(f) return f;
   return null;
 }
-/* Formata número como moeda brasileira */
 function formatCurrencyBRL(value) {
   if (isNaN(value)) return value;
   return new Intl.NumberFormat('pt-BR', {
@@ -373,11 +338,9 @@ function formatCurrencyBRL(value) {
     currency: 'BRL'
   }).format(value);
 }
-/* Formata o status da programação com cores específicas — CORRIGIDA */
 function formatStatusProgramacao(status) {
   let className = 'status-programacao';
   let text = status;
-  // Normalizar o status para comparação (remover acentos)
   const statusNorm = normalizeText(status);
   if (statusNorm.includes('carregado')) {
     className += ' status-carregado';
@@ -388,25 +351,19 @@ function formatStatusProgramacao(status) {
   } else if (statusNorm.includes('contratar')) {
     className += ' status-contratar';
   } else {
-    // Status padrão (cinza)
     className += ' status-aberto';
   }
   return `<span class="${className}">${escapeHtml(text)}</span>`;
 }
-/* build table HTML: rowsArrays = array of arrays; rowsObjects = array of objects keyed by normalized headers */
 function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts){
-  // opts: {hiddenNorm:[], removedNorm:[], numericKey: 'somenorm', forceColsNorm:[], currencyCols:[], statusCol: ''}
   const hiddenNorm = opts.hiddenNorm || [];
   const removedNorm = opts.removedNorm || [];
   const numericKey = opts.numericKey || '';
   const forceInclude = opts.forceInclude || [];
   const currencyCols = opts.currencyCols || [];
   const statusCol = opts.statusCol || '';
-  // visible columns: headersNorm minus removed
   const visible = headersNorm.filter(h => !removedNorm.includes(h));
-  // display columns exclude hidden
   let displayCols = visible.filter(h => !hiddenNorm.includes(h));
-  // ensure forced columns appear first
   forceInclude.forEach(fc => {
     if(visible.includes(fc) && !displayCols.includes(fc)) displayCols.unshift(fc);
     else if(visible.includes(fc)) displayCols = [fc, ...displayCols.filter(x => x !== fc)];
@@ -414,7 +371,6 @@ function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts)
   if(displayCols.length === 0){
     return '<div class="empty">Sem colunas para exibir.</div>';
   }
-  // construct header titles using originals
   let html = '<table><thead><tr>';
   displayCols.forEach(h => {
     const idx = headersNorm.indexOf(h);
@@ -428,17 +384,14 @@ function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts)
     const n = numericKey ? parseNumber( obj[numericKey] || arr[numericKeyIndex(headersNorm, numericKey)] || '0' ) : NaN;
     html += '<tr>';
     displayCols.forEach(h => {
-      // prefer object value, fallback to array by index if available
       const idx = headersNorm.indexOf(h);
       let value = (obj[h] !== undefined && obj[h] !== '') ? obj[h] : (arr[idx] !== undefined ? arr[idx] : '');
-      // Formatar como moeda se for uma coluna de moeda
       if(currencyCols.includes(h)) {
         const numValue = parseNumber(value);
         if(!isNaN(numValue)) {
           value = formatCurrencyBRL(numValue);
         }
       }
-      // Formatar status da programação
       if(h === statusCol) {
         value = formatStatusProgramacao(value);
         html += `<td>${value}</td>`;
@@ -452,28 +405,24 @@ function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts)
   html += '</tbody></table>';
   return html;
 }
-// helper: get index of normalized key (or -1)
 function numericKeyIndex(headersNorm, key){ return headersNorm.indexOf(key); }
-/* util: helper to escape HTML entities */
 function escapeHtml(s){
   if(s === undefined || s === null) return '';
-  // CORREÇÃO NA RAIZ: A chave para '/' estava faltando, causando a injeção de "undefined".
   return String(s).replace(/[&<>"'\/]/g, c => ({
     '&':'&amp;',
     '<':'<',
     '>':'>',
     '"':'&quot;',
     "'":'&#39;',
-    '/':'&#x2F;' // CORREÇÃO PRINCIPAL
+    '/':'&#x2F;'
   }[c]));
 }
-/* Contar status da programação — CORRIGIDA */
 function countStatusProgramacao(rowsObjects, statusCol) {
   let carregado = 0, embarque = 0, transito = 0, contratar = 0;
   if(!statusCol) return {carregado, embarque, transito, contratar};
   rowsObjects.forEach(obj => {
     const status = obj[statusCol] || '';
-    const statusNorm = normalizeText(status); // Normaliza removendo acentos
+    const statusNorm = normalizeText(status);
     if (statusNorm.includes('carregado')) {
       carregado++;
     } else if (statusNorm.includes('embarque') || statusNorm.includes('no embarque')) {
@@ -486,28 +435,20 @@ function countStatusProgramacao(rowsObjects, statusCol) {
   });
   return {carregado, embarque, transito, contratar};
 }
-/* Extrair produto do texto (última parte após o último traço) */
 function extractProduto(text) {
   if(!text) return '';
-  // Dividir por traços e pegar a última parte
   const parts = text.split('-');
   if(parts.length === 0) return '';
-  // Pegar a última parte e remover espaços
   let produto = parts[parts.length - 1].trim().toLowerCase();
-  // Remover possíveis números ou caracteres especiais no final
   produto = produto.replace(/[0-9\.\,\(\)\[\]]/g, '').trim();
   return produto;
 }
-/* NOVA FUNÇÃO: Extrair informações do contrato da coluna C (INFORMAÇÕES DO DESTINO) */
 function extractContratoInfo(text) {
   if(!text || text.trim() === '') return {contrato: '', cliente: '', destino: '', produto: '', isValid: false};
   const parts = text.split(' - ').map(part => part.trim());
-  // Verificar se temos pelo menos 6 partes: contrato, cliente, cliente (repetido), destino, estado, produto
   if(parts.length < 6) {
-    // fallback: tentar extrair contrato do primeiro trecho antes do primeiro traço
     const first = text.split('-')[0] ? text.split('-')[0].trim() : '';
     const contratoFallback = first.replace(/\D/g,'');
-    // tentar extrair cliente/destino de forma simples
     const cliente = parts[1] || '';
     const destino = parts[3] || '';
     const produto = parts.slice(5).join(' - ').trim().toUpperCase() || (parts[parts.length-1]||'').toUpperCase();
@@ -520,11 +461,9 @@ function extractContratoInfo(text) {
       isValid: isValidFallback
     };
   }
-  // Seguir exatamente o padrão fornecido:
-  // 0: contrato, 1: cliente, 2: cliente (repetido - ignorar), 3: destino, 4: estado (ignorar), 5+: produto
-  const contrato = parts[0].replace(/\D/g, ''); // Apenas números
-  const cliente = parts[1]; // Segunda parte (após o primeiro traço)
-  const destino = parts[3]; // Quarta parte (após o terceiro traço)
+  const contrato = parts[0].replace(/\D/g, '');
+  const cliente = parts[1];
+  const destino = parts[3];
   const produtoParts = parts.slice(5);
   let produto = produtoParts.join(' - ').trim().toUpperCase();
   if(!produto) {
@@ -539,32 +478,24 @@ function extractContratoInfo(text) {
     isValid: isValid
   };
 }
-/* Calcular totais por produto - ADICIONADA DE VOLTA */
 function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, destinoColIndex) {
   let soja = 0, milho = 0, sorgo = 0;
-  // A programação usa rowsArrays: rowsArrProgFiltered
   rowsObjects.forEach(arr => {
-    // Verificar se tem informações na coluna C (destino) - índice 2
     let destinoText = '';
     if(destinoColIndex !== -1) {
       if(Array.isArray(arr) && arr[destinoColIndex] !== undefined) {
         destinoText = arr[destinoColIndex];
       }
     }
-    // Extrair informações do destino usando a nova função
     const {isValid} = extractContratoInfo(destinoText);
-    // Só considerar se tiver informações válidas de destino
     if(!isValid) return;
-    // Pegar o valor da coluna de produto (coluna B - índice 1)
     let produtoText = '';
     if(produtoColIndex !== -1) {
       if(Array.isArray(arr) && arr[produtoColIndex] !== undefined) {
         produtoText = arr[produtoColIndex];
       }
     }
-    // Extrair o produto
     const produto = extractProduto(produtoText);
-    // Pegar o peso (coluna J - índice 9)
     let pesoText = '';
     if(pesoColIndex !== -1) {
       if(Array.isArray(arr) && arr[pesoColIndex] !== undefined) {
@@ -573,7 +504,6 @@ function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, des
     }
     const peso = parseNumber(pesoText);
     if(isNaN(peso)) return;
-    // Somar ao produto correspondente
     if(produto.includes('soja')) {
       soja += peso;
     } else if(produto.includes('milho')) {
@@ -584,7 +514,6 @@ function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, des
   });
   return {soja, milho, sorgo};
 }
-/* Atualizar o texto da última atualização (no topo) */
 function updateLastUpdateTime() {
   const now = new Date();
   const timeString = now.toLocaleTimeString('pt-BR');
@@ -594,54 +523,42 @@ function updateLastUpdateTime() {
     <span>Última atualização: ${timeString} - ${dateString}</span>
   `;
 }
-/* Formata número com separadores de milhar */
 function formatNumber(value) {
   if(isNaN(value)) return '0';
   return new Intl.NumberFormat('pt-BR').format(Math.round(value));
 }
-/* NOVA FUNÇÃO: Extrair peso da coluna I (ex: "LS - 6 EIXOS - 32 TON") */
 function extractWeightFromColumnI(text) {
   if(!text || text.trim() === '') return 0;
-  // Dividir por traços e pegar a última parte
   const parts = text.split('-');
   if(parts.length === 0) return 0;
-  // Pegar a última parte
   let lastPart = parts[parts.length - 1].trim();
-  // Extrair o número da última parte (antes de "TON" ou qualquer outra unidade)
   const match = lastPart.match(/(\d+)/);
   if(match && match[1]) {
     const tons = parseInt(match[1], 10);
-    // Converter para KG (1 ton = 1000 kg)
     return tons * 1000;
   }
   return 0;
 }
-/* Gerar HTML para os cards de clientes (agora por contrato) - ATUALIZADA PARA INCLUIR VALOR MÉDIO DO FRETE */
 function buildClientesHTML(clientes) {
   if(clientes.length === 0) {
     return '<div class="empty">Nenhum contrato encontrado para hoje.</div>';
   }
   let html = '';
   clientes.forEach(cliente => {
-    // Definir cor do produto
-    let corProduto = '#6b7280'; // Cinza padrão
+    let corProduto = '#6b7280';
     const produtoUp = (cliente.produto || '').toUpperCase();
     if(produtoUp.includes('SOJA')) {
-      corProduto = '#10b981'; // Verde para Soja
+      corProduto = '#10b981';
     } else if(produtoUp.includes('MILHO')) {
-      corProduto = '#fbbf24'; // Amarelo para Milho
+      corProduto = '#fbbf24';
     } else if(produtoUp.includes('SORGO')) {
-      corProduto = '#6b7280'; // Cinza para Sorgo
+      corProduto = '#6b7280';
     }
-    // Calcular o saldo ajustado (subtrair peso de veículos em trânsito/embarque)
     let saldoEntregaAjustado = cliente.saldoEntrega || 0;
     if(cliente.pesoEmTransitoEmbarque && !isNaN(cliente.pesoEmTransitoEmbarque)) {
       saldoEntregaAjustado -= cliente.pesoEmTransitoEmbarque;
-      // Permitir saldo negativo
     }
-    // Formatar saldo de entrega ajustado (pode ser negativo)
     const saldoEntregaDisplay = !isNaN(saldoEntregaAjustado) ? `${formatNumber(saldoEntregaAjustado)} KG` : '0 KG';
-    // Formatar valor médio do frete
     const valorMedioFrete = !isNaN(cliente.valorMedioFrete) ? formatCurrencyBRL(cliente.valorMedioFrete) : 'N/A';
     html += `
       <div class="cliente-card">
@@ -675,19 +592,14 @@ function buildClientesHTML(clientes) {
   });
   return html;
 }
-/* Atualizar o resumo de clientes - REMOVIDO conforme solicitação */
-function updateClientesSummary(clientes) {
-  // Função intencionalmente deixada vazia - não exibimos mais o resumo
-}
-/* --- FUNÇÃO QUE AGRUPA POR CONTRATO --- */
+function updateClientesSummary(clientes) {}
 async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusColIndex, freteColIndex, transportadoraColIndex, includeFutureDates = false) {
   const grupos = {};
-  // Se includeFutureDates for false, filtramos apenas por data de hoje
   let rowsToProcess = rowsProg;
   if (!includeFutureDates) {
     const today = new Date();
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
-    const dateIndexProg = 0; // assumindo que a data está na primeira coluna
+    const dateIndexProg = 0;
     rowsToProcess = rowsProg.filter(arr => {
       let dtVal = '';
       if(arr && arr[dateIndexProg] !== undefined) dtVal = arr[dateIndexProg];
@@ -695,34 +607,27 @@ async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusC
       return dt && dt.getTime() === todayStart;
     });
   }
-  // Processar cada linha
   rowsToProcess.forEach(arr => {
-    // Extrair informações da coluna C (índice fornecido)
     let destinoText = '';
     if(destinoColIndex !== -1) {
       if(Array.isArray(arr) && arr[destinoColIndex] !== undefined) {
         destinoText = arr[destinoColIndex];
       }
     }
-    // Usar a função para extrair contrato, cliente, destino e produto
     const {contrato, cliente, destino, produto, isValid} = extractContratoInfo(destinoText);
-    // Só processar se tivermos um contrato válido
     if(!isValid || !contrato) return;
     const key = `contrato_${contrato}`;
-    // Pegar peso real da coluna J (índice 9)
     let pesoRealText = '';
     if(Array.isArray(arr) && arr[9] !== undefined) {
       pesoRealText = arr[9];
     }
     const pesoReal = parseNumber(pesoRealText) || 0;
-    // Pegar placa da coluna H (índice 7)
     let placa = '';
     if(placaColIndex !== -1) {
       if(Array.isArray(arr) && arr[placaColIndex] !== undefined) {
         placa = arr[placaColIndex];
       }
     }
-    // Pegar status da coluna STATUS (statusColIndex)
     let status = '';
     if(statusColIndex !== -1) {
       if(Array.isArray(arr) && arr[statusColIndex] !== undefined) {
@@ -733,7 +638,6 @@ async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusC
     const isCarregado = statusNorm.includes('carregado');
     const isEmbarque = statusNorm.includes('embarque') || statusNorm.includes('no embarque');
     const isTransito = statusNorm.includes('transito') || statusNorm.includes('em transito');
-    // Inicializar grupo se não existir
     if(!grupos[key]) {
       grupos[key] = {
         contrato: contrato,
@@ -747,17 +651,15 @@ async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusC
         placasCarregadas: new Set(),
         placasPendentes: new Set(),
         count: 0,
-        pesoEmTransitoEmbarque: 0, // Novo campo para armazenar peso em trânsito/embarque
-        valoresFrete: [], // Array para armazenar os valores de frete para cálculo da média
-        valorMedioFrete: 0 // Valor médio do frete
+        pesoEmTransitoEmbarque: 0,
+        valoresFrete: [],
+        valorMedioFrete: 0
       };
     }
-    // Atualizar valores gerais
     grupos[key].totalPeso += pesoReal;
     if(placa && placa.trim() !== '') {
       grupos[key].placas.add(placa.trim());
     }
-    // Separar por status
     if(isCarregado) {
       grupos[key].totalPesoCarregado += pesoReal;
       if(placa && placa.trim() !== '') {
@@ -770,16 +672,14 @@ async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusC
       }
     }
     grupos[key].count++;
-    // Se estiver em trânsito ou no embarque, extrair peso da coluna I e somar
     if(isEmbarque || isTransito) {
       let textoColunaI = '';
-      if(Array.isArray(arr) && arr[8] !== undefined) { // Coluna I = índice 8
+      if(Array.isArray(arr) && arr[8] !== undefined) {
         textoColunaI = arr[8];
       }
       const pesoExtraido = extractWeightFromColumnI(textoColunaI);
       grupos[key].pesoEmTransitoEmbarque += pesoExtraido;
     }
-    // Extrair e calcular valor do frete da coluna E (índice 4) - AGORA COM VERIFICAÇÃO DE TRANSPORTADORA
     if(freteColIndex !== -1 && transportadoraColIndex !== -1) {
       let freteText = '';
       let transportadoraText = '';
@@ -790,15 +690,10 @@ async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusC
         transportadoraText = arr[transportadoraColIndex];
       }
       const freteValue = parseNumber(freteText);
-      // Ajuste: Só processa frete se ele for um número válido e a transportadora não for MVK.
-      // E também só se a transportadora não estiver vazia.
       if(!isNaN(freteValue) && freteValue > 0) {
         let freteReal = freteValue;
-        // Verificar se a transportadora NÃO é MVK (case-insensitive e não vazia)
         const isMVK = normalizeText(transportadoraText).includes('mvk');
         const isTransportadoraEmpty = transportadoraText.trim() === '';
-        // Aplicar o cálculo (/0.92) apenas se NÃO for MVK e o campo estiver preenchido
-        // O valor 0.92 é usado para encontrar o valor do frete antes da dedução de 8% de impostos.
         if(!isMVK && !isTransportadoraEmpty) {
           freteReal = freteValue / 0.92;
         }
@@ -806,9 +701,7 @@ async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusC
       }
     }
   });
-  // Converter para array e formatar
   return Object.values(grupos).map(grupo => {
-    // Calcular valor médio do frete
     let valorMedioFrete = 0;
     if(grupo.valoresFrete.length > 0) {
       const somaFrete = grupo.valoresFrete.reduce((acc, val) => acc + val, 0);
@@ -825,12 +718,11 @@ async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusC
       placas: Array.from(grupo.placas),
       placasCarregadas: Array.from(grupo.placasCarregadas),
       placasPendentes: Array.from(grupo.placasPendentes),
-      pesoEmTransitoEmbarque: Math.round(grupo.pesoEmTransitoEmbarque), // Arredondar para exibição
-      valorMedioFrete: valorMedioFrete // Adicionar valor médio do frete
+      pesoEmTransitoEmbarque: Math.round(grupo.pesoEmTransitoEmbarque),
+      valorMedioFrete: valorMedioFrete
     };
-  }).sort((a, b) => b.totalPeso - a.totalPeso); // Ordenar por peso total decrescente
+  }).sort((a, b) => b.totalPeso - a.totalPeso);
 }
-/* --- NOVO: Função para obter a saudação correta --- */
 function getSaudacao() {
   const hora = new Date().getHours();
   if (hora >= 5 && hora < 12) {
@@ -841,24 +733,20 @@ function getSaudacao() {
     return 'Boa noite';
   }
 }
-/* --- FUNÇÃO ATUALIZADA: Função para formatar a mensagem de resumo --- */
 function formatResumoMessage(soja, milho, sorgo, total) {
   const saudacao = getSaudacao();
   const sojaKg = formatNumber(soja);
   const milhoKg = formatNumber(milho);
   const sorgoKg = formatNumber(sorgo);
   const totalKg = formatNumber(total);
-  // Ícones condicionais: só aparecem se o peso for > 0
   const icones = [];
   if (soja > 0) icones.push('🌱');
   if (milho > 0) icones.push('🌽');
   if (sorgo > 0) icones.push('🌾');
   const iconesLine = icones.join(' ');
-  // Linhas condicionais
   const sojaLine = `Soja: ${sojaKg} kg`;
   const milhoLine = `Milho: ${milhoKg} kg`;
   const sorgoLine = sorgo > 0 ? `Sorgo: ${sorgoKg} kg` : '';
-  // Construir a mensagem final
   let message = `${saudacao}
 Embarque encerrado ${iconesLine}
 `;
@@ -872,56 +760,43 @@ Embarque encerrado ${iconesLine}
   }
   message += `Total embarcado: ${totalKg} kg
 Bom descanso a todos 🙌🏻🙏🏻`;
-  // Remover a quebra de linha extra se sorgoLine for vazio
   return message.trim();
 }
-/* --- NOVO: Handler para o clique no card de total embarcado --- */
 function handleTotalCardClick() {
   const { soja, milho, sorgo, total } = globalProdutosTotais;
   const message = formatResumoMessage(soja, milho, sorgo, total);
-  // Tenta copiar para a área de transferência
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(message).then(() => {
-      // Usar a mensagem formatada para exibição no alert também
       alert(`Mensagem copiada para a área de transferência:
 ${message}`);
     }).catch(err => {
-      // Falha na cópia, exibe no alert para cópia manual
       console.error('Falha ao copiar:', err);
       alert(`Falha ao copiar. Copie a mensagem manualmente:
 ${message}`);
     });
   } else {
-    // navigator.clipboard não disponível, exibe no alert para cópia manual
     alert(`Copie a mensagem manualmente:
 ${message}`);
   }
 }
-/* --- Main load function --- */
 async function loadAll(isAutoUpdate = false){
   try{
     if(isAutoUpdate) {
-      // NOVO: Adicionar o ícone de ampulheta (loading) no início da atualização
       document.getElementById('lastUpdateTop').innerHTML = `
         <i class="fas fa-hourglass-half" style="color: rgba(255,255,255,0.9);"></i>
         <span>Atualizando...</span>
       `;
       document.body.classList.add('updating');
     }
-    // ===== PROGRAMAÇÃO (agora em primeiro lugar) =====
     const prog = await fetchSheetByGid(GIDS.programacao);
     const rowsArrProg = prog.arrays;
     const headersOrigProg = prog.headersOrig;
     const headersNormProg = prog.headersNorm;
     const objsProg = prog.objects;
-    // Encontrar a coluna "STATUS"
     const statusKey = headersNormProg.find(h => h.includes('status') && !h.includes('agendamento')) || null;
     const statusIndex = headersNormProg.indexOf(statusKey);
-    // Encontrar a coluna de frete (coluna E - índice 4)
-    const freteIndex = 4; // Coluna E = índice 4
-    // Encontrar a coluna de transportadora (coluna F - índice 5)
-    const transportadoraIndex = 5; // Coluna F = índice 5
-    // find date key (fallback index 0)
+    const freteIndex = 4;
+    const transportadoraIndex = 5;
     const dateKeyProg = findHeaderKey(headersNormProg, ['data','dataprogramacao','dataprog','dataentrega']) || headersNormProg[0] || null;
     const dateIndexProg = 0;
     const today = new Date(); const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
@@ -930,7 +805,6 @@ async function loadAll(isAutoUpdate = false){
     for(let i=0;i<rowsArrProg.length;i++){
       const arr = rowsArrProg[i];
       const obj = objsProg[i] || {};
-      // get date
       let dtVal = '';
       if(dateKeyProg && obj[dateKeyProg]) dtVal = obj[dateKeyProg];
       else if(arr[dateIndexProg] !== undefined) dtVal = arr[dateIndexProg];
@@ -940,42 +814,33 @@ async function loadAll(isAutoUpdate = false){
         rowsObjProgFiltered.push(obj);
       }
     }
-    // ===== LOTES DE ENTREGA: buscar e construir mapa de saldo por contrato (MESMO QUE NÃO EXIBIDO) =====
     const ent = await fetchSheetByGid(GIDS.entrega);
     const rowsArrEnt = ent.arrays;
     const headersOrigEnt = ent.headersOrig;
     const headersNormEnt = ent.headersNorm;
     const objsEnt = ent.objects;
-    // detect keys úteis
     const infoDestinoKey = headersNormEnt.find(h => h.includes('informacoesdestino') || h.includes('informacaodestino') || h.includes('destino'));
     const saldoKeyEnt = findHeaderKey(headersNormEnt, ['saldoent','saldoentrega','saldoentkg']) || null;
-    const saldoIndexEnt = 8; // coluna I -> índice 8 (fallback)
+    const saldoIndexEnt = 8;
     const existingContratoKeys = headersNormEnt.filter(h => h.includes('contrato') || h.includes('ncontrato') || h.includes('numerocontrato'));
-    // Mapa de saldo por contrato (normalizando o contrato para somente dígitos)
     const saldoPorContrato = {};
     for(let i=0;i<rowsArrEnt.length;i++){
       const arr = rowsArrEnt[i] || [];
       const obj = objsEnt[i] || {};
-      // extrair contrato preferencialmente da coluna B (arr[1]) ou da infoDestinoKey
       let contratoRaw = '';
       if(infoDestinoKey && obj[infoDestinoKey]) {
-        // tentar obter a parte antes do primeiro traço
         contratoRaw = String(obj[infoDestinoKey]).split('-')[0].trim();
       } else if(arr[1] !== undefined && String(arr[1]).trim() !== '') {
         contratoRaw = String(arr[1]).trim();
       } else {
-        // fallback: qualquer coluna de contrato existente no header
         for(const k of existingContratoKeys) {
           if(obj[k]) { contratoRaw = String(obj[k]).trim(); break; }
         }
       }
-      // normalizar para somente dígitos (mesma lógica do extractContratoInfo)
       let contratoNorm = String(contratoRaw || '').replace(/\D/g,'').trim();
       if(!contratoNorm) {
-        // se não houver dígitos, usar o raw como fallback (sem espaços)
         contratoNorm = String(contratoRaw || '').trim();
       }
-      // pegar saldo preferencialmente pelo header encontrado, senão pela posição
       let saldoVal = '';
       if(saldoKeyEnt && obj[saldoKeyEnt] !== undefined && obj[saldoKeyEnt] !== '') saldoVal = obj[saldoKeyEnt];
       else if(arr[saldoIndexEnt] !== undefined) saldoVal = arr[saldoIndexEnt];
@@ -984,54 +849,35 @@ async function loadAll(isAutoUpdate = false){
         saldoPorContrato[contratoNorm] = (saldoPorContrato[contratoNorm]||0) + n;
       }
     }
-    // ===== LOTES DE RETIRADA (MESMO QUE NÃO EXIBIDO) =====
     const ret = await fetchSheetByGid(GIDS.retirada);
-    // O restante do processamento de Lotes de Entrega e Retirada foi removido/mantido no backend para evitar erros de dependência.
-    // ...
-    // ===== CONTADORES E TABELA DE PROGRAMAÇÃO =====
-    // Contar status para os cards (aqui usamos os objetos filtrados)
     const statusCounts = countStatusProgramacao(rowsObjProgFiltered, statusKey);
     document.getElementById('count-carregado').textContent = statusCounts.carregado;
     document.getElementById('count-embarque').textContent = statusCounts.embarque;
     document.getElementById('count-transito').textContent = statusCounts.transito;
     document.getElementById('count-contratar').textContent = statusCounts.contratar;
-    // Calcular totais por produto (coluna B = índice 1, coluna J = índice 9, coluna C = índice 2)
     const produtosTotais = calculateProdutosTotais(rowsArrProgFiltered, 1, 9, 2);
-    // Armazenar no objeto global para a funcionalidade de clique
     globalProdutosTotais.soja = produtosTotais.soja;
     globalProdutosTotais.milho = produtosTotais.milho;
     globalProdutosTotais.sorgo = produtosTotais.sorgo;
-    // Calcular e exibir TOTAL EMBARCADO
     const totalEmbarcado = produtosTotais.soja + produtosTotais.milho + produtosTotais.sorgo;
-    globalProdutosTotais.total = totalEmbarcado; // Armazenar o total
-    // Atualizar cards de produto com "KG" ao lado
+    globalProdutosTotais.total = totalEmbarcado;
     document.getElementById('count-soja').textContent = `${formatNumber(produtosTotais.soja)} KG`;
     document.getElementById('count-milho').textContent = `${formatNumber(produtosTotais.milho)} KG`;
     document.getElementById('count-sorgo').textContent = `${formatNumber(produtosTotais.sorgo)} KG`;
     document.getElementById('count-total').textContent = `${formatNumber(totalEmbarcado)} KG`;
-    // Agrupar por contrato (usa rowsArrProgFiltered) - agora passando o índice da coluna de frete (4) e transportadora (5)
-    // Primeiro: calcular peso em trânsito/embarque considerando TODAS as datas
     const clientesComPesoFuturo = await groupByContract(rowsArrProg, 2, 7, statusIndex, freteIndex, transportadoraIndex, true);
-    // Segundo: agrupar apenas para hoje (para exibição)
     const clientesParaHoje = await groupByContract(rowsArrProgFiltered, 2, 7, statusIndex, freteIndex, transportadoraIndex, false);
-    // --- AQUI: AMARRAR O SALDO DA ABA ENTREGA AO CONTRATO DOS CARDS ---
-    // Note: groupByContract cria cliente.contrato já apenas com dígitos (mesma normalização)
     clientesParaHoje.forEach(c => {
-      // normalizar chave tal qual fizemos ao criar saldoPorContrato
       const key = String(c.contrato || '').replace(/\D/g,'').trim() || String(c.contrato||'').trim();
       c.saldoEntrega = saldoPorContrato[key] || 0;
-      // Buscar o peso em trânsito/embarque calculado com todas as datas
       const clienteFuturo = clientesComPesoFuturo.find(cf => cf.contrato === c.contrato);
       if(clienteFuturo) {
         c.pesoEmTransitoEmbarque = clienteFuturo.pesoEmTransitoEmbarque || 0;
       }
     });
-    // Atualizar DOM: cards e resumo
     document.getElementById('clientesContainer').innerHTML = buildClientesHTML(clientesParaHoje);
-    updateClientesSummary(clientesParaHoje); // Esta função está vazia agora
-    // Build programacao table: remove removedProg columns, format status and currency
+    updateClientesSummary(clientesParaHoje);
     let removedProg = [...REMOVED_COMMON.map(normalizeHeader), ...REMOVED_PROGRAMACAO.map(normalizeHeader)];
-    // Se tivermos colunas suficientes, remover a penúltima
     if(headersNormProg.length > 1) {
       const visibleCols = headersNormProg.filter(h => !removedProg.includes(h));
       if(visibleCols.length > 1) {
@@ -1047,19 +893,14 @@ async function loadAll(isAutoUpdate = false){
       currencyCols: freteEmpresaKey ? [freteEmpresaKey] : [],
       statusCol: statusKey
     });
-    // Inserir tabelas nas seções
     document.getElementById('programacaoContent').innerHTML = tableProgHTML || '<div class="empty">Nenhuma programação para hoje.</div>';
-    // O conteúdo de Entrega e Retirada NÃO SÃO MAIS INSERIDOS NO DOM
-    // Inicialmente colapsar todas as seções
     document.getElementById('content-programacao').classList.add('collapsed');
     document.getElementById('toggle-programacao').classList.add('collapsed');
-    // Atualizar o texto da última atualização
     updateLastUpdateTime();
     document.body.classList.remove('updating');
   }
   catch(err){
     console.error('Erro loadAll:', err);
-    // Mensagens de erro atualizadas para refletir apenas a seção de Programação e Contratos
     document.getElementById('programacaoContent').innerHTML = '<div class="empty">Erro ao carregar dados da Programação (ver console).</div>';
     document.getElementById('clientesContainer').innerHTML = '<div class="empty">Erro ao carregar dados dos contratos (ver console).</div>';
     document.getElementById('lastUpdateTop').innerHTML = `
@@ -1069,17 +910,7 @@ async function loadAll(isAutoUpdate = false){
     document.body.classList.remove('updating');
   }
 }
-/* Toggle sections */
 function setupToggleHandlers() {
-  // REMOVIDO: Handlers de toggle para Entrega e Retirada
-  /*
-  document.getElementById('toggle-entrega').addEventListener('click', function() {
-    toggleSection('entrega');
-  });
-  document.getElementById('toggle-retirada').addEventListener('click', function() {
-    toggleSection('retirada');
-  });
-  */
   document.getElementById('toggle-programacao').addEventListener('click', function() {
     toggleSection('programacao');
   });
@@ -1096,12 +927,9 @@ function toggleSection(sectionId) {
     header.classList.add('collapsed');
   }
 }
-/* Configurar atualização automática */
 let autoUpdateInterval;
 function startAutoUpdate() {
-  // Executar imediatamente ao carregar
   loadAll(true);
-  // Configurar intervalo para atualizações subsequentes (5 minutos)
   autoUpdateInterval = setInterval(() => {
     loadAll(true);
   }, AUTO_UPDATE_INTERVAL);
@@ -1112,20 +940,15 @@ function stopAutoUpdate() {
     autoUpdateInterval = null;
   }
 }
-/* init */
-// Setup toggle handlers and start auto update after DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
   setupToggleHandlers();
-  // NOVO: Adicionar handler de clique ao card "TOTAL EMBARCADO"
   document.getElementById('card-total-embarcado').addEventListener('click', handleTotalCardClick);
   startAutoUpdate();
-  // Adicionar evento de visibilidade para pausar/recuperar atualizações
   document.addEventListener('visibilitychange', function() {
     if(document.hidden) {
       console.log('Página oculta - pausando atualizações automáticas');
     } else {
       console.log('Página visível - retomando atualizações automáticas');
-      // Atualizar imediatamente quando a página volta a ficar visível
       loadAll(true);
     }
   });
