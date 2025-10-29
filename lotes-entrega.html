@@ -112,6 +112,7 @@
     display: flex;
     justify-content: space-between;
     margin-top: 4px;
+    font-size: 13px;
   }
   .contrato-linha:first-child {margin-top: 0;}
   .toggle-btn {
@@ -256,16 +257,6 @@ function escapeHtml(s) {
   if (s===undefined || s===null) return '';
   return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'<','>':'>','"':'&quot;',"'":'&#x2F;'}[c]));
 }
-function escapeForJs(s) {
-  if (s===undefined || s===null) return '';
-  return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r/g,'').replace(/\n/g,'\\n');
-}
-function extractContractNumber(raw) {
-  if (!raw) return '';
-  const s = String(raw).trim();
-  if (s.includes('-')) return s.split('-')[0].trim();
-  return s;
-}
 function getProdutoCorClasse(produto) {
   const p = (produto || '').toLowerCase();
   if (p.includes('soja')) return 'var(--produto-soja)';
@@ -335,6 +326,12 @@ function processDataByCity(rowsArr) {
     grupos[cidade].totalFalta += falta;
   }
   return Object.values(grupos).sort((a,b) => b.totalFalta - a.totalFalta);
+}
+function extractContractNumber(raw) {
+  if (!raw) return '';
+  const s = String(raw).trim();
+  if (s.includes('-')) return s.split('-')[0].trim();
+  return s;
 }
 function renderClientCards(data, filter = '') {
   const container = document.getElementById('clientesContainer');
@@ -437,10 +434,16 @@ function openClientModal(group) {
   let html = `<div class="modal-header"><h3>${escapeHtml(group.cliente)}</h3></div>`;
   html += `<div class="modal-body">`;
   html += `<p><span class="info-label">Cidade (ref):</span> <span class="info-value">${escapeHtml(group.cidadeRef)}</span></p>`;
+  html += `<p><span class="info-label">Volume total:</span> <span class="info-value">${formatNumber(group.totalVolume)} KG</span></p>`;
+  if (group.contratos[0]?.safra) {
+    const safraUnica = new Set(group.contratos.map(c => c.safra)).size === 1 ? group.contratos[0].safra : 'Múltiplas';
+    html += `<p><span class="info-label">Safra:</span> <span class="info-value">${escapeHtml(safraUnica)}</span></p>`;
+  }
   html += `<p><span class="info-label">Saldo total (kg):</span> <span class="info-value">${formatNumber(group.totalFalta)} KG</span></p>`;
   html += `<div class="modal-clientes-list">`;
   html += `<h4>Contratos (${group.contratos.length}):</h4>`;
   group.contratos.forEach(c => {
+    const corVar = getProdutoCorClasse(c.produto);
     html += `
       <div class="contrato-item">
         <div class="contrato-linha">
@@ -449,12 +452,17 @@ function openClientModal(group) {
         </div>
         <div class="contrato-linha">
           <strong>Produto:</strong>
-          <span>${escapeHtml(c.produto)}</span>
+          <span class="produto-tag" style="background-color:${corVar}; color:white; padding:2px 6px; border-radius:4px; font-weight:600;">${escapeHtml(c.produto)}</span>
         </div>
         <div class="contrato-linha">
           <strong>Cidade:</strong>
           <span>${escapeHtml(c.cidade)}</span>
         </div>
+        <div class="contrato-linha">
+          <strong>Volume:</strong>
+          <span>${formatNumber(c.volume)} KG</span>
+        </div>
+        ${c.safra ? `<div class="contrato-linha"><strong>Safra:</strong> <span>${escapeHtml(c.safra)}</span></div>` : ''}
         <div class="contrato-linha">
           <strong>Saldo:</strong>
           <span>${formatNumber(c.falta)} KG</span>
@@ -471,10 +479,16 @@ function openCityModal(group) {
   let html = `<div class="modal-header"><h3>${escapeHtml(group.cidade)}</h3></div>`;
   html += `<div class="modal-body">`;
   html += `<p><span class="info-label">Clientes:</span> <span class="info-value">${Array.from(group.clientes).join(', ')}</span></p>`;
+  html += `<p><span class="info-label">Volume total:</span> <span class="info-value">${formatNumber(group.totalVolume)} KG</span></p>`;
+  if (group.contratos[0]?.safra) {
+    const safraUnica = new Set(group.contratos.map(c => c.safra)).size === 1 ? group.contratos[0].safra : 'Múltiplas';
+    html += `<p><span class="info-label">Safra:</span> <span class="info-value">${escapeHtml(safraUnica)}</span></p>`;
+  }
   html += `<p><span class="info-label">Saldo total (kg):</span> <span class="info-value">${formatNumber(group.totalFalta)} KG</span></p>`;
   html += `<div class="modal-clientes-list">`;
   html += `<h4>Contratos (${group.contratos.length}):</h4>`;
   group.contratos.forEach(c => {
+    const corVar = getProdutoCorClasse(c.produto);
     html += `
       <div class="contrato-item">
         <div class="contrato-linha">
@@ -487,12 +501,17 @@ function openCityModal(group) {
         </div>
         <div class="contrato-linha">
           <strong>Produto:</strong>
-          <span>${escapeHtml(c.produto)}</span>
+          <span class="produto-tag" style="background-color:${corVar}; color:white; padding:2px 6px; border-radius:4px; font-weight:600;">${escapeHtml(c.produto)}</span>
         </div>
         <div class="contrato-linha">
           <strong>Cidade:</strong>
           <span>${escapeHtml(c.cidade)}</span>
         </div>
+        <div class="contrato-linha">
+          <strong>Volume:</strong>
+          <span>${formatNumber(c.volume)} KG</span>
+        </div>
+        ${c.safra ? `<div class="contrato-linha"><strong>Safra:</strong> <span>${escapeHtml(c.safra)}</span></div>` : ''}
         <div class="contrato-linha">
           <strong>Saldo:</strong>
           <span>${formatNumber(c.falta)} KG</span>
