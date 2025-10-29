@@ -75,100 +75,45 @@
   .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all .3s; cursor:pointer;}
   .cliente-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
   .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 6px 0}
+  .cliente-destino{font-weight:600;color:var(--accent);margin:0 0 10px 0;font-size:13px}
   .cliente-info{display:flex;justify-content:space-between;margin-bottom:6px;align-items:center}
   .info-label{font-weight:600;color:var(--muted);font-size:12px}
   .info-value{font-weight:700;font-size:13px}
-  .cliente-produto{padding:3px 7px;border-radius:5px;font-size:11px;font-weight:600;display:inline-block;margin-top:4px}
+  .cliente-produto{
+    padding:3px 7px;
+    border-radius:5px;
+    font-size:11px;
+    font-weight:600;
+    display:inline-block;
+    margin-top:4px;
+    color: white;
+  }
   .status-pendente-tag{background-color: var(--status-embarque);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
   .empty{color:var(--muted);font-style:italic;padding:10px;text-align:center;}
   #filterInput {flex-grow:1; min-width:200px; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:14px}
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
-  .modal-content {
-    background: var(--card);
-    padding: 20px;
-    border-radius: 8px;
-    max-width: 500px;
-    width: 90%;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    position: relative;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  .modal-close {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    color: var(--muted);
-  }
-  .modal-header h3 {
-    margin-top: 0;
-    font-size: 18px;
-    color: var(--primary);
-    border-bottom: 2px solid var(--accent);
-    padding-bottom: 8px;
-    margin-bottom: 15px;
-  }
-  .modal-body p {
-    margin: 5px 0;
-    font-size: 14px;
-  }
-  .modal-body .info-label {
-    font-weight: 600;
-    color: var(--text);
-    display: inline-block;
-    min-width: 180px;
-  }
-  .modal-body .info-value {
-    font-weight: 400;
-    color: var(--muted);
-  }
-  .modal-clientes-list {
-    margin-top: 15px;
-    padding-top: 10px;
-    border-top: 1px dashed #ddd;
-  }
-  .modal-clientes-list h4 {
-    margin-top: 0;
-    margin-bottom: 12px;
-    font-size: 14px;
-    color: var(--accent);
-  }
+  .modal-overlay {position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.6); display:none; justify-content:center; align-items:center; z-index:1000}
+  .modal-content {background:var(--card); padding:20px; border-radius:8px; max-width:600px; width:95%; max-height:90vh; overflow-y:auto; position:relative;}
+  .modal-close {position:absolute; top:10px; right:10px; background:none; border:none; font-size:22px; cursor:pointer; color:var(--muted)}
+  .modal-header h3 {margin-top:0; font-size:18px; color:var(--primary); border-bottom:2px solid var(--accent); padding-bottom:8px; margin-bottom:15px;}
+  .modal-body p {margin:5px 0; font-size:14px}
+  .modal-body .info-label {font-weight:600; color:var(--text); display:inline-block; min-width:160px;}
+  .modal-body .info-value {font-weight:400; color:var(--muted);}
+  .modal-clientes-list {margin-top:15px; padding-top:10px; border-top:1px dashed #ddd;}
+  .modal-clientes-list h4 {margin-top:0; margin-bottom:12px; font-size:14px; color:var(--accent);}
   .contrato-item {
+    background: #fbfdff;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    border: 1px solid #edf2f7;
+  }
+  .contrato-item:last-child {margin-bottom: 0;}
+  .contrato-linha {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 0;
-    font-size: 13px;
-    color: var(--text);
-    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-top: 4px;
   }
-  .contrato-label {
-    font-weight: 600;
-    color: var(--muted);
-  }
-  .produto-tag {
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-weight: 600;
-    color: white;
-    font-size: 12px;
-    white-space: nowrap;
-  }
+  .contrato-linha:first-child {margin-top: 0;}
   .toggle-btn {
     background: var(--primary);
     color: white;
@@ -311,19 +256,22 @@ function escapeHtml(s) {
   if (s===undefined || s===null) return '';
   return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'<','>':'>','"':'&quot;',"'":'&#x2F;'}[c]));
 }
-
+function escapeForJs(s) {
+  if (s===undefined || s===null) return '';
+  return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r/g,'').replace(/\n/g,'\\n');
+}
 function extractContractNumber(raw) {
   if (!raw) return '';
   const s = String(raw).trim();
   if (s.includes('-')) return s.split('-')[0].trim();
   return s;
 }
-function getProdutoCor(produto) {
+function getProdutoCorClasse(produto) {
   const p = (produto || '').toLowerCase();
-  if (p.includes('soja')) return '--produto-soja';
-  if (p.includes('milho')) return '--produto-milho';
-  if (p.includes('sorgo')) return '--produto-sorgo';
-  return '--produto-sorgo';
+  if (p.includes('soja')) return 'var(--produto-soja)';
+  if (p.includes('milho')) return 'var(--produto-milho)';
+  if (p.includes('sorgo')) return 'var(--produto-sorgo)';
+  return 'var(--produto-sorgo)';
 }
 function processData(rowsArr) {
   const grupos = {};
@@ -411,9 +359,13 @@ function renderClientCards(data, filter = '') {
     });
     const card = document.createElement('div');
     card.className = 'cliente-card';
-    const prodList = Array.from(group.produtos).slice(0,3).map(p => `<span class="cliente-produto" style="background-color:var(--produto-soja); color:#fff">${escapeHtml(p)}</span>`).join(' ');
+    const prodList = Array.from(group.produtos).map(p => {
+      const cor = getProdutoCorClasse(p);
+      return `<span class="cliente-produto" style="background-color:${cor}">${escapeHtml(p)}</span>`;
+    }).join(' ');
     const inner = `
       <div class="cliente-name">${escapeHtml(group.cliente)}</div>
+      <div class="cliente-destino">${escapeHtml(group.cidadeRef)}</div>
       <div class="cliente-info">
         <div><span class="info-label">Saldo (kg)</span> <div class="info-value">${formatNumber(group.totalFalta)}</div></div>
         <div><span class="info-label">Contratos</span> <div class="info-value">${group.contratos.length}</div></div>
@@ -455,7 +407,10 @@ function renderCityCards(data, filter = '') {
     const card = document.createElement('div');
     card.className = 'cliente-card';
     const clientesList = Array.from(group.clientes).slice(0,3).map(p => `<div style="font-size:13px">${escapeHtml(p)}</div>`).join('');
-    const prodList = Array.from(group.produtos).slice(0,3).map(p => `<span class="cliente-produto" style="background-color:var(--produto-soja); color:#fff">${escapeHtml(p)}</span>`).join(' ');
+    const prodList = Array.from(group.produtos).map(p => {
+      const cor = getProdutoCorClasse(p);
+      return `<span class="cliente-produto" style="background-color:${cor}">${escapeHtml(p)}</span>`;
+    }).join(' ');
     const inner = `
       <div class="cliente-name">${escapeHtml(group.cidade)}</div>
       <div class="cliente-destino">${escapeHtml(group.clientes.size + ' cliente(s)')}</div>
@@ -486,14 +441,24 @@ function openClientModal(group) {
   html += `<div class="modal-clientes-list">`;
   html += `<h4>Contratos (${group.contratos.length}):</h4>`;
   group.contratos.forEach(c => {
-    const corVar = getProdutoCor(c.produto);
     html += `
       <div class="contrato-item">
-        <span class="contrato-label">Contrato:</span>
-        <span>${escapeHtml(c.contrato)}</span>
-        <span class="produto-tag" style="background-color: var(${corVar});">${escapeHtml(c.produto)}</span>
-        <span>${escapeHtml(c.cidade)}</span>
-        <span>Saldo: ${formatNumber(c.falta)} KG</span>
+        <div class="contrato-linha">
+          <strong>Contrato:</strong>
+          <span>${escapeHtml(c.contrato)}</span>
+        </div>
+        <div class="contrato-linha">
+          <strong>Produto:</strong>
+          <span>${escapeHtml(c.produto)}</span>
+        </div>
+        <div class="contrato-linha">
+          <strong>Cidade:</strong>
+          <span>${escapeHtml(c.cidade)}</span>
+        </div>
+        <div class="contrato-linha">
+          <strong>Saldo:</strong>
+          <span>${formatNumber(c.falta)} KG</span>
+        </div>
       </div>
     `;
   });
@@ -510,15 +475,28 @@ function openCityModal(group) {
   html += `<div class="modal-clientes-list">`;
   html += `<h4>Contratos (${group.contratos.length}):</h4>`;
   group.contratos.forEach(c => {
-    const corVar = getProdutoCor(c.produto);
     html += `
       <div class="contrato-item">
-        <span class="contrato-label">Contrato:</span>
-        <span>${escapeHtml(c.contrato)}</span>
-        <span class="produto-tag" style="background-color: var(${corVar});">${escapeHtml(c.produto)}</span>
-        <span>${escapeHtml(c.cliente)}</span>
-        <span>${escapeHtml(c.cidade)}</span>
-        <span>Saldo: ${formatNumber(c.falta)} KG</span>
+        <div class="contrato-linha">
+          <strong>Contrato:</strong>
+          <span>${escapeHtml(c.contrato)}</span>
+        </div>
+        <div class="contrato-linha">
+          <strong>Cliente:</strong>
+          <span>${escapeHtml(c.cliente)}</span>
+        </div>
+        <div class="contrato-linha">
+          <strong>Produto:</strong>
+          <span>${escapeHtml(c.produto)}</span>
+        </div>
+        <div class="contrato-linha">
+          <strong>Cidade:</strong>
+          <span>${escapeHtml(c.cidade)}</span>
+        </div>
+        <div class="contrato-linha">
+          <strong>Saldo:</strong>
+          <span>${formatNumber(c.falta)} KG</span>
+        </div>
       </div>
     `;
   });
