@@ -124,6 +124,29 @@
     .header-title {width:100%; justify-content:space-between}
     .last-update-top {order:3}
   }
+
+  /* estilo do toggle button igual ao Retiradas */
+  .toggle-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .toggle-btn.secondary {
+    background: #ffffff;
+    color: var(--primary);
+    border: 2px solid rgba(255,255,255,0.15);
+  }
+  .toggle-btn:hover { opacity: 0.95; }
 </style>
 </head>
 <body>
@@ -180,6 +203,7 @@
       <h2 style="margin-top:0;">📍 Lotes com Saldo a Entregar</h2>
       <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
         <input type="text" id="filterInput" placeholder="Filtrar por Cliente, Contrato ou Cidade...">
+        <button class="toggle-btn" id="toggleViewBtn" onclick="toggleView()"><i class="fas fa-sync-alt"></i> Mudar para Locais</button>
       </div>
       <div class="clientes-container" id="clientesContainer">
         <div class="empty">Carregando...</div>
@@ -200,6 +224,7 @@ const GID_ENTREGA = '1186247985';
 const AUTO_UPDATE_INTERVAL = 300000;
 
 let globalData = [];
+let currentView = localStorage.getItem('lotes_entregas_view') || 'cliente'; // 'cliente' ou 'local'
 
 /* ---------- UTILS ---------- */
 function normalizeHeader(h) { if (h==null) return ''; return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,''); }
@@ -252,6 +277,7 @@ function extractContractNumber(raw) {
 }
 
 function processData(rowsArr) {
+  // Agrupa por cliente (padrão)
   const grupos = {};
   for (let i = 0; i < rowsArr.length; i++) {
     const row = rowsArr[i];
@@ -290,174 +316,244 @@ function processData(rowsArr) {
   return Object.values(grupos).sort((a,b) => b.totalFalta - a.totalFalta);
 }
 
-/* ---------- RENDERIZAÇÃO ---------- */
-function renderCards(data, filter = '') {
-  const container = document.getElementById('clientesContainer');
-  const term = normalizeText(filter);
-  const filtered = term ? data.filter(item =>
-    normalizeText(item.cliente).includes(term) || item.contratos.some(c => c.searchKey.includes(term))
-  ) : data;
+/* Agrupa por cidade destino — retorna array de grupos { cidade, contratos: [...], clientes: Set, totals... } */
+function processDataByCity(rowsArr) {
+  const grupos = {};
+  for (let i = 0; i < rowsArr.length; i++) {
+    const row = rowsArr[i];
+    if (!row || row.length < 9) continue;
+    const contratoRaw = ((row[1] && String(row[1]).trim() !== '') ? String(row[1]).trim() : (row[0] || '')).toString().trim();
+    const contrato = extractContractNumber(contratoRaw);
+    const cliente = (row[2] || '').trim();  // C
+    const cidadeCompleta = row[3] || '';    // D
+    const produto = (row[4] || '').trim();  // E
+    const safra = (row[5] || '').trim();    // F
+    const volume = parseNumber(row[6]) || 0; // G
+    const embarcado = parseNumber(row[7]) || 0; // H
+    const falta = parseNumber(row[8]) || 0;     // I
 
-  container.innerHTML = filtered.length ? filtered.map(item => {
-    const safeName = escapeForJs(item.cliente);
-    return `
-      <div class="cliente-card" onclick="openModalByClient('${safeName}')">
-        <h3 class="cliente-name">${escapeHtml(item.cliente)}</h3>
-        <div class="cliente-destino">${escapeHtml(item.cidadeRef)}</div>
-        <div class="cliente-info" style="margin-top:10px;">
-          <span class="info-label">Contratos:</span>
-          <span class="info-value">${item.contratos.length}</span>
-        </div>
-        <div class="cliente-info" style="margin-top:6px;">
-          <span class="info-label">Saldo a Entregar:</span>
-          <span class="info-value status-pendente-tag">${formatNumber(item.totalFalta)} KG</span>
-        </div>
-        <div class="cliente-info" style="margin-top:6px;">
-          <span class="info-label">Total Embarcado:</span>
-          <span class="info-value">${formatNumber(item.totalEmbarcado)} KG</span>
-        </div>
-        <div style="margin-top:8px;">
-          ${Array.from(item.produtos).map(p =>
-            `<span class="cliente-produto" style="background-color:${p.toLowerCase().includes('soja') ? 'var(--produto-soja)' : p.toLowerCase().includes('milho') ? 'var(--produto-milho)' : 'var(--produto-sorgo)'}; color:white;">${escapeHtml(p)}</span>`
-          ).join(' ')}
-        </div>
-      </div>
-    `;
-  }).join('') : '<div class="empty">Nenhum lote com saldo pendente encontrado.</div>';
+    if (falta <= 0 || !cidadeCompleta) continue;
 
-  // contadores
-  document.getElementById('count-clientes').textContent = data.length;
-  document.getElementById('count-contratos').textContent = data.reduce((acc,c) => acc + c.contratos.length, 0);
+    let cidade = cidadeCompleta;
+    if (cidadeCompleta.includes('-')) cidade = cidadeCompleta.split('-').slice(1).join('-').trim();
 
-  const soja = data.reduce((acc,c) => acc + c.contratos.filter(ct => ct.produto.toLowerCase().includes('soja')).reduce((s,ct) => s + ct.falta, 0), 0);
-  const milho = data.reduce((acc,c) => acc + c.contratos.filter(ct => ct.produto.toLowerCase().includes('milho')).reduce((s,ct) => s + ct.falta, 0), 0);
-  const sorgo = data.reduce((acc,c) => acc + c.contratos.filter(ct => ct.produto.toLowerCase().includes('sorgo')).reduce((s,ct) => s + ct.falta, 0), 0);
-  const total = soja + milho + sorgo;
+    if (!grupos[cidade]) {
+      grupos[cidade] = { cidade, contratos: [], clientes: new Set(), totalVolume:0, totalEmbarcado:0, totalFalta:0, produtos: new Set() };
+    }
 
-  document.getElementById('count-soja').textContent = formatNumber(soja);
-  document.getElementById('count-milho').textContent = formatNumber(milho);
-  document.getElementById('count-sorgo').textContent = formatNumber(sorgo);
-  document.getElementById('count-total').textContent = formatNumber(total);
+    grupos[cidade].contratos.push({
+      contrato, cliente, produto, safra, volume, embarcado, falta,
+      searchKey: normalizeText(`${cliente} ${contrato} ${cidade} ${produto}`)
+    });
+
+    grupos[cidade].clientes.add(cliente);
+    grupos[cidade].totalVolume += volume;
+    if (produto) grupos[cidade].produtos.add(produto);
+    grupos[cidade].totalEmbarcado += embarcado;
+    grupos[cidade].totalFalta += falta;
+  }
+  return Object.values(grupos).sort((a,b) => b.totalFalta - a.totalFalta);
 }
 
-/* ---------- MODAL ---------- */
-function openModalByClient(clienteName) {
-  const item = globalData.find(g => g.cliente === clienteName);
-  if (!item) return;
+/* ---------- RENDERIZAÇÃO ---------- */
+function renderClientCards(data, filter = '') {
+  const container = document.getElementById('clientesContainer');
+  container.innerHTML = '';
+  if (!data || data.length === 0) {
+    container.innerHTML = '<div class="empty">Nenhum lote com saldo a entregar.</div>';
+    return;
+  }
+  const f = normalizeText(filter || '');
+  let totalClientes = data.length;
+  let totalContratos = 0;
+  let totalSoja = 0, totalMilho = 0, totalSorgo = 0;
 
-  const productTotals = {};
-  item.contratos.forEach(ct => {
-    const key = (ct.produto || 'Outros').trim();
-    if (!productTotals[key]) productTotals[key] = 0;
-    productTotals[key] += (ct.falta || 0);
+  data.forEach(group => {
+    // aplicar filtro pelo searchKey das linhas do contrato
+    const contratosFiltrados = group.contratos.filter(c => c.searchKey.includes(f));
+    if (f && contratosFiltrados.length === 0) return;
+
+    totalContratos += group.contratos.length;
+    group.contratos.forEach(c => {
+      const prod = (c.produto || '').toLowerCase();
+      if (prod.includes('soja')) totalSoja += c.falta;
+      else if (prod.includes('milho')) totalMilho += c.falta;
+      else if (prod.includes('sorgo')) totalSorgo += c.falta;
+    });
+
+    const card = document.createElement('div');
+    card.className = 'cliente-card';
+    const prodList = Array.from(group.produtos).slice(0,3).map(p => `<span class="cliente-produto" style="background-color:var(--produto-soja); color:#fff">${escapeHtml(p)}</span>`).join(' ');
+    const inner = `
+      <div class="cliente-name">${escapeHtml(group.cliente)}</div>
+      <div class="cliente-destino">${escapeHtml(group.cidadeRef)}</div>
+      <div class="cliente-info">
+        <div><span class="info-label">Saldo (kg)</span> <div class="info-value">${formatNumber(group.totalFalta)}</div></div>
+        <div><span class="info-label">Contratos</span> <div class="info-value">${group.contratos.length}</div></div>
+      </div>
+      <div style="margin-top:8px">${prodList}</div>
+    `;
+    card.innerHTML = inner;
+    card.onclick = () => openClientModal(group);
+    container.appendChild(card);
   });
 
-  const productChipsHtml = Object.keys(productTotals).map(p => {
-    const val = productTotals[p];
-    const bg = p.toLowerCase().includes('soja') ? 'var(--produto-soja)' : p.toLowerCase().includes('milho') ? 'var(--produto-milho)' : 'var(--produto-sorgo)';
-    return `<span class="product-chip" style="background:${bg}">${escapeHtml(p)}: ${formatNumber(val)} KG</span>`;
-  }).join(' ');
+  // Atualiza contadores topo
+  document.getElementById('count-clientes').innerText = totalClientes;
+  document.getElementById('count-contratos').innerText = totalContratos;
+  document.getElementById('count-soja').innerText = formatNumber(totalSoja);
+  document.getElementById('count-milho').innerText = formatNumber(totalMilho);
+  document.getElementById('count-sorgo').innerText = formatNumber(totalSorgo);
+  document.getElementById('count-total').innerText = formatNumber(totalSoja + totalMilho + totalSorgo);
+}
 
-  const contratosHtmlRows = item.contratos.map(ct => `
-    <tr>
-      <td>${escapeHtml(ct.contrato)}</td>
-      <td>${escapeHtml(ct.cidade)}</td>
-      <td>${escapeHtml(ct.produto)}</td>
-      <td>${escapeHtml(ct.safra)}</td>
-      <td style="text-align:right">${formatNumber(ct.volume)}</td>
-      <td style="text-align:right">${formatNumber(ct.embarcado)}</td>
-      <td style="text-align:right">${formatNumber(ct.falta)}</td>
-    </tr>
-  `).join('');
+function renderCityCards(data, filter = '') {
+  const container = document.getElementById('clientesContainer');
+  container.innerHTML = '';
+  if (!data || data.length === 0) {
+    container.innerHTML = '<div class="empty">Nenhuma cidade com saldo a entregar.</div>';
+    return;
+  }
+  const f = normalizeText(filter || '');
+  let totalCidades = data.length;
+  let totalContratos = 0;
+  let totalSoja = 0, totalMilho = 0, totalSorgo = 0;
 
-  document.getElementById('modalContentBody').innerHTML = `
-    <div class="modal-header">
-      <h3>${escapeHtml(item.cliente)} — ${escapeHtml(item.cidadeRef)}</h3>
-    </div>
-    <div class="modal-body">
-      <p><span class="info-label">Total de Contratos:</span> ${item.contratos.length}</p>
-      <p><span class="info-label">Saldo Total a Entregar:</span> <strong>${formatNumber(item.totalFalta)} KG</strong></p>
-      <p><span class="info-label">Total Embarcado:</span> ${formatNumber(item.totalEmbarcado)} KG</p>
+  data.forEach(group => {
+    const contratosFiltrados = group.contratos.filter(c => c.searchKey.includes(f));
+    if (f && contratosFiltrados.length === 0) return;
 
-      <div style="margin-top:14px;">
-        <h4>Quebra por Produto</h4>
-        <div class="product-breakdown">${productChipsHtml}</div>
+    totalContratos += group.contratos.length;
+    group.contratos.forEach(c => {
+      const prod = (c.produto || '').toLowerCase();
+      if (prod.includes('soja')) totalSoja += c.falta;
+      else if (prod.includes('milho')) totalMilho += c.falta;
+      else if (prod.includes('sorgo')) totalSorgo += c.falta;
+    });
+
+    const card = document.createElement('div');
+    card.className = 'cliente-card';
+    const clientesList = Array.from(group.clientes).slice(0,3).map(p => `<div style="font-size:13px">${escapeHtml(p)}</div>`).join('');
+    const prodList = Array.from(group.produtos).slice(0,3).map(p => `<span class="cliente-produto" style="background-color:var(--produto-soja); color:#fff">${escapeHtml(p)}</span>`).join(' ');
+    const inner = `
+      <div class="cliente-name">${escapeHtml(group.cidade)}</div>
+      <div class="cliente-destino">${escapeHtml(group.clientes.size + ' cliente(s)')}</div>
+      <div class="cliente-info">
+        <div><span class="info-label">Saldo (kg)</span> <div class="info-value">${formatNumber(group.totalFalta)}</div></div>
+        <div><span class="info-label">Contratos</span> <div class="info-value">${group.contratos.length}</div></div>
       </div>
+      <div style="margin-top:8px">${prodList}</div>
+      <div style="margin-top:8px; color:var(--muted); font-size:13px">${clientesList}</div>
+    `;
+    card.innerHTML = inner;
+    card.onclick = () => openCityModal(group);
+    container.appendChild(card);
+  });
 
-      <div style="margin-top:18px;">
-        <h4>Contratos</h4>
-        <div style="overflow:auto;">
-          <table class="contracts-table" aria-describedby="contracts-desc">
-            <thead>
-              <tr>
-                <th>Contrato</th>
-                <th>Cidade</th>
-                <th>Produto</th>
-                <th>Safra</th>
-                <th style="text-align:right">Volume</th>
-                <th style="text-align:right">Embarcado</th>
-                <th style="text-align:right">Falta</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${contratosHtmlRows}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  `;
+  // Atualiza contadores topo
+  document.getElementById('count-clientes').innerText = totalCidades;
+  document.getElementById('count-contratos').innerText = totalContratos;
+  document.getElementById('count-soja').innerText = formatNumber(totalSoja);
+  document.getElementById('count-milho').innerText = formatNumber(totalMilho);
+  document.getElementById('count-sorgo').innerText = formatNumber(totalSorgo);
+  document.getElementById('count-total').innerText = formatNumber(totalSoja + totalMilho + totalSorgo);
+}
 
+/* ---------- MODAIS ---------- */
+function openClientModal(group) {
+  const body = document.getElementById('modalContentBody');
+  let html = `<div class="modal-header"><h3>${escapeHtml(group.cliente)}</h3></div>`;
+  html += `<div class="modal-body">`;
+  html += `<p><strong>Cidade (ref):</strong> ${escapeHtml(group.cidadeRef)}</p>`;
+  html += `<p><strong>Saldo total (kg):</strong> ${formatNumber(group.totalFalta)}</p>`;
+  html += `<h4>Contratos</h4>`;
+  html += `<div class="modal-clientes-list">`;
+  group.contratos.forEach(c => {
+    html += `<div class="contrato-item"><strong>Contrato:</strong> ${escapeHtml(c.contrato)} — <strong>Produto:</strong> ${escapeHtml(c.produto)} — <strong>Saldo:</strong> ${formatNumber(c.falta)}</div>`;
+  });
+  html += `</div></div>`;
+  body.innerHTML = html;
   document.getElementById('resumoModal').style.display = 'flex';
-  const closeBtn = document.querySelector('.modal-close'); if (closeBtn) closeBtn.focus();
+}
+
+function openCityModal(group) {
+  const body = document.getElementById('modalContentBody');
+  let html = `<div class="modal-header"><h3>${escapeHtml(group.cidade)}</h3></div>`;
+  html += `<div class="modal-body">`;
+  html += `<p><strong>Clientes:</strong> ${Array.from(group.clientes).join(', ')}</p>`;
+  html += `<p><strong>Saldo total (kg):</strong> ${formatNumber(group.totalFalta)}</p>`;
+  html += `<h4>Contratos</h4>`;
+  html += `<div class="modal-clientes-list">`;
+  group.contratos.forEach(c => {
+    html += `<div class="contrato-item"><strong>Contrato:</strong> ${escapeHtml(c.contrato)} — <strong>Cliente:</strong> ${escapeHtml(c.cliente)} — <strong>Produto:</strong> ${escapeHtml(c.produto)} — <strong>Saldo:</strong> ${formatNumber(c.falta)}</div>`;
+  });
+  html += `</div></div>`;
+  body.innerHTML = html;
+  document.getElementById('resumoModal').style.display = 'flex';
 }
 
 function closeModal() {
   document.getElementById('resumoModal').style.display = 'none';
 }
 
-/* ---------- UTILIDADES DE UI ---------- */
-function updateLastUpdateTime() {
-  const now = new Date();
-  document.getElementById('lastUpdateTop').innerHTML = `
-    <i class="fas fa-check-circle" style="color: rgba(255,255,255,0.9);"></i>
-    <span>Última atualização: ${now.toLocaleTimeString('pt-BR')} - ${now.toLocaleDateString('pt-BR')}</span>
-  `;
+/* ---------- VIEW / FILTER / TOGGLE ---------- */
+function updateToggleButton() {
+  const btn = document.getElementById('toggleViewBtn');
+  if (!btn) return;
+  if (currentView === 'cliente') {
+    btn.innerHTML = '<i class="fas fa-sync-alt"></i> Mudar para Locais';
+  } else {
+    btn.innerHTML = '<i class="fas fa-sync-alt"></i> Mudar para Clientes';
+  }
+}
+function toggleView() {
+  currentView = (currentView === 'cliente') ? 'local' : 'cliente';
+  localStorage.setItem('lotes_entregas_view', currentView);
+  updateToggleButton();
+  renderCurrentView();
+}
+function renderCurrentView() {
+  const filter = document.getElementById('filterInput').value || '';
+  if (currentView === 'cliente') {
+    const clients = processData(globalData);
+    renderClientCards(clients, filter);
+  } else {
+    const cities = processDataByCity(globalData);
+    renderCityCards(cities, filter);
+  }
 }
 
-/* ---------- CARREGAMENTO ---------- */
-async function loadAll(isAutoUpdate = false) {
-  const container = document.getElementById('clientesContainer');
-  if (isAutoUpdate) {
-    container.innerHTML = '<div class="empty">Atualizando...</div>';
-    document.getElementById('lastUpdateTop').innerHTML = `<i class="fas fa-hourglass-half" style="color: rgba(255,255,255,0.9);"></i> <span>Atualizando...</span>`;
-  }
-
+/* ---------- FETCH / AUTO-UPDATE ---------- */
+async function loadDataAndRender() {
   try {
-    const data = await fetchSheetByGid(GID_ENTREGA);
-    const grouped = processData(data.arrays);
-    globalData = grouped;
-    renderCards(grouped);
-    updateLastUpdateTime();
+    document.getElementById('lastUpdateTop').querySelector('span').innerText = 'Atualizando...';
+    const parsed = await fetchSheetByGid(GID_ENTREGA);
+    // parsed.arrays contains raw arrays
+    globalData = parsed.arrays || [];
+    renderCurrentView();
+    document.getElementById('lastUpdateTop').querySelector('span').innerText = `Última atualização: ${new Date().toLocaleString('pt-BR')}`;
   } catch (err) {
-    console.error('Erro ao carregar Lotes de Entrega:', err);
-    container.innerHTML = '<div class="empty">Erro ao carregar dados. Verifique a planilha.</div>';
-    document.getElementById('lastUpdateTop').innerHTML = `<i class="fas fa-exclamation-triangle" style="color: rgba(255,255,255,0.9);"></i> <span>Erro na atualização</span>`;
+    console.error(err);
+    document.getElementById('clientesContainer').innerHTML = `<div class="empty">Erro ao carregar dados: ${escapeHtml(err.message)}</div>`;
+    document.getElementById('lastUpdateTop').querySelector('span').innerText = 'Erro na atualização';
   }
 }
 
-/* ---------- INIT ---------- */
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('filterInput').addEventListener('input', e => renderCards(globalData, e.target.value));
-
-  document.getElementById('resumoModal').addEventListener('click', e => { if (e.target === document.getElementById('resumoModal')) closeModal(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-
-  loadAll(true);
-  setInterval(() => loadAll(true), AUTO_UPDATE_INTERVAL);
-
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) loadAll(true); });
+// filtro dinamico
+document.getElementById('filterInput').addEventListener('input', (e) => {
+  renderCurrentView();
 });
+
+// modal fechar ao clicar no overlay
+document.getElementById('resumoModal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('resumoModal')) closeModal();
+});
+
+// inicialização
+updateToggleButton();
+loadDataAndRender();
+setInterval(loadDataAndRender, AUTO_UPDATE_INTERVAL);
+
 </script>
 </body>
 </html>
