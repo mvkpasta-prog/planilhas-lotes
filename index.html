@@ -850,11 +850,28 @@ async function loadAll(isAutoUpdate = false){
       }
     }
     const ret = await fetchSheetByGid(GIDS.retirada);
+    
+    // 👇👇👇 CORREÇÃO AQUI: contagem de placas únicas para "CARREGADO"
+    const placaColIndex = 7;
+    const placasCarregadas = new Set();
+    for (let i = 0; i < rowsArrProgFiltered.length; i++) {
+      const arr = rowsArrProgFiltered[i];
+      const status = (arr[statusIndex] || '').trim();
+      const placa = (arr[placaColIndex] || '').trim();
+      if (placa && normalizeText(status).includes('carregado')) {
+        placasCarregadas.add(placa);
+      }
+    }
+    const carregadoUnico = placasCarregadas.size;
+    // 👆👆👆 FIM DA CORREÇÃO
+
+    // Mantém os demais status contando linhas (comportamento original)
     const statusCounts = countStatusProgramacao(rowsObjProgFiltered, statusKey);
-    document.getElementById('count-carregado').textContent = statusCounts.carregado;
+    document.getElementById('count-carregado').textContent = carregadoUnico;
     document.getElementById('count-embarque').textContent = statusCounts.embarque;
     document.getElementById('count-transito').textContent = statusCounts.transito;
     document.getElementById('count-contratar').textContent = statusCounts.contratar;
+
     const produtosTotais = calculateProdutosTotais(rowsArrProgFiltered, 1, 9, 2);
     globalProdutosTotais.soja = produtosTotais.soja;
     globalProdutosTotais.milho = produtosTotais.milho;
