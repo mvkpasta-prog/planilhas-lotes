@@ -1,186 +1,572 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Controle de Lotes</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-<style>
-  :root{
-    --primary:#2563eb; --accent:#0ea5e9; --bg:#f6fbff; --card:#fff; --text:#0f172a;
-    --muted:#6b7280; --success:#10b981; --warning:#f59e0b;
-    --status-carregado: #10b981;
-    --status-embarque: #3b82f6;
-    --status-transito: #ef4444;
-    --status-contratar: #f97316;
-    --produto-soja: #10b981;
-    --produto-milho: #fbbf24;
-    --produto-sorgo: #6b7280;
-    --produto-total: #8b5cf6;
-  }
-  *{box-sizing:border-box}
-  body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:12px}
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png');
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: 80vh;
-    opacity: 0.05;
-    z-index: -1;
-    pointer-events: none;
-  }
-  header{
-    background:linear-gradient(90deg,var(--primary),var(--accent));
-    color:white;
-    padding:12px;
-    border-radius:8px;
-    margin-bottom:16px;
-    text-align:center;
-    font-weight:700;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:8px;
-    flex-wrap: wrap;
-  }
-  .header-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .last-update-top {
-    font-size: 12px;
-    color: rgba(255,255,255,0.9);
-    display: flex;
-    align-items:center;
-    gap: 6px;
-  }
-  .wrap{max-width:1400px;margin:0 auto;width:100%}
-  .actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px}
-  .btn{background:var(--primary);color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px}
-  .btn:hover{opacity:.95}
-  .header-btn {
-    background: #fff;
-    color: var(--primary);
-    border: none;
-    padding: 6px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 13px;
-    text-decoration: none;
-    transition: background 0.2s ease, opacity 0.2s ease;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .header-btn:hover {
-    background: var(--bg);
-    opacity: 0.95;
-  }
-  .status-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
-  .status-card{background:var(--card);border-radius:8px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:150px;text-align:center;transition:all 0.3s ease}
-  .status-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
-  .status-card h3{margin:0 0 6px 0;font-size:14px;color:var(--text);font-weight:600}
-  .status-card .count{font-size:22px;font-weight:700;margin:6px 0}
-  .status-card-carregado{border-top:3px solid var(--status-carregado);}
-  .status-card-embarque{border-top:3px solid var(--status-embarque);}
-  .status-card-transito{border-top:3px solid var(--status-transito);}
-  .status-card-contratar{border-top:3px solid var(--status-contratar);}
-  .produto-cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
-  .produto-card{background:var(--card);border-radius:8px;padding:8px;box-shadow:0 3px 8px rgba(0,0,0,0.06);flex:1;min-width:140px;text-align:center;transition:all 0.3s ease;border-top:3px solid transparent; cursor: pointer;}
-  .produto-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
-  .produto-card h3{margin:0 0 4px 0;font-size:13px;color:var(--text);font-weight:600}
-  .produto-card .count{font-size:18px;font-weight:700;margin:4px 0}
-  .produto-soja{border-top-color: var(--produto-soja);}
-  .produto-milho{border-top-color: var(--produto-milho);}
-  .produto-sorgo{border-top-color: var(--produto-sorgo);}
-  .produto-total{border-top-color: var(--produto-total);}
-  .clientes-section{margin-bottom:24px}
-  .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px}
-  .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all 0.3s ease}
-  .cliente-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
-  .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 6px 0}
-  .cliente-destino{font-weight:600;color:var(--accent);margin:0 0 10px 0;font-size:13px}
-  .cliente-info{display:flex;justify-content:space-between;margin-bottom:6px;align-items:center}
-  .info-label{font-weight:600;color:var(--muted);font-size:12px}
-  .info-value{font-weight:700;font-size:13px}
-  .cliente-produto{padding:3px 7px;border-radius:5px;font-size:11px;font-weight:600;display:inline-block;margin-top:4px}
-  .status-carregado-tag{background-color: var(--status-carregado);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
-  .status-pendente-tag{background-color: var(--status-embarque);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
-  .caminhoes-info{display:flex;gap:8px;margin-top:6px;padding-top:6px;border-top:1px solid #eee}
-  .caminhoes-separados{display:flex;gap:6px;align-items:center}
-  .section-header{background:linear-gradient(90deg,var(--primary),var(--accent));color:white;padding:12px;border-radius:8px;margin-bottom:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:700;transition:all 0.3s ease;font-size:15px}
-  .section-header:hover{opacity:0.95}
-  .section-header .toggle-icon{transition:transform 0.3s ease}
-  .section-header.collapsed .toggle-icon{transform:rotate(-90deg)}
-  .section-content{display:block;transition:all 0.3s ease;overflow:hidden}
-  .section-content.collapsed{display:none}
-  h2{color:var(--primary);margin:6px 0 12px 0;font-size:18px}
-  .card{background:var(--card);border-radius:8px;padding:12px;margin-bottom:16px;box-shadow:0 4px 12px rgba(16,24,40,0.06)}
-  .table-wrap{overflow-x:auto}
-  table{width:100%;border-collapse:collapse;margin:0;font-size:12px;min-width:750px}
-  th,td{border:1px solid #e6eefc;padding:8px;text-align:left;vertical-align:top}
-  th{background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff;font-weight:700;white-space:nowrap}
-  tr:nth-child(even){background:#fbfdff}
-  .status{display:inline-block;padding:5px 9px;border-radius:14px;color:#fff;font-weight:700;font-size:11px}
-  .status-aberto{background:var(--warning)}
-  .status-fechado{background:var(--success)}
-  .status-programacao{display:inline-block;padding:5px 10px;border-radius:14px;color:#fff;font-weight:700;font-size:11px;min-width:90px;text-align:center}
-  .status-carregado{background-color: var(--status-carregado);}
-  .status-embarque{background-color: var(--status-embarque);}
-  .status-transito{background-color: var(--status-transito);}
-  .status-contratar{background-color: var(--status-contratar);}
-  .empty{color:var(--muted);font-style:italic;padding:10px}
-  @media (max-width:900px){
-    table{min-width:650px}
-    th, td{padding:6px;font-size:11px}
-    .status-cards, .produto-cards{flex-direction:column}
-    .clientes-container{grid-template-columns:1fr}
-    .cliente-card{min-width:260px}
-  }
-  @media (max-width:600px){
-    body{padding:8px}
-    .section-header{padding:10px;font-size:14px}
-    .cliente-card{min-width:100%;padding:12px}
-    .status-card{min-width:140px;padding:10px}
-    .produto-card{min-width:130px;padding:8px}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Controle de Lotes</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    :root {
+      --primary: #2563eb;
+      --accent: #0ea5e9;
+      --bg: #f6fbff;
+      --card: #fff;
+      --text: #0f172a;
+      --muted: #6b7280;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --status-carregado: #10b981;
+      --status-embarque: #3b82f6;
+      --status-transito: #ef4444;
+      --status-contratar: #f97316;
+      --produto-soja: #10b981;
+      --produto-milho: #fbbf24;
+      --produto-sorgo: #6b7280;
+      --produto-total: #8b5cf6;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      padding: 12px
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png');
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: 80vh;
+      opacity: 0.05;
+      z-index: -1;
+      pointer-events: none;
+    }
+
     header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 12px;
-    }
-    .header-title {
-      width: 100%;
-      justify-content: space-between;
-    }
-    .last-update-top {
-      order: 3;
-    }
-    .header-btn {
-      order: 2;
-      width: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      color: white;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
       text-align: center;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
     }
-  }
-</style>
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .last-update-top {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.9);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%
+    }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px
+    }
+
+    .btn {
+      background: var(--primary);
+      color: #fff;
+      border: 0;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 14px
+    }
+
+    .btn:hover {
+      opacity: .95
+    }
+
+    .header-btn {
+      background: #fff;
+      color: var(--primary);
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      text-decoration: none;
+      transition: background 0.2s ease, opacity 0.2s ease;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .header-btn:hover {
+      background: var(--bg);
+      opacity: 0.95;
+    }
+
+    .status-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px
+    }
+
+    .status-card {
+      background: var(--card);
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+      flex: 1;
+      min-width: 150px;
+      text-align: center;
+      transition: all 0.3s ease
+    }
+
+    .status-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.08)
+    }
+
+    .status-card h3 {
+      margin: 0 0 6px 0;
+      font-size: 14px;
+      color: var(--text);
+      font-weight: 600
+    }
+
+    .status-card .count {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 6px 0
+    }
+
+    .status-card-carregado {
+      border-top: 3px solid var(--status-carregado);
+    }
+
+    .status-card-embarque {
+      border-top: 3px solid var(--status-embarque);
+    }
+
+    .status-card-transito {
+      border-top: 3px solid var(--status-transito);
+    }
+
+    .status-card-contratar {
+      border-top: 3px solid var(--status-contratar);
+    }
+
+    .produto-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px
+    }
+
+    .produto-card {
+      background: var(--card);
+      border-radius: 8px;
+      padding: 8px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+      flex: 1;
+      min-width: 140px;
+      text-align: center;
+      transition: all 0.3s ease;
+      border-top: 3px solid transparent;
+      cursor: pointer;
+    }
+
+    .produto-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.08)
+    }
+
+    .produto-card h3 {
+      margin: 0 0 4px 0;
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 600
+    }
+
+    .produto-card .count {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 4px 0
+    }
+
+    .produto-soja {
+      border-top-color: var(--produto-soja);
+    }
+
+    .produto-milho {
+      border-top-color: var(--produto-milho);
+    }
+
+    .produto-sorgo {
+      border-top-color: var(--produto-sorgo);
+    }
+
+    .produto-total {
+      border-top-color: var(--produto-total);
+    }
+
+    .clientes-section {
+      margin-bottom: 24px
+    }
+
+    .clientes-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px
+    }
+
+    .cliente-card {
+      background: var(--card);
+      border-radius: 8px;
+      padding: 14px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+      transition: all 0.3s ease
+    }
+
+    .cliente-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.08)
+    }
+
+    .cliente-name {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--text);
+      margin: 0 0 6px 0
+    }
+
+    .cliente-destino {
+      font-weight: 600;
+      color: var(--accent);
+      margin: 0 0 10px 0;
+      font-size: 13px
+    }
+
+    .cliente-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      align-items: center
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    .info-value {
+      font-weight: 700;
+      font-size: 13px
+    }
+
+    .cliente-produto {
+      padding: 3px 7px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-block;
+      margin-top: 4px
+    }
+
+    .status-carregado-tag {
+      background-color: var(--status-carregado);
+      color: white;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .status-pendente-tag {
+      background-color: var(--status-embarque);
+      color: white;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .caminhoes-info {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid #eee
+    }
+
+    .caminhoes-separados {
+      display: flex;
+      gap: 6px;
+      align-items: center
+    }
+
+    .section-header {
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      color: white;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      transition: all 0.3s ease;
+      font-size: 15px
+    }
+
+    .section-header:hover {
+      opacity: 0.95
+    }
+
+    .section-header .toggle-icon {
+      transition: transform 0.3s ease
+    }
+
+    .section-header.collapsed .toggle-icon {
+      transform: rotate(-90deg)
+    }
+
+    .section-content {
+      display: block;
+      transition: all 0.3s ease;
+      overflow: hidden
+    }
+
+    .section-content.collapsed {
+      display: none
+    }
+
+    h2 {
+      color: var(--primary);
+      margin: 6px 0 12px 0;
+      font-size: 18px
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(16, 24, 40, 0.06)
+    }
+
+    .table-wrap {
+      overflow-x: auto
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0;
+      font-size: 12px;
+      min-width: 750px
+    }
+
+    th,
+    td {
+      border: 1px solid #e6eefc;
+      padding: 8px;
+      text-align: left;
+      vertical-align: top
+    }
+
+    th {
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      color: #fff;
+      font-weight: 700;
+      white-space: nowrap
+    }
+
+    tr:nth-child(even) {
+      background: #fbfdff
+    }
+
+    .status {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 14px;
+      color: #fff;
+      font-weight: 700;
+      font-size: 11px
+    }
+
+    .status-aberto {
+      background: var(--warning)
+    }
+
+    .status-fechado {
+      background: var(--success)
+    }
+
+    .status-programacao {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 14px;
+      color: #fff;
+      font-weight: 700;
+      font-size: 11px;
+      min-width: 90px;
+      text-align: center
+    }
+
+    .status-carregado {
+      background-color: var(--status-carregado);
+    }
+
+    .status-embarque {
+      background-color: var(--status-embarque);
+    }
+
+    .status-transito {
+      background-color: var(--status-transito);
+    }
+
+    .status-contratar {
+      background-color: var(--status-contratar);
+    }
+
+    .empty {
+      color: var(--muted);
+      font-style: italic;
+      padding: 10px
+    }
+
+    @media (max-width:900px) {
+      table {
+        min-width: 650px
+      }
+
+      th,
+      td {
+        padding: 6px;
+        font-size: 11px
+      }
+
+      .status-cards,
+      .produto-cards {
+        flex-direction: column
+      }
+
+      .clientes-container {
+        grid-template-columns: 1fr
+      }
+
+      .cliente-card {
+        min-width: 260px
+      }
+    }
+
+    @media (max-width:600px) {
+      body {
+        padding: 8px
+      }
+
+      .section-header {
+        padding: 10px;
+        font-size: 14px
+      }
+
+      .cliente-card {
+        min-width: 100%;
+        padding: 12px
+      }
+
+      .status-card {
+        min-width: 140px;
+        padding: 10px
+      }
+
+      .produto-card {
+        min-width: 130px;
+        padding: 8px
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .header-title {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .last-update-top {
+        order: 3;
+      }
+
+      .header-btn {
+        order: 2;
+        width: 100%;
+        text-align: center;
+      }
+    }
+  </style>
+  <script src="https://accounts.google.com/gsi/client" onload="gisLoaded()" async defer></script>
+  <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()" async defer></script>
+  <script src="auth_config.js"></script>
 </head>
+
 <body>
   <header>
     <div class="header-title">
-      <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height: 22px; vertical-align: middle; margin-right: 8px;">
+      <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK"
+        style="height: 22px; vertical-align: middle; margin-right: 8px;">
       Controle de Lotes
     </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-      <a href="lotes-entrega.html" class="header-btn" title="Acessar Lotes de Entrega"><i class="fas fa-truck"></i> Lotes de Entrega</a>
-      <a href="Retiradas.html" class="header-btn" title="Acessar Lotes de Retirada"><i class="fas fa-box"></i> Lotes de Retirada</a>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+      <a href="lotes-entrega.html" class="header-btn" title="Acessar Lotes de Entrega"><i class="fas fa-truck"></i>
+        Lotes de Entrega</a>
+      <a href="Retiradas.html" class="header-btn" title="Acessar Lotes de Retirada"><i class="fas fa-box"></i> Lotes de
+        Retirada</a>
+
+      <!-- Auth Buttons -->
+      <button id="authorize_button" class="header-btn" onclick="handleAuthClick()" style="display: none;">
+        <i class="fab fa-google"></i> Login
+      </button>
+      <button id="signout_button" class="header-btn" onclick="handleSignoutClick()" style="display: none;">
+        <i class="fas fa-sign-out-alt"></i> Sair
+      </button>
     </div>
     <div class="last-update-top" id="lastUpdateTop">
       <i class="fas fa-hourglass-half"></i> <span>Atualizando...</span>
@@ -225,7 +611,7 @@
     </div>
     <div class="clientes-section">
       <div class="clientes-container" id="clientesContainer">
-        </div>
+      </div>
     </div>
     <div class="section-header" id="toggle-programacao">
       <span>🗓 Programação</span>
@@ -234,333 +620,330 @@
     <div class="section-content card" id="content-programacao">
       <div id="programacaoContent" class="table-wrap"></div>
     </div>
-    </div>
-<script>
-const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
-const GIDS = {
-  entrega: '1186247985',
-  retirada: '1984691910',
-  programacao: '1183141602'
-};
-const AUTO_UPDATE_INTERVAL = 300000;
-const HIDDEN_COLS = ['nfp','royalties','safra'];
-const REMOVED_COMMON = ['localizacao','idorigemymvk1'];
-const REMOVED_PROGRAMACAO = [
-  'observacoes','ordem','notafiscal','dacte','mdfe','conftipocam','agendamento',
-  'descarga','comprovantededescarga','horarioprev','classificacaodestino','chaveid',
-  'frete', 'statusagendamento', 'datadedescarga', 'notafiscal'
-];
-let globalProdutosTotais = { soja: 0, milho: 0, sorgo: 0, total: 0 };
-function normalizeHeader(h){
-  if(h === undefined || h === null) return '';
-  return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
-}
-function normalizeText(text) {
-  if(text === undefined || text === null) return '';
-  return String(text).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-}
-function parseCSV(text){
-  if(!text) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
-  const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
-  if(lines.length === 0) return {arrays:[], headersOrig:[], headersNorm:[], objects:[]};
-  const parsed = lines.map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g,'').trim()));
-  const headersOrig = parsed.shift().map(h => h||'');
-  const headersNorm = headersOrig.map(h => normalizeHeader(h));
-  const objects = parsed.map(cells => {
-    const obj = {};
-    headersNorm.forEach((key, idx) => {
-      obj[key] = cells[idx] !== undefined ? cells[idx] : '';
-    });
-    return obj;
-  });
-  return {arrays: parsed, headersOrig, headersNorm, objects};
-}
-async function fetchSheetByGid(gid){
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`;
-  const r = await fetch(url);
-  if(!r.ok) throw new Error('Erro ao buscar planilha: ' + r.status);
-  const text = await r.text();
-  return parseCSV(text);
-}
-function parseNumber(val){
-  if(val === undefined || val === null) return NaN;
-  const s = String(val).replace(/\s/g,'').replace(/\./g,'').replace(/,/g,'.');
-  const n = parseFloat(s.replace(/[^\d\.\-]/g,''));
-  return isNaN(n) ? NaN : n;
-}
-function parseDateOnly(s){
-  if(!s) return null;
-  const str = String(s).trim();
-  if(str.includes('/')){
-    const parts = str.split('/');
-    if(parts.length >= 3){
-      const d = parseInt(parts[0],10), m = parseInt(parts[1],10), y = parseInt(parts[2],10);
-      if(!isNaN(d) && !isNaN(m) && !isNaN(y)) return new Date(y, m-1, d);
+  </div>
+  <script>
+    const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
+    const GIDS = {
+      entrega: '1186247985',
+      retirada: '1984691910',
+      programacao: '1183141602'
+    };
+    const AUTO_UPDATE_INTERVAL = 300000;
+    const HIDDEN_COLS = ['nfp', 'royalties', 'safra'];
+    const REMOVED_COMMON = ['localizacao', 'idorigemymvk1'];
+    const REMOVED_PROGRAMACAO = [
+      'observacoes', 'ordem', 'notafiscal', 'dacte', 'mdfe', 'conftipocam', 'agendamento',
+      'descarga', 'comprovantededescarga', 'horarioprev', 'classificacaodestino', 'chaveid',
+      'frete', 'statusagendamento', 'datadedescarga', 'notafiscal'
+    ];
+    let globalProdutosTotais = { soja: 0, milho: 0, sorgo: 0, total: 0 };
+    function normalizeHeader(h) {
+      if (h === undefined || h === null) return '';
+      return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
     }
-  }
-  if(str.includes('-') || (str.includes('/') && str.indexOf('/') === 4)){
-    const sep = str.includes('-')? '-' : '/';
-    const parts = str.split(sep);
-    if(parts.length >= 3){
-      const y = parseInt(parts[0],10), m = parseInt(parts[1],10), d = parseInt(parts[2],10);
-      if(!isNaN(d) && !isNaN(m) && !isNaN(y)) return new Date(y, m-1, d);
+    function normalizeText(text) {
+      if (text === undefined || text === null) return '';
+      return String(text).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
-  }
-  const dt = new Date(str);
-  if(!isNaN(dt.getTime())) return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
-  return null;
-}
-function findHeaderKey(headersNorm, patterns){
-  for(const p of patterns){
-    const f = headersNorm.find(h => h.includes(p));
-    if(f) return f;
-  }
-  if(patterns.includes('saldoent')){
-    const f = headersNorm.find(h => h.includes('saldo') && (h.includes('ent') || h.includes('entrega') || h.includes('entkg')));
-    if(f) return f;
-  }
-  if(patterns.includes('saldoret')){
-    const f = headersNorm.find(h => h.includes('saldo') && (h.includes('ret') || h.includes('retirada') || h.includes('retkg')));
-    if(f) return f;
-  }
-  if(patterns.some(x => x.includes('contrato'))){
-    const f = headersNorm.find(h => h.includes('contrato'));
-    if(f) return f;
-  }
-  const f = headersNorm.find(h => h.includes('saldo'));
-  if(f) return f;
-  return null;
-}
-function formatCurrencyBRL(value) {
-  if (isNaN(value)) return value;
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  }).format(value);
-}
-function formatStatusProgramacao(status) {
-  let className = 'status-programacao';
-  let text = status;
-  const statusNorm = normalizeText(status);
-  if (statusNorm.includes('carregado')) {
-    className += ' status-carregado';
-  } else if (statusNorm.includes('embarque') || statusNorm.includes('no embarque')) {
-    className += ' status-embarque';
-  } else if (statusNorm.includes('transito') || statusNorm.includes('em transito')) {
-    className += ' status-transito';
-  } else if (statusNorm.includes('contratar')) {
-    className += ' status-contratar';
-  } else {
-    className += ' status-aberto';
-  }
-  return `<span class="${className}">${escapeHtml(text)}</span>`;
-}
-function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts){
-  const hiddenNorm = opts.hiddenNorm || [];
-  const removedNorm = opts.removedNorm || [];
-  const numericKey = opts.numericKey || '';
-  const forceInclude = opts.forceInclude || [];
-  const currencyCols = opts.currencyCols || [];
-  const statusCol = opts.statusCol || '';
-  const visible = headersNorm.filter(h => !removedNorm.includes(h));
-  let displayCols = visible.filter(h => !hiddenNorm.includes(h));
-  forceInclude.forEach(fc => {
-    if(visible.includes(fc) && !displayCols.includes(fc)) displayCols.unshift(fc);
-    else if(visible.includes(fc)) displayCols = [fc, ...displayCols.filter(x => x !== fc)];
-  });
-  if(displayCols.length === 0){
-    return '<div class="empty">Sem colunas para exibir.</div>';
-  }
-  let html = '<table><thead><tr>';
-  displayCols.forEach(h => {
-    const idx = headersNorm.indexOf(h);
-    const title = (idx>=0 ? headersOrig[idx] : h) || h;
-    html += `<th>${escapeHtml(title)}</th>`;
-  });
-  if(numericKey) html += '<th>Status</th>';
-  html += '</tr></thead><tbody>';
-  rowsObjects.forEach((obj, i) => {
-    const arr = rowsArrays[i] || [];
-    const n = numericKey ? parseNumber( obj[numericKey] || arr[numericKeyIndex(headersNorm, numericKey)] || '0' ) : NaN;
-    html += '<tr>';
-    displayCols.forEach(h => {
-      const idx = headersNorm.indexOf(h);
-      let value = (obj[h] !== undefined && obj[h] !== '') ? obj[h] : (arr[idx] !== undefined ? arr[idx] : '');
-      if(currencyCols.includes(h)) {
-        const numValue = parseNumber(value);
-        if(!isNaN(numValue)) {
-          value = formatCurrencyBRL(numValue);
+    function parseCSV(text) {
+      if (!text) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
+      const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+      if (lines.length === 0) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
+      const parsed = lines.map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim()));
+      const headersOrig = parsed.shift().map(h => h || '');
+      const headersNorm = headersOrig.map(h => normalizeHeader(h));
+      const objects = parsed.map(cells => {
+        const obj = {};
+        headersNorm.forEach((key, idx) => {
+          obj[key] = cells[idx] !== undefined ? cells[idx] : '';
+        });
+        return obj;
+      });
+      return { arrays: parsed, headersOrig, headersNorm, objects };
+    }
+    async function fetchSheetByGid(gid) {
+      // Use the V4 function from auth_config.js
+      return await fetchSheetByGidV4(SHEET_ID, gid);
+    }
+    function parseNumber(val) {
+      if (val === undefined || val === null) return NaN;
+      const s = String(val).replace(/\s/g, '').replace(/\./g, '').replace(/,/g, '.');
+      const n = parseFloat(s.replace(/[^\d\.\-]/g, ''));
+      return isNaN(n) ? NaN : n;
+    }
+    function parseDateOnly(s) {
+      if (!s) return null;
+      const str = String(s).trim();
+      if (str.includes('/')) {
+        const parts = str.split('/');
+        if (parts.length >= 3) {
+          const d = parseInt(parts[0], 10), m = parseInt(parts[1], 10), y = parseInt(parts[2], 10);
+          if (!isNaN(d) && !isNaN(m) && !isNaN(y)) return new Date(y, m - 1, d);
         }
       }
-      if(h === statusCol) {
-        value = formatStatusProgramacao(value);
-        html += `<td>${value}</td>`;
+      if (str.includes('-') || (str.includes('/') && str.indexOf('/') === 4)) {
+        const sep = str.includes('-') ? '-' : '/';
+        const parts = str.split(sep);
+        if (parts.length >= 3) {
+          const y = parseInt(parts[0], 10), m = parseInt(parts[1], 10), d = parseInt(parts[2], 10);
+          if (!isNaN(d) && !isNaN(m) && !isNaN(y)) return new Date(y, m - 1, d);
+        }
+      }
+      const dt = new Date(str);
+      if (!isNaN(dt.getTime())) return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+      return null;
+    }
+    function findHeaderKey(headersNorm, patterns) {
+      for (const p of patterns) {
+        const f = headersNorm.find(h => h.includes(p));
+        if (f) return f;
+      }
+      if (patterns.includes('saldoent')) {
+        const f = headersNorm.find(h => h.includes('saldo') && (h.includes('ent') || h.includes('entrega') || h.includes('entkg')));
+        if (f) return f;
+      }
+      if (patterns.includes('saldoret')) {
+        const f = headersNorm.find(h => h.includes('saldo') && (h.includes('ret') || h.includes('retirada') || h.includes('retkg')));
+        if (f) return f;
+      }
+      if (patterns.some(x => x.includes('contrato'))) {
+        const f = headersNorm.find(h => h.includes('contrato'));
+        if (f) return f;
+      }
+      const f = headersNorm.find(h => h.includes('saldo'));
+      if (f) return f;
+      return null;
+    }
+    function formatCurrencyBRL(value) {
+      if (isNaN(value)) return value;
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(value);
+    }
+    function formatStatusProgramacao(status) {
+      let className = 'status-programacao';
+      let text = status;
+      const statusNorm = normalizeText(status);
+      if (statusNorm.includes('carregado')) {
+        className += ' status-carregado';
+      } else if (statusNorm.includes('embarque') || statusNorm.includes('no embarque')) {
+        className += ' status-embarque';
+      } else if (statusNorm.includes('transito') || statusNorm.includes('em transito')) {
+        className += ' status-transito';
+      } else if (statusNorm.includes('contratar')) {
+        className += ' status-contratar';
       } else {
-        html += `<td>${escapeHtml(value)}</td>`;
+        className += ' status-aberto';
       }
-    });
-    if(numericKey) html += `<td>${n>0?'<span class="status status-aberto">ABERTO</span>':'<span class="status status-fechado">FECHADO</span>'}</td>`;
-    html += '</tr>';
-  });
-  html += '</tbody></table>';
-  return html;
-}
-function numericKeyIndex(headersNorm, key){ return headersNorm.indexOf(key); }
-function escapeHtml(s){
-  if(s === undefined || s === null) return '';
-  return String(s).replace(/[&<>"'\/]/g, c => ({
-    '&':'&amp;',
-    '<':'<',
-    '>':'>',
-    '"':'&quot;',
-    "'":'&#39;',
-    '/':'&#x2F;'
-  }[c]));
-}
-function countStatusProgramacao(rowsObjects, statusCol) {
-  let carregado = 0, embarque = 0, transito = 0, contratar = 0;
-  if(!statusCol) return {carregado, embarque, transito, contratar};
-  rowsObjects.forEach(obj => {
-    const status = obj[statusCol] || '';
-    const statusNorm = normalizeText(status);
-    if (statusNorm.includes('carregado')) {
-      carregado++;
-    } else if (statusNorm.includes('embarque') || statusNorm.includes('no embarque')) {
-      embarque++;
-    } else if (statusNorm.includes('transito') || statusNorm.includes('em transito')) {
-      transito++;
-    } else if (statusNorm.includes('contratar')) {
-      contratar++;
+      return `<span class="${className}">${escapeHtml(text)}</span>`;
     }
-  });
-  return {carregado, embarque, transito, contratar};
-}
-function extractProduto(text) {
-  if(!text) return '';
-  const parts = text.split('-');
-  if(parts.length === 0) return '';
-  let produto = parts[parts.length - 1].trim().toLowerCase();
-  produto = produto.replace(/[0-9\.\,\(\)\[\]]/g, '').trim();
-  return produto;
-}
-function extractContratoInfo(text) {
-  if(!text || text.trim() === '') return {contrato: '', cliente: '', destino: '', produto: '', isValid: false};
-  const parts = text.split(' - ').map(part => part.trim());
-  if(parts.length < 6) {
-    const first = text.split('-')[0] ? text.split('-')[0].trim() : '';
-    const contratoFallback = first.replace(/\D/g,'');
-    const cliente = parts[1] || '';
-    const destino = parts[3] || '';
-    const produto = parts.slice(5).join(' - ').trim().toUpperCase() || (parts[parts.length-1]||'').toUpperCase();
-    const isValidFallback = contratoFallback !== '' && cliente !== '' && destino !== '';
-    return {
-      contrato: contratoFallback,
-      cliente: cliente,
-      destino: destino,
-      produto: produto,
-      isValid: isValidFallback
-    };
-  }
-  const contrato = parts[0].replace(/\D/g, '');
-  const cliente = parts[1];
-  const destino = parts[3];
-  const produtoParts = parts.slice(5);
-  let produto = produtoParts.join(' - ').trim().toUpperCase();
-  if(!produto) {
-    produto = parts[parts.length - 1].trim().toUpperCase();
-  }
-  const isValid = contrato !== '' && cliente !== '' && destino !== '' && produto !== '';
-  return {
-    contrato: contrato,
-    cliente: cliente,
-    destino: destino,
-    produto: produto,
-    isValid: isValid
-  };
-}
-function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, destinoColIndex) {
-  let soja = 0, milho = 0, sorgo = 0;
-  rowsObjects.forEach(arr => {
-    let destinoText = '';
-    if(destinoColIndex !== -1) {
-      if(Array.isArray(arr) && arr[destinoColIndex] !== undefined) {
-        destinoText = arr[destinoColIndex];
+    function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts) {
+      const hiddenNorm = opts.hiddenNorm || [];
+      const removedNorm = opts.removedNorm || [];
+      const numericKey = opts.numericKey || '';
+      const forceInclude = opts.forceInclude || [];
+      const currencyCols = opts.currencyCols || [];
+      const statusCol = opts.statusCol || '';
+      const visible = headersNorm.filter(h => !removedNorm.includes(h));
+      let displayCols = visible.filter(h => !hiddenNorm.includes(h));
+      forceInclude.forEach(fc => {
+        if (visible.includes(fc) && !displayCols.includes(fc)) displayCols.unshift(fc);
+        else if (visible.includes(fc)) displayCols = [fc, ...displayCols.filter(x => x !== fc)];
+      });
+      if (displayCols.length === 0) {
+        return '<div class="empty">Sem colunas para exibir.</div>';
       }
+      let html = '<table><thead><tr>';
+      displayCols.forEach(h => {
+        const idx = headersNorm.indexOf(h);
+        const title = (idx >= 0 ? headersOrig[idx] : h) || h;
+        html += `<th>${escapeHtml(title)}</th>`;
+      });
+      if (numericKey) html += '<th>Status</th>';
+      html += '</tr></thead><tbody>';
+      rowsObjects.forEach((obj, i) => {
+        const arr = rowsArrays[i] || [];
+        const n = numericKey ? parseNumber(obj[numericKey] || arr[numericKeyIndex(headersNorm, numericKey)] || '0') : NaN;
+        html += '<tr>';
+        displayCols.forEach(h => {
+          const idx = headersNorm.indexOf(h);
+          let value = (obj[h] !== undefined && obj[h] !== '') ? obj[h] : (arr[idx] !== undefined ? arr[idx] : '');
+          if (currencyCols.includes(h)) {
+            const numValue = parseNumber(value);
+            if (!isNaN(numValue)) {
+              value = formatCurrencyBRL(numValue);
+            }
+          }
+          if (h === statusCol) {
+            value = formatStatusProgramacao(value);
+            html += `<td>${value}</td>`;
+          } else {
+            html += `<td>${escapeHtml(value)}</td>`;
+          }
+        });
+        if (numericKey) html += `<td>${n > 0 ? '<span class="status status-aberto">ABERTO</span>' : '<span class="status status-fechado">FECHADO</span>'}</td>`;
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      return html;
     }
-    const {isValid} = extractContratoInfo(destinoText);
-    if(!isValid) return;
-    let produtoText = '';
-    if(produtoColIndex !== -1) {
-      if(Array.isArray(arr) && arr[produtoColIndex] !== undefined) {
-        produtoText = arr[produtoColIndex];
+    function numericKeyIndex(headersNorm, key) { return headersNorm.indexOf(key); }
+    function escapeHtml(s) {
+      if (s === undefined || s === null) return '';
+      return String(s).replace(/[&<>"'\/]/g, c => ({
+        '&': '&amp;',
+        '<': '<',
+        '>': '>',
+        '"': '&quot;',
+        "'": '&#39;',
+        '/': '&#x2F;'
+      }[c]));
+    }
+    function countStatusProgramacao(rowsObjects, statusCol) {
+      let carregado = 0, embarque = 0, transito = 0, contratar = 0;
+      if (!statusCol) return { carregado, embarque, transito, contratar };
+      rowsObjects.forEach(obj => {
+        const status = obj[statusCol] || '';
+        const statusNorm = normalizeText(status);
+        if (statusNorm.includes('carregado')) {
+          carregado++;
+        } else if (statusNorm.includes('embarque') || statusNorm.includes('no embarque')) {
+          embarque++;
+        } else if (statusNorm.includes('transito') || statusNorm.includes('em transito')) {
+          transito++;
+        } else if (statusNorm.includes('contratar')) {
+          contratar++;
+        }
+      });
+      return { carregado, embarque, transito, contratar };
+    }
+    function extractProduto(text) {
+      if (!text) return '';
+      const parts = text.split('-');
+      if (parts.length === 0) return '';
+      let produto = parts[parts.length - 1].trim().toLowerCase();
+      produto = produto.replace(/[0-9\.\,\(\)\[\]]/g, '').trim();
+      return produto;
+    }
+    function extractContratoInfo(text) {
+      if (!text || text.trim() === '') return { contrato: '', cliente: '', destino: '', produto: '', isValid: false };
+      const parts = text.split(' - ').map(part => part.trim());
+      if (parts.length < 6) {
+        const first = text.split('-')[0] ? text.split('-')[0].trim() : '';
+        const contratoFallback = first.replace(/\D/g, '');
+        const cliente = parts[1] || '';
+        const destino = parts[3] || '';
+        const produto = parts.slice(5).join(' - ').trim().toUpperCase() || (parts[parts.length - 1] || '').toUpperCase();
+        const isValidFallback = contratoFallback !== '' && cliente !== '' && destino !== '';
+        return {
+          contrato: contratoFallback,
+          cliente: cliente,
+          destino: destino,
+          produto: produto,
+          isValid: isValidFallback
+        };
       }
-    }
-    const produto = extractProduto(produtoText);
-    let pesoText = '';
-    if(pesoColIndex !== -1) {
-      if(Array.isArray(arr) && arr[pesoColIndex] !== undefined) {
-        pesoText = arr[pesoColIndex];
+      const contrato = parts[0].replace(/\D/g, '');
+      const cliente = parts[1];
+      const destino = parts[3];
+      const produtoParts = parts.slice(5);
+      let produto = produtoParts.join(' - ').trim().toUpperCase();
+      if (!produto) {
+        produto = parts[parts.length - 1].trim().toUpperCase();
       }
+      const isValid = contrato !== '' && cliente !== '' && destino !== '' && produto !== '';
+      return {
+        contrato: contrato,
+        cliente: cliente,
+        destino: destino,
+        produto: produto,
+        isValid: isValid
+      };
     }
-    const peso = parseNumber(pesoText);
-    if(isNaN(peso)) return;
-    if(produto.includes('soja')) {
-      soja += peso;
-    } else if(produto.includes('milho')) {
-      milho += peso;
-    } else if(produto.includes('sorgo')) {
-      sorgo += peso;
+    function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, destinoColIndex) {
+      let soja = 0, milho = 0, sorgo = 0;
+      rowsObjects.forEach(arr => {
+        let destinoText = '';
+        if (destinoColIndex !== -1) {
+          if (Array.isArray(arr) && arr[destinoColIndex] !== undefined) {
+            destinoText = arr[destinoColIndex];
+          }
+        }
+        const { isValid } = extractContratoInfo(destinoText);
+        if (!isValid) return;
+        let produtoText = '';
+        if (produtoColIndex !== -1) {
+          if (Array.isArray(arr) && arr[produtoColIndex] !== undefined) {
+            produtoText = arr[produtoColIndex];
+          }
+        }
+        const produto = extractProduto(produtoText);
+        let pesoText = '';
+        if (pesoColIndex !== -1) {
+          if (Array.isArray(arr) && arr[pesoColIndex] !== undefined) {
+            pesoText = arr[pesoColIndex];
+          }
+        }
+        const peso = parseNumber(pesoText);
+        if (isNaN(peso)) return;
+        if (produto.includes('soja')) {
+          soja += peso;
+        } else if (produto.includes('milho')) {
+          milho += peso;
+        } else if (produto.includes('sorgo')) {
+          sorgo += peso;
+        }
+      });
+      return { soja, milho, sorgo };
     }
-  });
-  return {soja, milho, sorgo};
-}
-function updateLastUpdateTime() {
-  const now = new Date();
-  const timeString = now.toLocaleTimeString('pt-BR');
-  const dateString = now.toLocaleDateString('pt-BR');
-  document.getElementById('lastUpdateTop').innerHTML = `
+    function updateLastUpdateTime() {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('pt-BR');
+      const dateString = now.toLocaleDateString('pt-BR');
+      document.getElementById('lastUpdateTop').innerHTML = `
     <i class="fas fa-check-circle" style="color: rgba(255,255,255,0.9);"></i>
     <span>Última atualização: ${timeString} - ${dateString}</span>
   `;
-}
-function formatNumber(value) {
-  if(isNaN(value)) return '0';
-  return new Intl.NumberFormat('pt-BR').format(Math.round(value));
-}
-function extractWeightFromColumnI(text) {
-  if(!text || text.trim() === '') return 0;
-  const parts = text.split('-');
-  if(parts.length === 0) return 0;
-  let lastPart = parts[parts.length - 1].trim();
-  const match = lastPart.match(/(\d+)/);
-  if(match && match[1]) {
-    const tons = parseInt(match[1], 10);
-    return tons * 1000;
-  }
-  return 0;
-}
-function buildClientesHTML(clientes) {
-  if(clientes.length === 0) {
-    return '<div class="empty">Nenhum contrato encontrado para hoje.</div>';
-  }
-  let html = '';
-  clientes.forEach(cliente => {
-    let corProduto = '#6b7280';
-    const produtoUp = (cliente.produto || '').toUpperCase();
-    if(produtoUp.includes('SOJA')) {
-      corProduto = '#10b981';
-    } else if(produtoUp.includes('MILHO')) {
-      corProduto = '#fbbf24';
-    } else if(produtoUp.includes('SORGO')) {
-      corProduto = '#6b7280';
     }
-    let saldoEntregaAjustado = cliente.saldoEntrega || 0;
-    if(cliente.pesoEmTransitoEmbarque && !isNaN(cliente.pesoEmTransitoEmbarque)) {
-      saldoEntregaAjustado -= cliente.pesoEmTransitoEmbarque;
+    function formatNumber(value) {
+      if (isNaN(value)) return '0';
+      return new Intl.NumberFormat('pt-BR').format(Math.round(value));
     }
-    const saldoEntregaDisplay = !isNaN(saldoEntregaAjustado) ? `${formatNumber(saldoEntregaAjustado)} KG` : '0 KG';
-    const valorMedioFrete = !isNaN(cliente.valorMedioFrete) ? formatCurrencyBRL(cliente.valorMedioFrete) : 'N/A';
-    html += `
+    function extractWeightFromColumnI(text) {
+      if (!text || text.trim() === '') return 0;
+      const parts = text.split('-');
+      if (parts.length === 0) return 0;
+      let lastPart = parts[parts.length - 1].trim();
+      const match = lastPart.match(/(\d+)/);
+      if (match && match[1]) {
+        const tons = parseInt(match[1], 10);
+        return tons * 1000;
+      }
+      return 0;
+    }
+    function buildClientesHTML(clientes) {
+      if (clientes.length === 0) {
+        return '<div class="empty">Nenhum contrato encontrado para hoje.</div>';
+      }
+      let html = '';
+      clientes.forEach(cliente => {
+        let corProduto = '#6b7280';
+        const produtoUp = (cliente.produto || '').toUpperCase();
+        if (produtoUp.includes('SOJA')) {
+          corProduto = '#10b981';
+        } else if (produtoUp.includes('MILHO')) {
+          corProduto = '#fbbf24';
+        } else if (produtoUp.includes('SORGO')) {
+          corProduto = '#6b7280';
+        }
+        let saldoEntregaAjustado = cliente.saldoEntrega || 0;
+        if (cliente.pesoEmTransitoEmbarque && !isNaN(cliente.pesoEmTransitoEmbarque)) {
+          saldoEntregaAjustado -= cliente.pesoEmTransitoEmbarque;
+        }
+        const saldoEntregaDisplay = !isNaN(saldoEntregaAjustado) ? `${formatNumber(saldoEntregaAjustado)} KG` : '0 KG';
+        const valorMedioFrete = !isNaN(cliente.valorMedioFrete) ? formatCurrencyBRL(cliente.valorMedioFrete) : 'N/A';
+        html += `
       <div class="cliente-card">
         <h3 class="cliente-name">${escapeHtml(cliente.cliente)} - ${escapeHtml(cliente.destino)}</h3>
         <div class="cliente-contrato">Contrato: ${escapeHtml(cliente.contrato)} <span class="cliente-produto" style="background-color: ${corProduto}; color: white; margin-left: 8px;">${escapeHtml(cliente.produto)}</span></div>
@@ -582,394 +965,411 @@ function buildClientesHTML(clientes) {
           <span class="info-label">Valor Médio Frete:</span>
           <span class="info-value">${valorMedioFrete}</span>
         </div>
-        ${cliente.pesoEmTransitoEmbarque && cliente.pesoEmTransitoEmbarque > 0 ? 
-          `<div class="cliente-info" style="margin-top: 6px; font-size: 12px; color: #ef4444;">
+        ${cliente.pesoEmTransitoEmbarque && cliente.pesoEmTransitoEmbarque > 0 ?
+            `<div class="cliente-info" style="margin-top: 6px; font-size: 12px; color: #ef4444;">
             <span class="info-label">Peso em Trânsito/Embarque:</span>
             <span class="info-value">${formatNumber(cliente.pesoEmTransitoEmbarque)} KG
           </div>` : ''}
       </div>
     `;
-  });
-  return html;
-}
-function updateClientesSummary(clientes) {}
-async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusColIndex, freteColIndex, transportadoraColIndex, includeFutureDates = false) {
-  const grupos = {};
-  let rowsToProcess = rowsProg;
-  if (!includeFutureDates) {
-    const today = new Date();
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
-    const dateIndexProg = 0;
-    rowsToProcess = rowsProg.filter(arr => {
-      let dtVal = '';
-      if(arr && arr[dateIndexProg] !== undefined) dtVal = arr[dateIndexProg];
-      const dt = parseDateOnly(dtVal);
-      return dt && dt.getTime() === todayStart;
-    });
-  }
-  rowsToProcess.forEach(arr => {
-    let destinoText = '';
-    if(destinoColIndex !== -1) {
-      if(Array.isArray(arr) && arr[destinoColIndex] !== undefined) {
-        destinoText = arr[destinoColIndex];
-      }
+      });
+      return html;
     }
-    const {contrato, cliente, destino, produto, isValid} = extractContratoInfo(destinoText);
-    if(!isValid || !contrato) return;
-    const key = `contrato_${contrato}`;
-    let pesoRealText = '';
-    if(Array.isArray(arr) && arr[9] !== undefined) {
-      pesoRealText = arr[9];
-    }
-    const pesoReal = parseNumber(pesoRealText) || 0;
-    let placa = '';
-    if(placaColIndex !== -1) {
-      if(Array.isArray(arr) && arr[placaColIndex] !== undefined) {
-        placa = arr[placaColIndex];
+    function updateClientesSummary(clientes) { }
+    async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusColIndex, freteColIndex, transportadoraColIndex, includeFutureDates = false) {
+      const grupos = {};
+      let rowsToProcess = rowsProg;
+      if (!includeFutureDates) {
+        const today = new Date();
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+        const dateIndexProg = 0;
+        rowsToProcess = rowsProg.filter(arr => {
+          let dtVal = '';
+          if (arr && arr[dateIndexProg] !== undefined) dtVal = arr[dateIndexProg];
+          const dt = parseDateOnly(dtVal);
+          return dt && dt.getTime() === todayStart;
+        });
       }
-    }
-    let status = '';
-    if(statusColIndex !== -1) {
-      if(Array.isArray(arr) && arr[statusColIndex] !== undefined) {
-        status = arr[statusColIndex];
-      }
-    }
-    const statusNorm = normalizeText(status);
-    const isCarregado = statusNorm.includes('carregado');
-    const isEmbarque = statusNorm.includes('embarque') || statusNorm.includes('no embarque');
-    const isTransito = statusNorm.includes('transito') || statusNorm.includes('em transito');
-    if(!grupos[key]) {
-      grupos[key] = {
-        contrato: contrato,
-        cliente: cliente,
-        destino: destino,
-        produto: produto,
-        totalPeso: 0,
-        totalPesoCarregado: 0,
-        totalPesoPendente: 0,
-        placas: new Set(),
-        placasCarregadas: new Set(),
-        placasPendentes: new Set(),
-        count: 0,
-        pesoEmTransitoEmbarque: 0,
-        valoresFrete: [],
-        valorMedioFrete: 0
-      };
-    }
-    grupos[key].totalPeso += pesoReal;
-    if(placa && placa.trim() !== '') {
-      grupos[key].placas.add(placa.trim());
-    }
-    if(isCarregado) {
-      grupos[key].totalPesoCarregado += pesoReal;
-      if(placa && placa.trim() !== '') {
-        grupos[key].placasCarregadas.add(placa.trim());
-      }
-    } else {
-      grupos[key].totalPesoPendente += pesoReal;
-      if(placa && placa.trim() !== '') {
-        grupos[key].placasPendentes.add(placa.trim());
-      }
-    }
-    grupos[key].count++;
-    if(isEmbarque || isTransito) {
-      let textoColunaI = '';
-      if(Array.isArray(arr) && arr[8] !== undefined) {
-        textoColunaI = arr[8];
-      }
-      const pesoExtraido = extractWeightFromColumnI(textoColunaI);
-      grupos[key].pesoEmTransitoEmbarque += pesoExtraido;
-    }
-    if(freteColIndex !== -1 && transportadoraColIndex !== -1) {
-      let freteText = '';
-      let transportadoraText = '';
-      if(Array.isArray(arr) && arr[freteColIndex] !== undefined) {
-        freteText = arr[freteColIndex];
-      }
-      if(Array.isArray(arr) && arr[transportadoraColIndex] !== undefined) {
-        transportadoraText = arr[transportadoraColIndex];
-      }
-      const freteValue = parseNumber(freteText);
-      if(!isNaN(freteValue) && freteValue > 0) {
-        let freteReal = freteValue;
-        const isMVK = normalizeText(transportadoraText).includes('mvk');
-        const isTransportadoraEmpty = transportadoraText.trim() === '';
-        if(!isMVK && !isTransportadoraEmpty) {
-          freteReal = freteValue / 0.92;
+      rowsToProcess.forEach(arr => {
+        let destinoText = '';
+        if (destinoColIndex !== -1) {
+          if (Array.isArray(arr) && arr[destinoColIndex] !== undefined) {
+            destinoText = arr[destinoColIndex];
+          }
         }
-        grupos[key].valoresFrete.push(freteReal);
+        const { contrato, cliente, destino, produto, isValid } = extractContratoInfo(destinoText);
+        if (!isValid || !contrato) return;
+        const key = `contrato_${contrato}`;
+        let pesoRealText = '';
+        if (Array.isArray(arr) && arr[9] !== undefined) {
+          pesoRealText = arr[9];
+        }
+        const pesoReal = parseNumber(pesoRealText) || 0;
+        let placa = '';
+        if (placaColIndex !== -1) {
+          if (Array.isArray(arr) && arr[placaColIndex] !== undefined) {
+            placa = arr[placaColIndex];
+          }
+        }
+        let status = '';
+        if (statusColIndex !== -1) {
+          if (Array.isArray(arr) && arr[statusColIndex] !== undefined) {
+            status = arr[statusColIndex];
+          }
+        }
+        const statusNorm = normalizeText(status);
+        const isCarregado = statusNorm.includes('carregado');
+        const isEmbarque = statusNorm.includes('embarque') || statusNorm.includes('no embarque');
+        const isTransito = statusNorm.includes('transito') || statusNorm.includes('em transito');
+        if (!grupos[key]) {
+          grupos[key] = {
+            contrato: contrato,
+            cliente: cliente,
+            destino: destino,
+            produto: produto,
+            totalPeso: 0,
+            totalPesoCarregado: 0,
+            totalPesoPendente: 0,
+            placas: new Set(),
+            placasCarregadas: new Set(),
+            placasPendentes: new Set(),
+            count: 0,
+            pesoEmTransitoEmbarque: 0,
+            valoresFrete: [],
+            valorMedioFrete: 0
+          };
+        }
+        grupos[key].totalPeso += pesoReal;
+        if (placa && placa.trim() !== '') {
+          grupos[key].placas.add(placa.trim());
+        }
+        if (isCarregado) {
+          grupos[key].totalPesoCarregado += pesoReal;
+          if (placa && placa.trim() !== '') {
+            grupos[key].placasCarregadas.add(placa.trim());
+          }
+        } else {
+          grupos[key].totalPesoPendente += pesoReal;
+          if (placa && placa.trim() !== '') {
+            grupos[key].placasPendentes.add(placa.trim());
+          }
+        }
+        grupos[key].count++;
+        if (isEmbarque || isTransito) {
+          let textoColunaI = '';
+          if (Array.isArray(arr) && arr[8] !== undefined) {
+            textoColunaI = arr[8];
+          }
+          const pesoExtraido = extractWeightFromColumnI(textoColunaI);
+          grupos[key].pesoEmTransitoEmbarque += pesoExtraido;
+        }
+        if (freteColIndex !== -1 && transportadoraColIndex !== -1) {
+          let freteText = '';
+          let transportadoraText = '';
+          if (Array.isArray(arr) && arr[freteColIndex] !== undefined) {
+            freteText = arr[freteColIndex];
+          }
+          if (Array.isArray(arr) && arr[transportadoraColIndex] !== undefined) {
+            transportadoraText = arr[transportadoraColIndex];
+          }
+          const freteValue = parseNumber(freteText);
+          if (!isNaN(freteValue) && freteValue > 0) {
+            let freteReal = freteValue;
+            const isMVK = normalizeText(transportadoraText).includes('mvk');
+            const isTransportadoraEmpty = transportadoraText.trim() === '';
+            if (!isMVK && !isTransportadoraEmpty) {
+              freteReal = freteValue / 0.92;
+            }
+            grupos[key].valoresFrete.push(freteReal);
+          }
+        }
+      });
+      return Object.values(grupos).map(grupo => {
+        let valorMedioFrete = 0;
+        if (grupo.valoresFrete.length > 0) {
+          const somaFrete = grupo.valoresFrete.reduce((acc, val) => acc + val, 0);
+          valorMedioFrete = somaFrete / grupo.valoresFrete.length;
+        }
+        return {
+          ...grupo,
+          totalPeso: Math.round(grupo.totalPeso),
+          totalPesoCarregado: Math.round(grupo.totalPesoCarregado),
+          totalPesoPendente: Math.round(grupo.totalPesoPendente),
+          totalCaminhoes: grupo.placas.size,
+          totalCaminhoesCarregados: grupo.placasCarregadas.size,
+          totalCaminhoesPendentes: grupo.placasPendentes.size,
+          placas: Array.from(grupo.placas),
+          placasCarregadas: Array.from(grupo.placasCarregadas),
+          placasPendentes: Array.from(grupo.placasPendentes),
+          pesoEmTransitoEmbarque: Math.round(grupo.pesoEmTransitoEmbarque),
+          valorMedioFrete: valorMedioFrete
+        };
+      }).sort((a, b) => b.totalPeso - a.totalPeso);
+    }
+    function getSaudacao() {
+      const hora = new Date().getHours();
+      if (hora >= 5 && hora < 12) {
+        return 'Bom dia';
+      } else if (hora >= 12 && hora < 18) {
+        return 'Boa tarde';
+      } else {
+        return 'Boa noite';
       }
     }
-  });
-  return Object.values(grupos).map(grupo => {
-    let valorMedioFrete = 0;
-    if(grupo.valoresFrete.length > 0) {
-      const somaFrete = grupo.valoresFrete.reduce((acc, val) => acc + val, 0);
-      valorMedioFrete = somaFrete / grupo.valoresFrete.length;
-    }
-    return {
-      ...grupo,
-      totalPeso: Math.round(grupo.totalPeso),
-      totalPesoCarregado: Math.round(grupo.totalPesoCarregado),
-      totalPesoPendente: Math.round(grupo.totalPesoPendente),
-      totalCaminhoes: grupo.placas.size,
-      totalCaminhoesCarregados: grupo.placasCarregadas.size,
-      totalCaminhoesPendentes: grupo.placasPendentes.size,
-      placas: Array.from(grupo.placas),
-      placasCarregadas: Array.from(grupo.placasCarregadas),
-      placasPendentes: Array.from(grupo.placasPendentes),
-      pesoEmTransitoEmbarque: Math.round(grupo.pesoEmTransitoEmbarque),
-      valorMedioFrete: valorMedioFrete
-    };
-  }).sort((a, b) => b.totalPeso - a.totalPeso);
-}
-function getSaudacao() {
-  const hora = new Date().getHours();
-  if (hora >= 5 && hora < 12) {
-    return 'Bom dia';
-  } else if (hora >= 12 && hora < 18) {
-    return 'Boa tarde';
-  } else {
-    return 'Boa noite';
-  }
-}
-function formatResumoMessage(soja, milho, sorgo, total) {
-  const saudacao = getSaudacao();
-  const sojaKg = formatNumber(soja);
-  const milhoKg = formatNumber(milho);
-  const sorgoKg = formatNumber(sorgo);
-  const totalKg = formatNumber(total);
-  const icones = [];
-  if (soja > 0) icones.push('🌱');
-  if (milho > 0) icones.push('🌽');
-  if (sorgo > 0) icones.push('🌾');
-  const iconesLine = icones.join(' ');
-  const sojaLine = `Soja: ${sojaKg} kg`;
-  const milhoLine = `Milho: ${milhoKg} kg`;
-  const sorgoLine = sorgo > 0 ? `Sorgo: ${sorgoKg} kg` : '';
-  let message = `${saudacao}
+    function formatResumoMessage(soja, milho, sorgo, total) {
+      const saudacao = getSaudacao();
+      const sojaKg = formatNumber(soja);
+      const milhoKg = formatNumber(milho);
+      const sorgoKg = formatNumber(sorgo);
+      const totalKg = formatNumber(total);
+      const icones = [];
+      if (soja > 0) icones.push('🌱');
+      if (milho > 0) icones.push('🌽');
+      if (sorgo > 0) icones.push('🌾');
+      const iconesLine = icones.join(' ');
+      const sojaLine = `Soja: ${sojaKg} kg`;
+      const milhoLine = `Milho: ${milhoKg} kg`;
+      const sorgoLine = sorgo > 0 ? `Sorgo: ${sorgoKg} kg` : '';
+      let message = `${saudacao}
 Embarque encerrado ${iconesLine}
 `;
-  message += `${sojaLine}
+      message += `${sojaLine}
 `;
-  message += `${milhoLine}
+      message += `${milhoLine}
 `;
-  if (sorgoLine) {
-    message += `${sorgoLine}
+      if (sorgoLine) {
+        message += `${sorgoLine}
 `;
-  }
-  message += `Total embarcado: ${totalKg} kg
+      }
+      message += `Total embarcado: ${totalKg} kg
 Bom descanso a todos 🙌🏻🙏🏻`;
-  return message.trim();
-}
-function handleTotalCardClick() {
-  const { soja, milho, sorgo, total } = globalProdutosTotais;
-  const message = formatResumoMessage(soja, milho, sorgo, total);
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(message).then(() => {
-      alert(`Mensagem copiada para a área de transferência:
+      return message.trim();
+    }
+    function handleTotalCardClick() {
+      const { soja, milho, sorgo, total } = globalProdutosTotais;
+      const message = formatResumoMessage(soja, milho, sorgo, total);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(message).then(() => {
+          alert(`Mensagem copiada para a área de transferência:
 ${message}`);
-    }).catch(err => {
-      console.error('Falha ao copiar:', err);
-      alert(`Falha ao copiar. Copie a mensagem manualmente:
+        }).catch(err => {
+          console.error('Falha ao copiar:', err);
+          alert(`Falha ao copiar. Copie a mensagem manualmente:
 ${message}`);
-    });
-  } else {
-    alert(`Copie a mensagem manualmente:
+        });
+      } else {
+        alert(`Copie a mensagem manualmente:
 ${message}`);
-  }
-}
-async function loadAll(isAutoUpdate = false){
-  try{
-    if(isAutoUpdate) {
-      document.getElementById('lastUpdateTop').innerHTML = `
+      }
+    }
+    async function loadAll(isAutoUpdate = false) {
+      try {
+        if (isAutoUpdate) {
+          document.getElementById('lastUpdateTop').innerHTML = `
         <i class="fas fa-hourglass-half" style="color: rgba(255,255,255,0.9);"></i>
         <span>Atualizando...</span>
       `;
-      document.body.classList.add('updating');
-    }
-    const prog = await fetchSheetByGid(GIDS.programacao);
-    const rowsArrProg = prog.arrays;
-    const headersOrigProg = prog.headersOrig;
-    const headersNormProg = prog.headersNorm;
-    const objsProg = prog.objects;
-    const statusKey = headersNormProg.find(h => h.includes('status') && !h.includes('agendamento')) || null;
-    const statusIndex = headersNormProg.indexOf(statusKey);
-    const freteIndex = 4;
-    const transportadoraIndex = 5;
-    const dateKeyProg = findHeaderKey(headersNormProg, ['data','dataprogramacao','dataprog','dataentrega']) || headersNormProg[0] || null;
-    const dateIndexProg = 0;
-    const today = new Date(); const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
-    const rowsArrProgFiltered = [];
-    const rowsObjProgFiltered = [];
-    for(let i=0;i<rowsArrProg.length;i++){
-      const arr = rowsArrProg[i];
-      const obj = objsProg[i] || {};
-      let dtVal = '';
-      if(dateKeyProg && obj[dateKeyProg]) dtVal = obj[dateKeyProg];
-      else if(arr[dateIndexProg] !== undefined) dtVal = arr[dateIndexProg];
-      const dt = parseDateOnly(dtVal);
-      if(dt && dt.getTime() === todayStart){
-        rowsArrProgFiltered.push(arr);
-        rowsObjProgFiltered.push(obj);
-      }
-    }
-    const ent = await fetchSheetByGid(GIDS.entrega);
-    const rowsArrEnt = ent.arrays;
-    const headersOrigEnt = ent.headersOrig;
-    const headersNormEnt = ent.headersNorm;
-    const objsEnt = ent.objects;
-    const infoDestinoKey = headersNormEnt.find(h => h.includes('informacoesdestino') || h.includes('informacaodestino') || h.includes('destino'));
-    const saldoKeyEnt = findHeaderKey(headersNormEnt, ['saldoent','saldoentrega','saldoentkg']) || null;
-    const saldoIndexEnt = 8;
-    const existingContratoKeys = headersNormEnt.filter(h => h.includes('contrato') || h.includes('ncontrato') || h.includes('numerocontrato'));
-    const saldoPorContrato = {};
-    for(let i=0;i<rowsArrEnt.length;i++){
-      const arr = rowsArrEnt[i] || [];
-      const obj = objsEnt[i] || {};
-      let contratoRaw = '';
-      if(infoDestinoKey && obj[infoDestinoKey]) {
-        contratoRaw = String(obj[infoDestinoKey]).split('-')[0].trim();
-      } else if(arr[1] !== undefined && String(arr[1]).trim() !== '') {
-        contratoRaw = String(arr[1]).trim();
-      } else {
-        for(const k of existingContratoKeys) {
-          if(obj[k]) { contratoRaw = String(obj[k]).trim(); break; }
+          document.body.classList.add('updating');
         }
-      }
-      let contratoNorm = String(contratoRaw || '').replace(/\D/g,'').trim();
-      if(!contratoNorm) {
-        contratoNorm = String(contratoRaw || '').trim();
-      }
-      let saldoVal = '';
-      if(saldoKeyEnt && obj[saldoKeyEnt] !== undefined && obj[saldoKeyEnt] !== '') saldoVal = obj[saldoKeyEnt];
-      else if(arr[saldoIndexEnt] !== undefined) saldoVal = arr[saldoIndexEnt];
-      const n = parseNumber(saldoVal || '0');
-      if(!isNaN(n) && contratoNorm) {
-        saldoPorContrato[contratoNorm] = (saldoPorContrato[contratoNorm]||0) + n;
-      }
-    }
-    const ret = await fetchSheetByGid(GIDS.retirada);
-    
-    // 👇👇👇 CORREÇÃO AQUI: contagem de placas únicas para "CARREGADO"
-    const placaColIndex = 7;
-    const placasCarregadas = new Set();
-    for (let i = 0; i < rowsArrProgFiltered.length; i++) {
-      const arr = rowsArrProgFiltered[i];
-      const status = (arr[statusIndex] || '').trim();
-      const placa = (arr[placaColIndex] || '').trim();
-      if (placa && normalizeText(status).includes('carregado')) {
-        placasCarregadas.add(placa);
-      }
-    }
-    const carregadoUnico = placasCarregadas.size;
-    // 👆👆👆 FIM DA CORREÇÃO
 
-    // Mantém os demais status contando linhas (comportamento original)
-    const statusCounts = countStatusProgramacao(rowsObjProgFiltered, statusKey);
-    document.getElementById('count-carregado').textContent = carregadoUnico;
-    document.getElementById('count-embarque').textContent = statusCounts.embarque;
-    document.getElementById('count-transito').textContent = statusCounts.transito;
-    document.getElementById('count-contratar').textContent = statusCounts.contratar;
+        // Wait for auth if not ready
+        if (!accessToken) {
+          // If not authenticated, we can't fetch. 
+          // The UI should show the login button.
+          // We can just return or throw a silent error.
+          console.log('Waiting for authentication...');
+          document.getElementById('lastUpdateTop').innerHTML = '<span>Aguardando Login...</span>';
+          document.body.classList.remove('updating');
+          return;
+        }
+        const prog = await fetchSheetByGid(GIDS.programacao);
+        const rowsArrProg = prog.arrays;
+        const headersOrigProg = prog.headersOrig;
+        const headersNormProg = prog.headersNorm;
+        const objsProg = prog.objects;
+        const statusKey = headersNormProg.find(h => h.includes('status') && !h.includes('agendamento')) || null;
+        const statusIndex = headersNormProg.indexOf(statusKey);
+        const freteIndex = 4;
+        const transportadoraIndex = 5;
+        const dateKeyProg = findHeaderKey(headersNormProg, ['data', 'dataprogramacao', 'dataprog', 'dataentrega']) || headersNormProg[0] || null;
+        const dateIndexProg = 0;
+        const today = new Date(); const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+        const rowsArrProgFiltered = [];
+        const rowsObjProgFiltered = [];
+        for (let i = 0; i < rowsArrProg.length; i++) {
+          const arr = rowsArrProg[i];
+          const obj = objsProg[i] || {};
+          let dtVal = '';
+          if (dateKeyProg && obj[dateKeyProg]) dtVal = obj[dateKeyProg];
+          else if (arr[dateIndexProg] !== undefined) dtVal = arr[dateIndexProg];
+          const dt = parseDateOnly(dtVal);
+          if (dt && dt.getTime() === todayStart) {
+            rowsArrProgFiltered.push(arr);
+            rowsObjProgFiltered.push(obj);
+          }
+        }
+        const ent = await fetchSheetByGid(GIDS.entrega);
+        const rowsArrEnt = ent.arrays;
+        const headersOrigEnt = ent.headersOrig;
+        const headersNormEnt = ent.headersNorm;
+        const objsEnt = ent.objects;
+        const infoDestinoKey = headersNormEnt.find(h => h.includes('informacoesdestino') || h.includes('informacaodestino') || h.includes('destino'));
+        const saldoKeyEnt = findHeaderKey(headersNormEnt, ['saldoent', 'saldoentrega', 'saldoentkg']) || null;
+        const saldoIndexEnt = 8;
+        const existingContratoKeys = headersNormEnt.filter(h => h.includes('contrato') || h.includes('ncontrato') || h.includes('numerocontrato'));
+        const saldoPorContrato = {};
+        for (let i = 0; i < rowsArrEnt.length; i++) {
+          const arr = rowsArrEnt[i] || [];
+          const obj = objsEnt[i] || {};
+          let contratoRaw = '';
+          if (infoDestinoKey && obj[infoDestinoKey]) {
+            contratoRaw = String(obj[infoDestinoKey]).split('-')[0].trim();
+          } else if (arr[1] !== undefined && String(arr[1]).trim() !== '') {
+            contratoRaw = String(arr[1]).trim();
+          } else {
+            for (const k of existingContratoKeys) {
+              if (obj[k]) { contratoRaw = String(obj[k]).trim(); break; }
+            }
+          }
+          let contratoNorm = String(contratoRaw || '').replace(/\D/g, '').trim();
+          if (!contratoNorm) {
+            contratoNorm = String(contratoRaw || '').trim();
+          }
+          let saldoVal = '';
+          if (saldoKeyEnt && obj[saldoKeyEnt] !== undefined && obj[saldoKeyEnt] !== '') saldoVal = obj[saldoKeyEnt];
+          else if (arr[saldoIndexEnt] !== undefined) saldoVal = arr[saldoIndexEnt];
+          const n = parseNumber(saldoVal || '0');
+          if (!isNaN(n) && contratoNorm) {
+            saldoPorContrato[contratoNorm] = (saldoPorContrato[contratoNorm] || 0) + n;
+          }
+        }
+        const ret = await fetchSheetByGid(GIDS.retirada);
 
-    const produtosTotais = calculateProdutosTotais(rowsArrProgFiltered, 1, 9, 2);
-    globalProdutosTotais.soja = produtosTotais.soja;
-    globalProdutosTotais.milho = produtosTotais.milho;
-    globalProdutosTotais.sorgo = produtosTotais.sorgo;
-    const totalEmbarcado = produtosTotais.soja + produtosTotais.milho + produtosTotais.sorgo;
-    globalProdutosTotais.total = totalEmbarcado;
-    document.getElementById('count-soja').textContent = `${formatNumber(produtosTotais.soja)} KG`;
-    document.getElementById('count-milho').textContent = `${formatNumber(produtosTotais.milho)} KG`;
-    document.getElementById('count-sorgo').textContent = `${formatNumber(produtosTotais.sorgo)} KG`;
-    document.getElementById('count-total').textContent = `${formatNumber(totalEmbarcado)} KG`;
-    const clientesComPesoFuturo = await groupByContract(rowsArrProg, 2, 7, statusIndex, freteIndex, transportadoraIndex, true);
-    const clientesParaHoje = await groupByContract(rowsArrProgFiltered, 2, 7, statusIndex, freteIndex, transportadoraIndex, false);
-    clientesParaHoje.forEach(c => {
-      const key = String(c.contrato || '').replace(/\D/g,'').trim() || String(c.contrato||'').trim();
-      c.saldoEntrega = saldoPorContrato[key] || 0;
-      const clienteFuturo = clientesComPesoFuturo.find(cf => cf.contrato === c.contrato);
-      if(clienteFuturo) {
-        c.pesoEmTransitoEmbarque = clienteFuturo.pesoEmTransitoEmbarque || 0;
+        // 👇👇👇 CORREÇÃO AQUI: contagem de placas únicas para "CARREGADO"
+        const placaColIndex = 7;
+        const placasCarregadas = new Set();
+        for (let i = 0; i < rowsArrProgFiltered.length; i++) {
+          const arr = rowsArrProgFiltered[i];
+          const status = (arr[statusIndex] || '').trim();
+          const placa = (arr[placaColIndex] || '').trim();
+          if (placa && normalizeText(status).includes('carregado')) {
+            placasCarregadas.add(placa);
+          }
+        }
+        const carregadoUnico = placasCarregadas.size;
+        // 👆👆👆 FIM DA CORREÇÃO
+
+        // Mantém os demais status contando linhas (comportamento original)
+        const statusCounts = countStatusProgramacao(rowsObjProgFiltered, statusKey);
+        document.getElementById('count-carregado').textContent = carregadoUnico;
+        document.getElementById('count-embarque').textContent = statusCounts.embarque;
+        document.getElementById('count-transito').textContent = statusCounts.transito;
+        document.getElementById('count-contratar').textContent = statusCounts.contratar;
+
+        const produtosTotais = calculateProdutosTotais(rowsArrProgFiltered, 1, 9, 2);
+        globalProdutosTotais.soja = produtosTotais.soja;
+        globalProdutosTotais.milho = produtosTotais.milho;
+        globalProdutosTotais.sorgo = produtosTotais.sorgo;
+        const totalEmbarcado = produtosTotais.soja + produtosTotais.milho + produtosTotais.sorgo;
+        globalProdutosTotais.total = totalEmbarcado;
+        document.getElementById('count-soja').textContent = `${formatNumber(produtosTotais.soja)} KG`;
+        document.getElementById('count-milho').textContent = `${formatNumber(produtosTotais.milho)} KG`;
+        document.getElementById('count-sorgo').textContent = `${formatNumber(produtosTotais.sorgo)} KG`;
+        document.getElementById('count-total').textContent = `${formatNumber(totalEmbarcado)} KG`;
+        const clientesComPesoFuturo = await groupByContract(rowsArrProg, 2, 7, statusIndex, freteIndex, transportadoraIndex, true);
+        const clientesParaHoje = await groupByContract(rowsArrProgFiltered, 2, 7, statusIndex, freteIndex, transportadoraIndex, false);
+        clientesParaHoje.forEach(c => {
+          const key = String(c.contrato || '').replace(/\D/g, '').trim() || String(c.contrato || '').trim();
+          c.saldoEntrega = saldoPorContrato[key] || 0;
+          const clienteFuturo = clientesComPesoFuturo.find(cf => cf.contrato === c.contrato);
+          if (clienteFuturo) {
+            c.pesoEmTransitoEmbarque = clienteFuturo.pesoEmTransitoEmbarque || 0;
+          }
+        });
+        document.getElementById('clientesContainer').innerHTML = buildClientesHTML(clientesParaHoje);
+        updateClientesSummary(clientesParaHoje);
+        let removedProg = [...REMOVED_COMMON.map(normalizeHeader), ...REMOVED_PROGRAMACAO.map(normalizeHeader)];
+        if (headersNormProg.length > 1) {
+          const visibleCols = headersNormProg.filter(h => !removedProg.includes(h));
+          if (visibleCols.length > 1) {
+            const penultimaCol = visibleCols[visibleCols.length - 2];
+            removedProg.push(penultimaCol);
+          }
+        }
+        const freteEmpresaKey = headersNormProg.find(h => h.includes('freteempresa') || h.includes('frete') && h.includes('empresa')) || null;
+        const tableProgHTML = buildTableHTML(rowsArrProgFiltered, rowsObjProgFiltered, headersOrigProg, headersNormProg, {
+          hiddenNorm: HIDDEN_COLS.map(normalizeHeader),
+          removedNorm: removedProg,
+          numericKey: '',
+          currencyCols: freteEmpresaKey ? [freteEmpresaKey] : [],
+          statusCol: statusKey
+        });
+        document.getElementById('programacaoContent').innerHTML = tableProgHTML || '<div class="empty">Nenhuma programação para hoje.</div>';
+        document.getElementById('content-programacao').classList.add('collapsed');
+        document.getElementById('toggle-programacao').classList.add('collapsed');
+        updateLastUpdateTime();
+        document.body.classList.remove('updating');
       }
-    });
-    document.getElementById('clientesContainer').innerHTML = buildClientesHTML(clientesParaHoje);
-    updateClientesSummary(clientesParaHoje);
-    let removedProg = [...REMOVED_COMMON.map(normalizeHeader), ...REMOVED_PROGRAMACAO.map(normalizeHeader)];
-    if(headersNormProg.length > 1) {
-      const visibleCols = headersNormProg.filter(h => !removedProg.includes(h));
-      if(visibleCols.length > 1) {
-        const penultimaCol = visibleCols[visibleCols.length - 2];
-        removedProg.push(penultimaCol);
-      }
-    }
-    const freteEmpresaKey = headersNormProg.find(h => h.includes('freteempresa') || h.includes('frete') && h.includes('empresa')) || null;
-    const tableProgHTML = buildTableHTML(rowsArrProgFiltered, rowsObjProgFiltered, headersOrigProg, headersNormProg, {
-      hiddenNorm: HIDDEN_COLS.map(normalizeHeader),
-      removedNorm: removedProg,
-      numericKey: '',
-      currencyCols: freteEmpresaKey ? [freteEmpresaKey] : [],
-      statusCol: statusKey
-    });
-    document.getElementById('programacaoContent').innerHTML = tableProgHTML || '<div class="empty">Nenhuma programação para hoje.</div>';
-    document.getElementById('content-programacao').classList.add('collapsed');
-    document.getElementById('toggle-programacao').classList.add('collapsed');
-    updateLastUpdateTime();
-    document.body.classList.remove('updating');
-  }
-  catch(err){
-    console.error('Erro loadAll:', err);
-    document.getElementById('programacaoContent').innerHTML = '<div class="empty">Erro ao carregar dados da Programação (ver console).</div>';
-    document.getElementById('clientesContainer').innerHTML = '<div class="empty">Erro ao carregar dados dos contratos (ver console).</div>';
-    document.getElementById('lastUpdateTop').innerHTML = `
+      catch (err) {
+        console.error('Erro loadAll:', err);
+        document.getElementById('programacaoContent').innerHTML = '<div class="empty">Erro ao carregar dados da Programação (ver console).</div>';
+        document.getElementById('clientesContainer').innerHTML = '<div class="empty">Erro ao carregar dados dos contratos (ver console).</div>';
+        document.getElementById('lastUpdateTop').innerHTML = `
       <i class="fas fa-exclamation-triangle" style="color: rgba(255,255,255,0.9);"></i>
       <span>Erro na atualização</span>
     `;
-    document.body.classList.remove('updating');
-  }
-}
-function setupToggleHandlers() {
-  document.getElementById('toggle-programacao').addEventListener('click', function() {
-    toggleSection('programacao');
-  });
-}
-function toggleSection(sectionId) {
-  const content = document.getElementById(`content-${sectionId}`);
-  const header = document.getElementById(`toggle-${sectionId}`);
-  const isCollapsed = content.classList.contains('collapsed');
-  if(isCollapsed) {
-    content.classList.remove('collapsed');
-    header.classList.remove('collapsed');
-  } else {
-    content.classList.add('collapsed');
-    header.classList.add('collapsed');
-  }
-}
-let autoUpdateInterval;
-function startAutoUpdate() {
-  loadAll(true);
-  autoUpdateInterval = setInterval(() => {
-    loadAll(true);
-  }, AUTO_UPDATE_INTERVAL);
-}
-function stopAutoUpdate() {
-  if(autoUpdateInterval) {
-    clearInterval(autoUpdateInterval);
-    autoUpdateInterval = null;
-  }
-}
-document.addEventListener('DOMContentLoaded', function() {
-  setupToggleHandlers();
-  document.getElementById('card-total-embarcado').addEventListener('click', handleTotalCardClick);
-  startAutoUpdate();
-  document.addEventListener('visibilitychange', function() {
-    if(document.hidden) {
-      console.log('Página oculta - pausando atualizações automáticas');
-    } else {
-      console.log('Página visível - retomando atualizações automáticas');
-      loadAll(true);
+        document.body.classList.remove('updating');
+      }
     }
-  });
-});
-</script>
+    function setupToggleHandlers() {
+      document.getElementById('toggle-programacao').addEventListener('click', function () {
+        toggleSection('programacao');
+      });
+    }
+    function toggleSection(sectionId) {
+      const content = document.getElementById(`content-${sectionId}`);
+      const header = document.getElementById(`toggle-${sectionId}`);
+      const isCollapsed = content.classList.contains('collapsed');
+      if (isCollapsed) {
+        content.classList.remove('collapsed');
+        header.classList.remove('collapsed');
+      } else {
+        content.classList.add('collapsed');
+        header.classList.add('collapsed');
+      }
+    }
+    // Set the callback for when auth is ready
+    onAuthSuccess = () => {
+      loadAll(true);
+    };
+
+    let autoUpdateInterval;
+    function startAutoUpdate() {
+      // loadAll(true); // Removed initial call, let onAuthSuccess handle it
+      autoUpdateInterval = setInterval(() => {
+        loadAll(true);
+      }, AUTO_UPDATE_INTERVAL);
+    }
+    function stopAutoUpdate() {
+      if (autoUpdateInterval) {
+        clearInterval(autoUpdateInterval);
+        autoUpdateInterval = null;
+      }
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      setupToggleHandlers();
+      document.getElementById('card-total-embarcado').addEventListener('click', handleTotalCardClick);
+      startAutoUpdate();
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+          console.log('Página oculta - pausando atualizações automáticas');
+        } else {
+          console.log('Página visível - retomando atualizações automáticas');
+          loadAll(true);
+        }
+      });
+    });
+  </script>
 </body>
+
 </html>
