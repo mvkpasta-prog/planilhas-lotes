@@ -645,7 +645,22 @@
       if (text === undefined || text === null) return '';
       return String(text).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
-    
+    function parseCSV(text) {
+      if (!text) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
+      const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+      if (lines.length === 0) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
+      const parsed = lines.map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim()));
+      const headersOrig = parsed.shift().map(h => h || '');
+      const headersNorm = headersOrig.map(h => normalizeHeader(h));
+      const objects = parsed.map(cells => {
+        const obj = {};
+        headersNorm.forEach((key, idx) => {
+          obj[key] = cells[idx] !== undefined ? cells[idx] : '';
+        });
+        return obj;
+      });
+      return { arrays: parsed, headersOrig, headersNorm, objects };
+    }
     async function fetchSheetByGid(gid) {
       // Use the V4 function from auth_config.js
       return await fetchSheetByGidV4(SHEET_ID, gid);
