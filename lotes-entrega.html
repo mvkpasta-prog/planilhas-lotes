@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Controle de Lotes — Lotes de Entrega</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-<style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Controle de Lotes — Lotes de Entrega</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
   :root{
     --primary:#2563eb; --accent:#0ea5e9; --bg:#f6fbff; --card:#fff; --text:#0f172a;
     --muted:#6b7280; --success:#10b981; --warning:#f59e0b;
@@ -19,7 +19,13 @@
     --produto-total: #8b5cf6;
   }
   *{box-sizing:border-box}
-  body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:var(--text);padding:12px}
+  body{
+    font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    padding:12px
+  }
   body::before {
     content: '';
     position: fixed;
@@ -49,35 +55,125 @@
     gap:8px;
     flex-wrap: wrap;
   }
-  .header-title { display:flex; align-items:center; gap:8px; min-width:200px; }
-  .last-update-top { font-size:12px; color:rgba(255,255,255,0.9); display:flex; align-items:center; gap:6px; }
-  .wrap{max-width:1400px;margin:0 auto;width:100%}
-  .header-btn { background:#fff; color:var(--primary); border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:700; font-size:13px; text-decoration:none; transition:background .2s, opacity .2s; display:flex; align-items:center; gap:6px; }
-  .header-btn:hover { background:var(--bg); opacity:.95; }
+  .header-title { 
+    display:flex; 
+    align-items:center; 
+    gap:8px; 
+    min-width:200px; 
+  }
+  .last-update-top { 
+    font-size:12px; 
+    color:rgba(255,255,255,0.9); 
+    display:flex; 
+    align-items:center; 
+    gap:6px; 
+  }
+  .wrap{
+    max-width:1400px;
+    margin:0 auto;
+    width:100%
+  }
+  .header-btn { 
+    background:#fff; 
+    color:var(--primary); 
+    border:none; 
+    padding:6px 10px; 
+    border-radius:6px; 
+    cursor:pointer; 
+    font-weight:700; 
+    font-size:13px; 
+    text-decoration:none; 
+    transition:background .2s, opacity .2s; 
+    display:flex; 
+    align-items:center; 
+    gap:6px; 
+    white-space: nowrap;
+  }
+  .header-btn:hover { 
+    background:var(--bg); 
+    opacity:.95; 
+  }
   .status-cards {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
     margin-bottom: 20px;
   }
-  .status-card{background:var(--card);border-radius:8px;padding:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);text-align:center;transition:all .3s; min-height:72px; display:flex; flex-direction:column; justify-content:center;}
-  .status-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
-  .status-card h3{margin:0 0 6px 0;font-size:14px;color:var(--text);font-weight:600}
-  .status-card .count{font-size:22px;font-weight:700;margin:6px 0}
+  .status-card{
+    background:var(--card);
+    border-radius:8px;
+    padding:10px;
+    box-shadow:0 3px 8px rgba(0,0,0,0.06);
+    text-align:center;
+    transition:all .3s; 
+    min-height:72px; 
+    display:flex; 
+    flex-direction:column; 
+    justify-content:center;
+  }
+  .status-card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 5px 12px rgba(0,0,0,0.08)
+  }
+  .status-card h3{
+    margin:0 0 6px 0;
+    font-size:14px;
+    color:var(--text);
+    font-weight:600
+  }
+  .status-card .count{
+    font-size:22px;
+    font-weight:700;
+    margin:6px 0
+  }
   .product-row {
     grid-column: 1 / -1;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 12px;
   }
-  .clientes-section{margin-bottom:24px}
-  .clientes-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px}
-  .cliente-card{background:var(--card);border-radius:8px;padding:14px;box-shadow:0 3px 8px rgba(0,0,0,0.06);transition:all .3s; cursor:pointer;}
-  .cliente-card:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(0,0,0,0.08)}
-  .cliente-name{font-weight:700;font-size:16px;color:var(--text);margin:0 0 6px 0}
-  .cliente-info{display:flex;justify-content:space-between;margin-bottom:6px;align-items:center}
-  .info-label{font-weight:600;color:var(--muted);font-size:12px}
-  .info-value{font-weight:700;font-size:13px}
+  .clientes-section{
+    margin-bottom:24px
+  }
+  .clientes-container{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    gap:16px;
+    margin-bottom:24px
+  }
+  .cliente-card{
+    background:var(--card);
+    border-radius:8px;
+    padding:14px;
+    box-shadow:0 3px 8px rgba(0,0,0,0.06);
+    transition:all .3s; 
+    cursor:pointer;
+  }
+  .cliente-card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 5px 12px rgba(0,0,0,0.08)
+  }
+  .cliente-name{
+    font-weight:700;
+    font-size:16px;
+    color:var(--text);
+    margin:0 0 6px 0
+  }
+  .cliente-info{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:6px;
+    align-items:center
+  }
+  .info-label{
+    font-weight:600;
+    color:var(--muted);
+    font-size:12px
+  }
+  .info-value{
+    font-weight:700;
+    font-size:13px
+  }
   .cliente-produto{
     padding:3px 7px;
     border-radius:5px;
@@ -87,18 +183,93 @@
     margin-top:4px;
     color: white;
   }
-  .status-pendente-tag{background-color: var(--status-embarque);color: white;padding: 2px 7px;border-radius: 10px;font-size: 11px;font-weight: 600;}
-  .empty{color:var(--muted);font-style:italic;padding:10px;text-align:center;}
-  #filterInput {flex-grow:1; min-width:200px; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:14px}
-  .modal-overlay {position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.6); display:none; justify-content:center; align-items:center; z-index:1000}
-  .modal-content {background:var(--card); padding:20px; border-radius:8px; max-width:600px; width:95%; max-height:90vh; overflow-y:auto; position:relative;}
-  .modal-close {position:absolute; top:10px; right:10px; background:none; border:none; font-size:22px; cursor:pointer; color:var(--muted)}
-  .modal-header h3 {margin-top:0; font-size:18px; color:var(--primary); border-bottom:2px solid var(--accent); padding-bottom:8px; margin-bottom:15px;}
-  .modal-body p {margin:5px 0; font-size:14px}
-  .modal-body .info-label {font-weight:600; color:var(--text); display:inline-block; min-width:160px;}
-  .modal-body .info-value {font-weight:400; color:var(--muted);}
-  .modal-clientes-list {margin-top:15px; padding-top:10px; border-top:1px dashed #ddd;}
-  .modal-clientes-list h4 {margin-top:0; margin-bottom:12px; font-size:14px; color:var(--accent);}
+  .status-pendente-tag{
+    background-color: var(--status-embarque);
+    color: white;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .empty{
+    color:var(--muted);
+    font-style:italic;
+    padding:10px;
+    text-align:center;
+  }
+  #filterInput {
+    flex-grow:1; 
+    min-width:200px; 
+    padding:10px; 
+    border:1px solid #ccc; 
+    border-radius:6px; 
+    font-size:14px
+  }
+  .modal-overlay {
+    position:fixed; 
+    top:0; 
+    left:0; 
+    width:100%; 
+    height:100%; 
+    background:rgba(0,0,0,0.6); 
+    display:none; 
+    justify-content:center; 
+    align-items:center; 
+    z-index:1000
+  }
+  .modal-content {
+    background:var(--card); 
+    padding:20px; 
+    border-radius:8px; 
+    max-width:600px; 
+    width:95%; 
+    max-height:90vh; 
+    overflow-y:auto; 
+    position:relative;
+  }
+  .modal-close {
+    position:absolute; 
+    top:10px; 
+    right:10px; 
+    background:none; 
+    border:none; 
+    font-size:22px; 
+    cursor:pointer; 
+    color:var(--muted)
+  }
+  .modal-header h3 {
+    margin-top:0; 
+    font-size:18px; 
+    color:var(--primary); 
+    border-bottom:2px solid var(--accent); 
+    padding-bottom:8px; 
+    margin-bottom:15px;
+  }
+  .modal-body p {
+    margin:5px 0; 
+    font-size:14px
+  }
+  .modal-body .info-label {
+    font-weight:600; 
+    color:var(--text); 
+    display:inline-block; 
+    min-width:160px;
+  }
+  .modal-body .info-value {
+    font-weight:400; 
+    color:var(--muted);
+  }
+  .modal-clientes-list {
+    margin-top:15px; 
+    padding-top:10px; 
+    border-top:1px dashed #ddd;
+  }
+  .modal-clientes-list h4 {
+    margin-top:0; 
+    margin-bottom:12px; 
+    font-size:14px; 
+    color:var(--accent);
+  }
   .contrato-item {
     background: #fbfdff;
     padding: 10px;
@@ -153,10 +324,12 @@
     .header-title {width:100%; justify-content:space-between}
     .last-update-top {order:3}
   }
-</style>
-<script src="https://accounts.google.com/gsi/client" onload="gisLoaded()" async defer></script>
-<script src="https://apis.google.com/js/api.js" onload="gapiLoaded()" async defer></script>
-<script src="auth_config.js"></script>
+  </style>
+
+  <!-- Scripts de autenticação Google (iguais às outras páginas) -->
+  <script src="https://accounts.google.com/gsi/client" onload="gisLoaded()" async defer></script>
+  <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()" async defer></script>
+  <script src="auth_config.js"></script>
 </head>
 <body>
   <header>
@@ -164,18 +337,27 @@
       <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height:22px; vertical-align:middle; margin-right:8px;">
       Controle de Lotes — Lotes de Entrega
     </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-      <a href="index.html" class="header-btn" title="Voltar para a página principal"><i class="fas fa-home"></i> Página Inicial</a>
-      <a href="Retiradas.html" class="header-btn" title="Acessar Lotes de Retirada"><i class="fas fa-box"></i> Lotes de Retirada</a>
-      <button id="authorize_button" class="header-btn" onclick="handleAuthClick()" style="display: none;">
+    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+      <a href="index.html" class="header-btn" title="Voltar para a página principal">
+        <i class="fas fa-home"></i> Página Inicial
+      </a>
+      <a href="Retiradas.html" class="header-btn" title="Acessar Lotes de Retirada">
+        <i class="fas fa-box"></i> Lotes de Retirada
+      </a>
+
+      <!-- Botões de autenticação -->
+      <button id="authorize_button" class="header-btn" onclick="handleAuthClick()" style="display:none;">
         <i class="fab fa-google"></i> Login
       </button>
-      <button id="signout_button" class="header-btn" onclick="handleSignoutClick()" style="display: none;">
+      <button id="signout_button" class="header-btn" onclick="handleSignoutClick()" style="display:none;">
         <i class="fas fa-sign-out-alt"></i> Sair
       </button>
     </div>
-    <div class="last-update-top" id="lastUpdateTop"><i class="fas fa-hourglass-half"></i> <span>Atualizando...</span></div>
+    <div class="last-update-top" id="lastUpdateTop">
+      <i class="fas fa-hourglass-half"></i> <span>Atualizando.</span>
+    </div>
   </header>
+
   <div class="wrap">
     <div class="status-cards">
       <div class="status-card">
@@ -205,395 +387,552 @@
         </div>
       </div>
     </div>
+
     <div class="clientes-section">
       <h2 style="margin-top:0;">📍 Lotes com Saldo a Entregar</h2>
       <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
-        <input type="text" id="filterInput" placeholder="Filtrar por Cliente, Contrato ou Cidade...">
-        <button class="toggle-btn" id="toggleViewBtn" onclick="toggleView()"><i class="fas fa-sync-alt"></i> Mudar para Locais</button>
+        <input type="text" id="filterInput" placeholder="Filtrar por Cliente, Contrato ou Cidade.">
+        <button class="toggle-btn" id="toggleViewBtn" onclick="toggleView()">
+          <i class="fas fa-sync-alt"></i> Mudar para Locais
+        </button>
       </div>
       <div class="clientes-container" id="clientesContainer">
-        <div class="empty">Carregando...</div>
+        <div class="empty">Carregando.</div>
       </div>
     </div>
   </div>
+
   <div id="resumoModal" class="modal-overlay">
     <div class="modal-content" role="dialog" aria-modal="true">
       <button class="modal-close" onclick="closeModal()">&times;</button>
       <div id="modalContentBody"></div>
     </div>
   </div>
-<script>
-const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
-const GID_ENTREGA = '1186247985';
-const AUTO_UPDATE_INTERVAL = 300000;
-let globalData = [];
-let currentView = localStorage.getItem('lotes_entregas_view') || 'cliente';
 
-function normalizeHeader(h) { if (h==null) return ''; return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,''); }
-function normalizeText(t) { if (t==null) return ''; return String(t).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+  <script>
+  const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
+  const GID_ENTREGA = '1186247985';
+  const AUTO_UPDATE_INTERVAL = 300000;
+  let globalData = [];
+  let currentView = localStorage.getItem('lotes_entregas_view') || 'cliente';
 
-async function fetchSheetByGid(gid) {
-  // Use the V4 function from auth_config.js
-  return await fetchSheetByGidV4(SHEET_ID, gid);
-}
-function parseNumber(val) {
-  if (val===undefined || val===null) return NaN;
-  const s = String(val).replace(/\s/g,'').replace(/\./g,'').replace(/,/g,'.');
-  return parseFloat(s.replace(/[^\d\.\-]/g,''));
-}
-function formatNumber(value) {
-  if (isNaN(value)) return '0';
-  return new Intl.NumberFormat('pt-BR').format(Math.round(value));
-}
-function escapeHtml(s) {
-  if (s===undefined || s===null) return '';
-  return String(s).replace(/[&<>"'\/]/g, c => ({'&':'&amp;','<':'<','>':'>','"':'&quot;',"'":'&#x2F;'}[c]));
-}
-function getProdutoCorClasse(produto) {
-  const p = (produto || '').toLowerCase();
-  if (p.includes('soja')) return 'var(--produto-soja)';
-  if (p.includes('milho')) return 'var(--produto-milho)';
-  if (p.includes('sorgo')) return 'var(--produto-sorgo)';
-  return 'var(--produto-sorgo)';
-}
-function extractContractNumber(raw) {
-  if (!raw) return '';
-  const s = String(raw).trim();
-  if (s.includes('-')) return s.split('-')[0].trim();
-  return s;
-}
-function extractCidadeFromDestino(texto) {
-  if (!texto) return '';
-  const partes = texto.split(' - ');
-  if (partes.length > 1) {
-    return partes[1].trim();
+  function normalizeHeader(h) { 
+    if (h==null) return ''; 
+    return String(h).trim().toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-z0-9]/g,''); 
   }
-  return '';
-}
-function processData(rowsArr) {
-  const grupos = {};
-  for (let i = 0; i < rowsArr.length; i++) {
-    const row = rowsArr[i];
-    if (!row || row.length < 9) continue;
-    const contratoRaw = ((row[1] && String(row[1]).trim() !== '') ? String(row[1]).trim() : (row[0] || '')).toString().trim();
-    const contrato = extractContractNumber(contratoRaw);
-    const cliente = (row[2] || '').trim();
-    const cidadeCompleta = row[3] || '';
-    const produto = (row[4] || '').trim();
-    const safra = (row[5] || '').trim();
-    const volume = parseNumber(row[6]) || 0;
-    const embarcado = parseNumber(row[7]) || 0;
-    const falta = parseNumber(row[8]) || 0;
-    if (falta <= 0 || !cliente) continue;
-    let cidade = extractCidadeFromDestino(cidadeCompleta);
-    if (!grupos[cliente]) {
-      grupos[cliente] = { cliente, cidadeRef: cidade, contratos: [], totalVolume:0, totalEmbarcado:0, totalFalta:0, produtos: new Set() };
+  function normalizeText(t) { 
+    if (t==null) return ''; 
+    return String(t).trim().toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,''); 
+  }
+  function parseCSV(text) {
+    if (!text) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
+    const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+    if (lines.length === 0) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
+    const parsed = lines.map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
+      .map(c => c.replace(/^"|"$/g,'').trim()));
+    const headersOrig = parsed.shift().map(h => h || '');
+    const headersNorm = headersOrig.map(h => normalizeHeader(h));
+    const objects = parsed.map(cells => {
+      const obj = {};
+      headersNorm.forEach((key, idx) => { 
+        obj[key] = cells[idx] !== undefined ? cells[idx] : ''; 
+      });
+      return obj;
+    });
+    return { arrays: parsed, headersOrig, headersNorm, objects };
+  }
+
+  // *** Novo: usa Sheets API v4 via auth_config.js ***
+  async function fetchSheetByGid(gid) {
+    return await fetchSheetByGidV4(SHEET_ID, gid);
+  }
+
+  function parseNumber(val) {
+    if (val===undefined || val===null) return NaN;
+    const s = String(val).replace(/\s/g,'').replace(/\./g,'').replace(/,/g,'.');
+    return parseFloat(s.replace(/[^\d\.\-]/g,''));
+  }
+  function formatNumber(value) {
+    if (isNaN(value)) return '0';
+    return new Intl.NumberFormat('pt-BR').format(Math.round(value));
+  }
+  function escapeHtml(s) {
+    if (s===undefined || s===null) return '';
+    return String(s).replace(/[&<>"'\/]/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x2F;'
+    }[c]));
+  }
+  function getProdutoCorClasse(produto) {
+    const p = (produto || '').toLowerCase();
+    if (p.includes('soja')) return 'var(--produto-soja)';
+    if (p.includes('milho')) return 'var(--produto-milho)';
+    if (p.includes('sorgo')) return 'var(--produto-sorgo)';
+    return 'var(--produto-sorgo)';
+  }
+  function extractContractNumber(raw) {
+    if (!raw) return '';
+    const s = String(raw).trim();
+    if (s.includes('-')) return s.split('-')[0].trim();
+    return s;
+  }
+  function extractCidadeFromDestino(texto) {
+    if (!texto) return '';
+    const s = String(texto);
+    if (s.includes('-')) {
+      const parts = s.split('-');
+      return parts[parts.length - 1].trim();
     }
-    grupos[cliente].contratos.push({
-      contrato, cidade, produto, safra, volume, embarcado, falta,
-      searchKey: normalizeText(`${cliente} ${contrato} ${cidade} ${produto}`)
-    });
-    grupos[cliente].totalVolume += volume;
-    if (produto) grupos[cliente].produtos.add(produto);
-    grupos[cliente].totalEmbarcado += embarcado;
-    grupos[cliente].totalFalta += falta;
+    return s.trim();
   }
-  return Object.values(grupos).sort((a,b) => b.totalFalta - a.totalFalta);
-}
-function processDataByCity(rowsArr) {
-  const grupos = {};
-  for (let i = 0; i < rowsArr.length; i++) {
-    const row = rowsArr[i];
-    if (!row || row.length < 9) continue;
-    const contratoRaw = ((row[1] && String(row[1]).trim() !== '') ? String(row[1]).trim() : (row[0] || '')).toString().trim();
-    const contrato = extractContractNumber(contratoRaw);
-    const cliente = (row[2] || '').trim();
-    const cidadeCompleta = row[3] || '';
-    const produto = (row[4] || '').trim();
-    const safra = (row[5] || '').trim();
-    const volume = parseNumber(row[6]) || 0;
-    const embarcado = parseNumber(row[7]) || 0;
-    const falta = parseNumber(row[8]) || 0;
-    if (falta <= 0 || !cidadeCompleta) continue;
-    let cidade = extractCidadeFromDestino(cidadeCompleta);
-    if (!grupos[cidade]) {
-      grupos[cidade] = { cidade, contratos: [], clientes: new Set(), totalVolume:0, totalEmbarcado:0, totalFalta:0, produtos: new Set() };
+
+  function processData(rowsArr) {
+    // índices baseados na estrutura da planilha de entrega
+    const contratoIndex = 1;
+    const clienteIndex = 2;
+    const produtoIndex = 3;
+    const destinoIndex = 4;
+    const safraIndex = 5;
+    const volumeIndex = 6;
+    const faltaIndex = 8;
+
+    const clientesMap = {};
+    const contratosSet = new Set();
+    let totalSoja = 0, totalMilho = 0, totalSorgo = 0, totalGeral = 0;
+
+    rowsArr.forEach(arr => {
+      const contratoRaw = arr[contratoIndex] || '';
+      const contrato = extractContractNumber(contratoRaw);
+      const cliente = (arr[clienteIndex] || 'Cliente Desconhecido').toString().trim();
+      const produto = (arr[produtoIndex] || 'Produto Desconhecido').toString().trim();
+      const destino = arr[destinoIndex] || '';
+      const cidade = extractCidadeFromDestino(destino);
+      const safra = arr[safraIndex] || '';
+      const volume = parseNumber(arr[volumeIndex] || '0');
+      const falta = parseNumber(arr[faltaIndex] || '0');
+
+      if (!contrato || isNaN(falta) || falta <= 0) return;
+
+      const keyCliente = cliente;
+      if (!clientesMap[keyCliente]) {
+        clientesMap[keyCliente] = {
+          cliente,
+          contratos: [],
+          totalFalta: 0,
+          totalVolume: 0,
+          cidades: new Set(),
+          produtos: new Set()
+        };
+      }
+      const cli = clientesMap[keyCliente];
+      cli.contratos.push({
+        contrato,
+        produto,
+        cidade,
+        safra,
+        volume,
+        falta
+      });
+      cli.totalFalta += falta;
+      cli.totalVolume += volume;
+      cli.cidades.add(cidade || 'Cidade Desconhecida');
+      cli.produtos.add(produto);
+
+      contratosSet.add(contrato);
+
+      const produtoLower = produto.toLowerCase();
+      if (produtoLower.includes('soja')) totalSoja += falta;
+      else if (produtoLower.includes('milho')) totalMilho += falta;
+      else if (produtoLower.includes('sorgo')) totalSorgo += falta;
+      totalGeral += falta;
+    });
+
+    document.getElementById('count-clientes').textContent = Object.keys(clientesMap).length;
+    document.getElementById('count-contratos').textContent = contratosSet.size;
+    document.getElementById('count-soja').textContent = formatNumber(totalSoja);
+    document.getElementById('count-milho').textContent = formatNumber(totalMilho);
+    document.getElementById('count-sorgo').textContent = formatNumber(totalSorgo);
+    document.getElementById('count-total').textContent = formatNumber(totalGeral);
+
+    return Object.values(clientesMap).sort((a,b)=>b.totalFalta-a.totalFalta);
+  }
+
+  function processDataByCity(rowsArr) {
+    const contratoIndex = 1;
+    const clienteIndex = 2;
+    const produtoIndex = 3;
+    const destinoIndex = 4;
+    const safraIndex = 5;
+    const volumeIndex = 6;
+    const faltaIndex = 8;
+
+    const cidadesMap = {};
+    const contratosSet = new Set();
+    let totalSoja = 0, totalMilho = 0, totalSorgo = 0, totalGeral = 0;
+
+    rowsArr.forEach(arr => {
+      const contratoRaw = arr[contratoIndex] || '';
+      const contrato = extractContractNumber(contratoRaw);
+      const cliente = (arr[clienteIndex] || 'Cliente Desconhecido').toString().trim();
+      const produto = (arr[produtoIndex] || 'Produto Desconhecido').toString().trim();
+      const destino = arr[destinoIndex] || '';
+      const cidade = extractCidadeFromDestino(destino) || 'Cidade Desconhecida';
+      const safra = arr[safraIndex] || '';
+      const volume = parseNumber(arr[volumeIndex] || '0');
+      const falta = parseNumber(arr[faltaIndex] || '0');
+
+      if (!contrato || isNaN(falta) || falta <= 0) return;
+
+      if (!cidadesMap[cidade]) {
+        cidadesMap[cidade] = {
+          cidade,
+          contratos: [],
+          totalFalta: 0,
+          totalVolume: 0,
+          clientes: new Set(),
+          produtos: new Set(),
+          safraSet: new Set()
+        };
+      }
+      const city = cidadesMap[cidade];
+      city.contratos.push({
+        contrato,
+        cliente,
+        produto,
+        cidade,
+        safra,
+        volume,
+        falta
+      });
+      city.totalFalta += falta;
+      city.totalVolume += volume;
+      city.clientes.add(cliente);
+      city.produtos.add(produto);
+      if (safra) city.safraSet.add(safra);
+
+      contratosSet.add(contrato);
+
+      const produtoLower = produto.toLowerCase();
+      if (produtoLower.includes('soja')) totalSoja += falta;
+      else if (produtoLower.includes('milho')) totalMilho += falta;
+      else if (produtoLower.includes('sorgo')) totalSorgo += falta;
+      totalGeral += falta;
+    });
+
+    document.getElementById('count-clientes').textContent = Object.keys(cidadesMap).length;
+    document.getElementById('count-contratos').textContent = contratosSet.size;
+    document.getElementById('count-soja').textContent = formatNumber(totalSoja);
+    document.getElementById('count-milho').textContent = formatNumber(totalMilho);
+    document.getElementById('count-sorgo').textContent = formatNumber(totalSorgo);
+    document.getElementById('count-total').textContent = formatNumber(totalGeral);
+
+    return Object.values(cidadesMap).sort((a,b)=>b.totalFalta-a.totalFalta);
+  }
+
+  function renderClientCards(clients, filterText) {
+    const container = document.getElementById('clientesContainer');
+    container.innerHTML = '';
+    const normFilter = normalizeText(filterText || '');
+    if (!clients || clients.length === 0) {
+      container.innerHTML = '<div class="empty">Nenhum registro encontrado.</div>';
+      return;
     }
-    grupos[cidade].contratos.push({
-      contrato, cliente, produto, safra, volume, embarcado, falta,
-      searchKey: normalizeText(`${cliente} ${contrato} ${cidade} ${produto}`)
+    const filtered = clients.filter(c => {
+      if (!normFilter) return true;
+      const fullText = normalizeText(
+        c.cliente + ' ' +
+        Array.from(c.cidades).join(' ') + ' ' +
+        Array.from(c.produtos).join(' ')
+      );
+      return fullText.includes(normFilter);
     });
-    grupos[cidade].clientes.add(cliente);
-    grupos[cidade].totalVolume += volume;
-    if (produto) grupos[cidade].produtos.add(produto);
-    grupos[cidade].totalEmbarcado += embarcado;
-    grupos[cidade].totalFalta += falta;
-  }
-  return Object.values(grupos).sort((a,b) => b.totalFalta - a.totalFalta);
-}
-function renderClientCards(data, filter = '') {
-  const container = document.getElementById('clientesContainer');
-  container.innerHTML = '';
-  if (!data || data.length === 0) {
-    container.innerHTML = '<div class="empty">Nenhum lote com saldo a entregar.</div>';
-    return;
-  }
-  const f = normalizeText(filter || '');
-  let totalClientes = data.length;
-  let totalContratos = 0;
-  let totalSoja = 0, totalMilho = 0, totalSorgo = 0;
-  data.forEach(group => {
-    const contratosFiltrados = group.contratos.filter(c => c.searchKey.includes(f));
-    if (f && contratosFiltrados.length === 0) return;
-    totalContratos += group.contratos.length;
-    group.contratos.forEach(c => {
-      const prod = (c.produto || '').toLowerCase();
-      if (prod.includes('soja')) totalSoja += c.falta;
-      else if (prod.includes('milho')) totalMilho += c.falta;
-      else if (prod.includes('sorgo')) totalSorgo += c.falta;
-    });
-    const card = document.createElement('div');
-    card.className = 'cliente-card';
-    const prodList = Array.from(group.produtos).map(p => {
-      const cor = getProdutoCorClasse(p);
-      return `<span class="cliente-produto" style="background-color:${cor}">${escapeHtml(p)}</span>`;
-    }).join(' ');
-    const inner = `
-      <div class="cliente-name">${escapeHtml(group.cliente)}</div>
-      <div class="cliente-info">
-        <div><span class="info-label">Volume (kg)</span> <div class="info-value">${formatNumber(group.totalVolume)}</div></div>
-        <div><span class="info-label">Saldo (kg)</span> <div class="info-value">${formatNumber(group.totalFalta)}</div></div>
-      </div>
-      <div class="cliente-info">
-        <div><span class="info-label">Contratos</span> <div class="info-value">${group.contratos.length}</div></div>
-      </div>
-      <div style="margin-top:8px">${prodList}</div>
-    `;
-    card.innerHTML = inner;
-    card.onclick = () => openClientModal(group);
-    container.appendChild(card);
-  });
-  document.getElementById('count-clientes').innerText = totalClientes;
-  document.getElementById('count-contratos').innerText = totalContratos;
-  document.getElementById('count-soja').innerText = formatNumber(totalSoja);
-  document.getElementById('count-milho').innerText = formatNumber(totalMilho);
-  document.getElementById('count-sorgo').innerText = formatNumber(totalSorgo);
-  document.getElementById('count-total').innerText = formatNumber(totalSoja + totalMilho + totalSorgo);
-}
-function renderCityCards(data, filter = '') {
-  const container = document.getElementById('clientesContainer');
-  container.innerHTML = '';
-  if (!data || data.length === 0) {
-    container.innerHTML = '<div class="empty">Nenhuma cidade com saldo a entregar.</div>';
-    return;
-  }
-  const f = normalizeText(filter || '');
-  let totalCidades = data.length;
-  let totalContratos = 0;
-  let totalSoja = 0, totalMilho = 0, totalSorgo = 0;
-  data.forEach(group => {
-    const contratosFiltrados = group.contratos.filter(c => c.searchKey.includes(f));
-    if (f && contratosFiltrados.length === 0) return;
-    totalContratos += group.contratos.length;
-    group.contratos.forEach(c => {
-      const prod = (c.produto || '').toLowerCase();
-      if (prod.includes('soja')) totalSoja += c.falta;
-      else if (prod.includes('milho')) totalMilho += c.falta;
-      else if (prod.includes('sorgo')) totalSorgo += c.falta;
-    });
-    const card = document.createElement('div');
-    card.className = 'cliente-card';
-    const clientesList = Array.from(group.clientes).slice(0,3).map(p => `<div style="font-size:13px">${escapeHtml(p)}</div>`).join('');
-    const prodList = Array.from(group.produtos).map(p => {
-      const cor = getProdutoCorClasse(p);
-      return `<span class="cliente-produto" style="background-color:${cor}">${escapeHtml(p)}</span>`;
-    }).join(' ');
-    const inner = `
-      <div class="cliente-name">${escapeHtml(group.cidade)}</div>
-      <div class="cliente-info">
-        <div><span class="info-label">Volume (kg)</span> <div class="info-value">${formatNumber(group.totalVolume)}</div></div>
-        <div><span class="info-label">Saldo (kg)</span> <div class="info-value">${formatNumber(group.totalFalta)}</div></div>
-      </div>
-      <div class="cliente-info">
-        <div><span class="info-label">Contratos</span> <div class="info-value">${group.contratos.length}</div></div>
-      </div>
-      <div style="margin-top:8px">${prodList}</div>
-      <div style="margin-top:8px; color:var(--muted); font-size:13px">${clientesList}</div>
-    `;
-    card.innerHTML = inner;
-    card.onclick = () => openCityModal(group);
-    container.appendChild(card);
-  });
-  document.getElementById('count-clientes').innerText = totalCidades;
-  document.getElementById('count-contratos').innerText = totalContratos;
-  document.getElementById('count-soja').innerText = formatNumber(totalSoja);
-  document.getElementById('count-milho').innerText = formatNumber(totalMilho);
-  document.getElementById('count-sorgo').innerText = formatNumber(totalSorgo);
-  document.getElementById('count-total').innerText = formatNumber(totalSoja + totalMilho + totalSorgo);
-}
-function openClientModal(group) {
-  const body = document.getElementById('modalContentBody');
-  let html = `<div class="modal-header"><h3>${escapeHtml(group.cliente)}</h3></div>`;
-  html += `<div class="modal-body">`;
-  html += `<p><span class="info-label">Cidade (ref):</span> <span class="info-value">${escapeHtml(group.cidadeRef)}</span></p>`;
-  html += `<p><span class="info-label">Volume total:</span> <span class="info-value">${formatNumber(group.totalVolume)} KG</span></p>`;
-  if (group.contratos[0]?.safra) {
-    const safraUnica = new Set(group.contratos.map(c => c.safra)).size === 1 ? group.contratos[0].safra : 'Múltiplas';
-    html += `<p><span class="info-label">Safra:</span> <span class="info-value">${escapeHtml(safraUnica)}</span></p>`;
-  }
-  html += `<p><span class="info-label">Saldo total (kg):</span> <span class="info-value">${formatNumber(group.totalFalta)} KG</span></p>`;
-  html += `<div class="modal-clientes-list">`;
-  html += `<h4>Contratos (${group.contratos.length}):</h4>`;
-  group.contratos.forEach(c => {
-    const corVar = getProdutoCorClasse(c.produto);
-    html += `
-      <div class="contrato-item">
-        <div class="contrato-linha">
-          <strong>Contrato:</strong>
-          <span>${escapeHtml(c.contrato)}</span>
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="empty">Nenhum cliente encontrado com esse filtro.</div>';
+      return;
+    }
+    filtered.forEach(cli => {
+      const card = document.createElement('div');
+      card.className = 'cliente-card';
+      const produtosList = Array.from(cli.produtos).join(' / ') || 'N/A';
+      const cidadesList = Array.from(cli.cidades).join(' / ') || 'N/A';
+
+      let produtosTags = '';
+      cli.produtos.forEach(p => {
+        const corVar = getProdutoCorClasse(p);
+        produtosTags += `<span class="cliente-produto" style="background-color:${corVar};">${escapeHtml(p)}</span> `;
+      });
+
+      card.innerHTML = `
+        <div class="cliente-name">${escapeHtml(cli.cliente)}</div>
+        <div class="cliente-info">
+          <span class="info-label">Saldo total:</span>
+          <span class="info-value">${formatNumber(cli.totalFalta)} KG</span>
         </div>
-        <div class="contrato-linha">
-          <strong>Produto:</strong>
-          <span class="produto-tag" style="background-color:${corVar}; color:white; padding:2px 6px; border-radius:4px; font-weight:600;">${escapeHtml(c.produto)}</span>
+        <div class="cliente-info">
+          <span class="info-label">Volume total:</span>
+          <span class="info-value">${formatNumber(cli.totalVolume)} KG</span>
         </div>
-        <div class="contrato-linha">
-          <strong>Cidade:</strong>
-          <span>${escapeHtml(c.cidade)}</span>
+        <div class="cliente-info">
+          <span class="info-label">Cidades:</span>
+          <span class="info-value">${escapeHtml(cidadesList)}</span>
         </div>
-        <div class="contrato-linha">
-          <strong>Volume:</strong>
-          <span>${formatNumber(c.volume)} KG</span>
+        <div class="cliente-info">
+          <span class="info-label">Produtos:</span>
+          <span class="info-value">${produtosTags || escapeHtml(produtosList)}</span>
         </div>
-        ${c.safra ? `<div class="contrato-linha"><strong>Safra:</strong> <span>${escapeHtml(c.safra)}</span></div>` : ''}
-        <div class="contrato-linha">
-          <strong>Saldo:</strong>
-          <span>${formatNumber(c.falta)} KG</span>
+        <div class="cliente-info">
+          <span class="info-label">Contratos:</span>
+          <span class="info-value">${cli.contratos.length}</span>
         </div>
-      </div>
-    `;
-  });
-  html += `</div></div>`;
-  body.innerHTML = html;
-  document.getElementById('resumoModal').style.display = 'flex';
-}
-function openCityModal(group) {
-  const body = document.getElementById('modalContentBody');
-  let html = `<div class="modal-header"><h3>${escapeHtml(group.cidade)}</h3></div>`;
-  html += `<div class="modal-body">`;
-  html += `<p><span class="info-label">Clientes:</span> <span class="info-value">${Array.from(group.clientes).join(', ')}</span></p>`;
-  html += `<p><span class="info-label">Volume total:</span> <span class="info-value">${formatNumber(group.totalVolume)} KG</span></p>`;
-  if (group.contratos[0]?.safra) {
-    const safraUnica = new Set(group.contratos.map(c => c.safra)).size === 1 ? group.contratos[0].safra : 'Múltiplas';
-    html += `<p><span class="info-label">Safra:</span> <span class="info-value">${escapeHtml(safraUnica)}</span></p>`;
-  }
-  html += `<p><span class="info-label">Saldo total (kg):</span> <span class="info-value">${formatNumber(group.totalFalta)} KG</span></p>`;
-  html += `<div class="modal-clientes-list">`;
-  html += `<h4>Contratos (${group.contratos.length}):</h4>`;
-  group.contratos.forEach(c => {
-    const corVar = getProdutoCorClasse(c.produto);
-    html += `
-      <div class="contrato-item">
-        <div class="contrato-linha">
-          <strong>Contrato:</strong>
-          <span>${escapeHtml(c.contrato)}</span>
-        </div>
-        <div class="contrato-linha">
-          <strong>Cliente:</strong>
-          <span>${escapeHtml(c.cliente)}</span>
-        </div>
-        <div class="contrato-linha">
-          <strong>Produto:</strong>
-          <span class="produto-tag" style="background-color:${corVar}; color:white; padding:2px 6px; border-radius:4px; font-weight:600;">${escapeHtml(c.produto)}</span>
-        </div>
-        <div class="contrato-linha">
-          <strong>Cidade:</strong>
-          <span>${escapeHtml(c.cidade)}</span>
-        </div>
-        <div class="contrato-linha">
-          <strong>Volume:</strong>
-          <span>${formatNumber(c.volume)} KG</span>
-        </div>
-        ${c.safra ? `<div class="contrato-linha"><strong>Safra:</strong> <span>${escapeHtml(c.safra)}</span></div>` : ''}
-        <div class="contrato-linha">
-          <strong>Saldo:</strong>
-          <span>${formatNumber(c.falta)} KG</span>
-        </div>
-      </div>
-    `;
-  });
-  html += `</div></div>`;
-  body.innerHTML = html;
-  document.getElementById('resumoModal').style.display = 'flex';
-}
-function closeModal() {
-  document.getElementById('resumoModal').style.display = 'none';
-}
-function updateToggleButton() {
-  const btn = document.getElementById('toggleViewBtn');
-  if (!btn) return;
-  if (currentView === 'cliente') {
-    btn.innerHTML = '<i class="fas fa-sync-alt"></i> Mudar para Locais';
-  } else {
-    btn.innerHTML = '<i class="fas fa-sync-alt"></i> Mudar para Clientes';
-  }
-}
-function toggleView() {
-  currentView = (currentView === 'cliente') ? 'local' : 'cliente';
-  localStorage.setItem('lotes_entregas_view', currentView);
-  updateToggleButton();
-  renderCurrentView();
-}
-function renderCurrentView() {
-  const filter = document.getElementById('filterInput').value || '';
-  if (currentView === 'cliente') {
-    const clients = processData(globalData);
-    renderClientCards(clients, filter);
-  } else {
-    const cities = processDataByCity(globalData);
-    renderCityCards(cities, filter);
-  }
-}
-async function loadDataAndRender(isAutoUpdate = false) {
-      try {
-        if (isAutoUpdate) {
-          document.getElementById('lastUpdateTop').innerHTML = `
-        <i class="fas fa-hourglass-half" style="color: rgba(255,255,255,0.9);"></i>
-        <span>Atualizando...</span>
       `;
-          document.body.classList.add('updating');
-        }
-
-        if (!accessToken) {
-          console.log('Waiting for authentication...');
-          document.getElementById('lastUpdateTop').innerHTML = '<span>Aguardando Login...</span>';
-          document.body.classList.remove('updating');
-          return;
-        }
-    document.getElementById('lastUpdateTop').querySelector('span').innerText = 'Atualizando...';
-    const parsed = await fetchSheetByGid(GID_ENTREGA);
-    globalData = parsed.arrays || [];
-    renderCurrentView();
-    document.getElementById('lastUpdateTop').querySelector('span').innerText = `Última atualização: ${new Date().toLocaleString('pt-BR')}`;
-  } catch (err) {
-    console.error(err);
-    document.getElementById('clientesContainer').innerHTML = `<div class="empty">Erro ao carregar dados: ${escapeHtml(err.message)}</div>`;
-    document.getElementById('lastUpdateTop').querySelector('span').innerText = 'Erro na atualização';
+      card.addEventListener('click', () => openResumoModalCliente(cli));
+      container.appendChild(card);
+    });
   }
-}
 
-onAuthSuccess = () => {
+  function renderCityCards(cities, filterText) {
+    const container = document.getElementById('clientesContainer');
+    container.innerHTML = '';
+    const normFilter = normalizeText(filterText || '');
+    if (!cities || cities.length === 0) {
+      container.innerHTML = '<div class="empty">Nenhum registro encontrado.</div>';
+      return;
+    }
+    const filtered = cities.filter(c => {
+      if (!normFilter) return true;
+      const fullText = normalizeText(
+        c.cidade + ' ' +
+        Array.from(c.clientes).join(' ') + ' ' +
+        Array.from(c.produtos).join(' ')
+      );
+      return fullText.includes(normFilter);
+    });
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="empty">Nenhuma cidade encontrada com esse filtro.</div>';
+      return;
+    }
+    filtered.forEach(city => {
+      const card = document.createElement('div');
+      card.className = 'cliente-card';
+      const produtosList = Array.from(city.produtos).join(' / ') || 'N/A';
+      const clientesList = Array.from(city.clientes).join(' / ') || 'N/A';
+      const safraList = Array.from(city.safraSet).join(' / ');
+
+      let produtosTags = '';
+      city.produtos.forEach(p => {
+        const corVar = getProdutoCorClasse(p);
+        produtosTags += `<span class="cliente-produto" style="background-color:${corVar};">${escapeHtml(p)}</span> `;
+      });
+
+      card.innerHTML = `
+        <div class="cliente-name">${escapeHtml(city.cidade)}</div>
+        <div class="cliente-info">
+          <span class="info-label">Saldo total:</span>
+          <span class="info-value">${formatNumber(city.totalFalta)} KG</span>
+        </div>
+        <div class="cliente-info">
+          <span class="info-label">Volume total:</span>
+          <span class="info-value">${formatNumber(city.totalVolume)} KG</span>
+        </div>
+        <div class="cliente-info">
+          <span class="info-label">Clientes:</span>
+          <span class="info-value">${escapeHtml(clientesList)}</span>
+        </div>
+        <div class="cliente-info">
+          <span class="info-label">Produtos:</span>
+          <span class="info-value">${produtosTags || escapeHtml(produtosList)}</span>
+        </div>
+        ${safraList ? `
+        <div class="cliente-info">
+          <span class="info-label">Safra(s):</span>
+          <span class="info-value">${escapeHtml(safraList)}</span>
+        </div>` : ''}
+        <div class="cliente-info">
+          <span class="info-label">Contratos:</span>
+          <span class="info-value">${city.contratos.length}</span>
+        </div>
+      `;
+      card.addEventListener('click', () => openResumoModalCidade(city));
+      container.appendChild(card);
+    });
+  }
+
+  function openResumoModalCliente(group) {
+    const body = document.getElementById('modalContentBody');
+    let html = '';
+    html += `<div class="modal-header"><h3>Cliente: ${escapeHtml(group.cliente)}</h3></div>`;
+    html += `<div class="modal-body">`;
+    html += `<p><span class="info-label">Saldo total (kg):</span> <span class="info-value">${formatNumber(group.totalFalta)} KG</span></p>`;
+    html += `<p><span class="info-label">Volume total (kg):</span> <span class="info-value">${formatNumber(group.totalVolume)} KG</span></p>`;
+    html += `<p><span class="info-label">Cidades:</span> <span class="info-value">${escapeHtml(Array.from(group.cidades).join(' / ') || 'N/A')}</span></p>`;
+    html += `<p><span class="info-label">Produtos:</span> <span class="info-value">${escapeHtml(Array.from(group.produtos).join(' / ') || 'N/A')}</span></p>`;
+    html += `<div class="modal-clientes-list">`;
+    html += `<h4>Contratos (${group.contratos.length}):</h4>`;
+    group.contratos.forEach(c => {
+      const corVar = getProdutoCorClasse(c.produto);
+      html += `
+        <div class="contrato-item">
+          <div class="contrato-linha">
+            <strong>Contrato:</strong>
+            <span>${escapeHtml(c.contrato)}</span>
+          </div>
+          <div class="contrato-linha">
+            <strong>Cidade:</strong>
+            <span>${escapeHtml(c.cidade)}</span>
+          </div>
+          <div class="contrato-linha">
+            <strong>Produto:</strong>
+            <span class="produto-tag" style="background-color:${corVar}; color:white; padding:2px 6px; border-radius:4px; font-weight:600;">${escapeHtml(c.produto)}</span>
+          </div>
+          <div class="contrato-linha">
+            <strong>Volume:</strong>
+            <span>${formatNumber(c.volume)} KG</span>
+          </div>
+          ${c.safra ? `<div class="contrato-linha"><strong>Safra:</strong> <span>${escapeHtml(c.safra)}</span></div>` : ''}
+          <div class="contrato-linha">
+            <strong>Saldo:</strong>
+            <span>${formatNumber(c.falta)} KG</span>
+          </div>
+        </div>
+      `;
+    });
+    html += `</div></div>`;
+    body.innerHTML = html;
+    document.getElementById('resumoModal').style.display = 'flex';
+  }
+
+  function openResumoModalCidade(group) {
+    const body = document.getElementById('modalContentBody');
+    let html = '';
+    html += `<div class="modal-header"><h3>Cidade: ${escapeHtml(group.cidade)}</h3></div>`;
+    html += `<div class="modal-body">`;
+    html += `<p><span class="info-label">Saldo total (kg):</span> <span class="info-value">${formatNumber(group.totalFalta)} KG</span></p>`;
+    html += `<p><span class="info-label">Volume total (kg):</span> <span class="info-value">${formatNumber(group.totalVolume)} KG</span></p>`;
+    html += `<p><span class="info-label">Clientes:</span> <span class="info-value">${escapeHtml(Array.from(group.clientes).join(' / ') || 'N/A')}</span></p>`;
+    html += `<p><span class="info-label">Produtos:</span> <span class="info-value">${escapeHtml(Array.from(group.produtos).join(' / ') || 'N/A')}</span></p>`;
+    const safraList = Array.from(group.safraSet).join(' / ');
+    if (safraList) {
+      html += `<p><span class="info-label">Safra(s):</span> <span class="info-value">${escapeHtml(safraList)}</span></p>`;
+    }
+    html += `<div class="modal-clientes-list">`;
+    html += `<h4>Contratos (${group.contratos.length}):</h4>`;
+    group.contratos.forEach(c => {
+      const corVar = getProdutoCorClasse(c.produto);
+      html += `
+        <div class="contrato-item">
+          <div class="contrato-linha">
+            <strong>Contrato:</strong>
+            <span>${escapeHtml(c.contrato)}</span>
+          </div>
+          <div class="contrato-linha">
+            <strong>Cliente:</strong>
+            <span>${escapeHtml(c.cliente)}</span>
+          </div>
+          <div class="contrato-linha">
+            <strong>Produto:</strong>
+            <span class="produto-tag" style="background-color:${corVar}; color:white; padding:2px 6px; border-radius:4px; font-weight:600;">${escapeHtml(c.produto)}</span>
+          </div>
+          <div class="contrato-linha">
+            <strong>Cidade:</strong>
+            <span>${escapeHtml(c.cidade)}</span>
+          </div>
+          <div class="contrato-linha">
+            <strong>Volume:</strong>
+            <span>${formatNumber(c.volume)} KG</span>
+          </div>
+          ${c.safra ? `<div class="contrato-linha"><strong>Safra:</strong> <span>${escapeHtml(c.safra)}</span></div>` : ''}
+          <div class="contrato-linha">
+            <strong>Saldo:</strong>
+            <span>${formatNumber(c.falta)} KG</span>
+          </div>
+        </div>
+      `;
+    });
+    html += `</div></div>`;
+    body.innerHTML = html;
+    document.getElementById('resumoModal').style.display = 'flex';
+  }
+
+  function closeModal() {
+    document.getElementById('resumoModal').style.display = 'none';
+  }
+
+  function updateToggleButton() {
+    const btn = document.getElementById('toggleViewBtn');
+    if (!btn) return;
+    if (currentView === 'cliente') {
+      btn.innerHTML = '<i class="fas fa-sync-alt"></i> Mudar para Locais';
+    } else {
+      btn.innerHTML = '<i class="fas fa-sync-alt"></i> Mudar para Clientes';
+    }
+  }
+
+  function toggleView() {
+    currentView = (currentView === 'cliente') ? 'local' : 'cliente';
+    localStorage.setItem('lotes_entregas_view', currentView);
+    updateToggleButton();
+    renderCurrentView();
+  }
+
+  function renderCurrentView() {
+    const filter = document.getElementById('filterInput').value || '';
+    if (currentView === 'cliente') {
+      const clients = processData(globalData);
+      renderClientCards(clients, filter);
+    } else {
+      const cities = processDataByCity(globalData);
+      renderCityCards(cities, filter);
+    }
+  }
+
+  async function loadDataAndRender(isAutoUpdate = false) {
+    try {
+      // se não tiver token ainda, não tenta buscar
+      if (!accessToken) {
+        console.log('Waiting for authentication.');
+        document.getElementById('lastUpdateTop').querySelector('span').innerText = 'Aguardando Login.';
+        return;
+      }
+
+      if (isAutoUpdate) {
+        document.getElementById('lastUpdateTop').querySelector('span').innerText = 'Atualizando.';
+      } else {
+        document.getElementById('lastUpdateTop').querySelector('span').innerText = 'Atualizando.';
+      }
+
+      const parsed = await fetchSheetByGid(GID_ENTREGA);
+      globalData = parsed.arrays || [];
+      renderCurrentView();
+      document.getElementById('lastUpdateTop').querySelector('span').innerText =
+        `Última atualização: ${new Date().toLocaleString('pt-BR')}`;
+    } catch (err) {
+      console.error(err);
+      document.getElementById('clientesContainer').innerHTML =
+        `<div class="empty">Erro ao carregar dados: ${escapeHtml(err.message)}</div>`;
+      document.getElementById('lastUpdateTop').querySelector('span').innerText = 'Erro na atualização';
+    }
+  }
+
+  document.getElementById('filterInput').addEventListener('input', () => {
+    renderCurrentView();
+  });
+  document.getElementById('resumoModal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('resumoModal')) closeModal();
+  });
+
+  updateToggleButton();
+
+  // Quando o login estiver ok, carrega a planilha de entrega
+  onAuthSuccess = () => {
+    loadDataAndRender();
+  };
+
+  // Atualização automática respeitando o login
+  setInterval(() => {
     loadDataAndRender(true);
-};
-
-document.getElementById('filterInput').addEventListener('input', (e) => {
-  renderCurrentView();
-});
-document.getElementById('resumoModal').addEventListener('click', (e) => {
-  if (e.target === document.getElementById('resumoModal')) closeModal();
-});
-updateToggleButton();
-loadDataAndRender();
-setInterval(loadDataAndRender, AUTO_UPDATE_INTERVAL);
-</script>
+  }, AUTO_UPDATE_INTERVAL);
+  </script>
 </body>
 </html>
