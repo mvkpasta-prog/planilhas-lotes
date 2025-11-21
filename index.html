@@ -629,19 +629,66 @@
       programacao: '1183141602'
     };
     const AUTO_UPDATE_INTERVAL = 300000;
-    const HIDDEN_COLS = ['nfp', 'royalties', 'safra'];
-    const REMOVED_COMMON = ['localizacao', 'idorigemymvk1'];
-    const REMOVED_PROGRAMACAO = [
-      'observacoes', 'ordem', 'notafiscal', 'dacte', 'mdfe', 'conftipocam', 'agendamento',
-      'descarga', 'comprovantededescarga', 'horarioprev', 'classificacaodestino', 'chaveid',
-      'frete', 'statusagendamento', 'datadedescarga', 'notafiscal'
-    ];
-    let globalProdutosTotais = { soja: 0, milho: 0, sorgo: 0, total: 0 };
-    function normalizeHeader(h) {
-      if (h === undefined || h === null) return '';
-      return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+const HIDDEN_COLS = ['nfp', 'royalties', 'safra'];
+const REMOVED_COMMON = ['localizacao', 'idorigemymvk1'];
+const REMOVED_PROGRAMACAO = [
+  'observacoes', 'ordem', 'notafiscal', 'dacte', 'mdfe', 'conftipocam', 'agendamento',
+  'descarga', 'comprovantededescarga', 'horarioprev', 'classificacaodestino', 'chaveid',
+  'frete', 'statusagendamento', 'datadedescarga', 'notafiscal'
+];
+
+let globalProdutosTotais = { soja: 0, milho: 0, sorgo: 0, total: 0 };
+
+// 🔢 guarda o último valor de cada card para animar de/para
+const cardValues = {
+  carregado: 0,
+  embarque: 0,
+  transito: 0,
+  contratar: 0,
+  soja: 0,
+  milho: 0,
+  sorgo: 0,
+  total: 0,
+};
+
+// 🎞 função genérica de animação de contadores
+function animateCount(id, from, to, { suffix = '', formatted = false, duration = 800 } = {}) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  from = Number(from) || 0;
+  to = Number(to) || 0;
+  const diff = to - from;
+
+  const applyValue = (val) => {
+    const display = formatted ? formatNumber(val) : val;
+    el.textContent = suffix ? `${display} ${suffix}` : String(display);
+  };
+
+  // Se não mudou nada, só garante o valor final
+  if (diff === 0) {
+    applyValue(to);
+    return;
+  }
+
+  const startTime = performance.now();
+
+  function tick(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    // easing suave: easeOutCubic
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(from + diff * eased);
+    applyValue(current);
+
+    if (progress < 1) {
+      requestAnimationFrame(tick);
     }
-    function normalizeText(text) {
+  }
+
+  requestAnimationFrame(tick);
+}
+
+function normalizeHeader(h) {
       if (text === undefined || text === null) return '';
       return String(text).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
@@ -1243,39 +1290,71 @@ ${message}`);
             saldoPorContrato[contratoNorm] = (saldoPorContrato[contratoNorm] || 0) + n;
           }
         }
-        const ret = await fetchSheetByGid(GIDS.retirada);
+       const ret = await fetchSheetByGid(GIDS.retirada);
 
-        // 👇👇👇 CORREÇÃO AQUI: contagem de placas únicas para "CARREGADO"
-        const placaColIndex = 7;
-        const placasCarregadas = new Set();
-        for (let i = 0; i < rowsArrProgFiltered.length; i++) {
-          const arr = rowsArrProgFiltered[i];
-          const status = (arr[statusIndex] || '').trim();
-          const placa = (arr[placaColIndex] || '').trim();
-          if (placa && normalizeText(status).includes('carregado')) {
-            placasCarregadas.add(placa);
-          }
-        }
-        const carregadoUnico = placasCarregadas.size;
-        // 👆👆👆 FIM DA CORREÇÃO
+// 👇👇👇 CORREÇÃO AQUI: contagem de placas únicas para "CARREGADO"
+const placaColIndex = 7;
+const placasCarregadas = new Set();
+for (let i = 0; i < rowsArrProgFiltered.length; i++) {
+  const arr = rowsArrProgFiltered[i];
+  const status = (arr[statusIndex] || '').trim();
+  const placa = (arr[placaColIndex] || '').trim();
+  if (placa && normalizeText(status).includes('carregado')) {
+    placasCarregadas.add(placa);
+  }
+}
+const carregadoUnico = placasCarregadas.size;
+// 👆👆👆 FIM DA CORREÇÃO
 
-        // Mantém os demais status contando linhas (comportamento original)
-        const statusCounts = countStatusProgramacao(rowsObjProgFiltered, statusKey);
-        document.getElementById('count-carregado').textContent = carregadoUnico;
-        document.getElementById('count-embarque').textContent = statusCounts.embarque;
-        document.getElementById('count-transito').textContent = statusCounts.transito;
-        document.getElementById('count-contratar').textContent = statusCounts.contratar;
+// Mantém os demais status contando linhas (comportamento original)
+const statusCounts = countStatusProgramacao(rowsObjProgFiltered, statusKey);
 
-        const produtosTotais = calculateProdutosTotais(rowsArrProgFiltered, 1, 9, 2);
-        globalProdutosTotais.soja = produtosTotais.soja;
-        globalProdutosTotais.milho = produtosTotais.milho;
-        globalProdutosTotais.sorgo = produtosTotais.sorgo;
-        const totalEmbarcado = produtosTotais.soja + produtosTotais.milho + produtosTotais.sorgo;
-        globalProdutosTotais.total = totalEmbarcado;
-        document.getElementById('count-soja').textContent = `${formatNumber(produtosTotais.soja)} KG`;
-        document.getElementById('count-milho').textContent = `${formatNumber(produtosTotais.milho)} KG`;
-        document.getElementById('count-sorgo').textContent = `${formatNumber(produtosTotais.sorgo)} KG`;
-        document.getElementById('count-total').textContent = `${formatNumber(totalEmbarcado)} KG`;
+// 👉 anima os 4 cards de status
+animateCount('count-carregado', cardValues.carregado, carregadoUnico);
+cardValues.carregado = carregadoUnico;
+
+animateCount('count-embarque', cardValues.embarque, statusCounts.embarque);
+cardValues.embarque = statusCounts.embarque;
+
+animateCount('count-transito', cardValues.transito, statusCounts.transito);
+cardValues.transito = statusCounts.transito;
+
+animateCount('count-contratar', cardValues.contratar, statusCounts.contratar);
+cardValues.contratar = statusCounts.contratar;
+
+// Totais de produto
+const produtosTotais = calculateProdutosTotais(rowsArrProgFiltered, 1, 9, 2);
+globalProdutosTotais.soja = produtosTotais.soja;
+globalProdutosTotais.milho = produtosTotais.milho;
+globalProdutosTotais.sorgo = produtosTotais.sorgo;
+
+const totalEmbarcado = produtosTotais.soja + produtosTotais.milho + produtosTotais.sorgo;
+globalProdutosTotais.total = totalEmbarcado;
+
+// 👉 anima os 4 cards de produto (com KG e número formatado)
+animateCount('count-soja', cardValues.soja, produtosTotais.soja, {
+  suffix: 'KG',
+  formatted: true
+});
+cardValues.soja = produtosTotais.soja;
+
+animateCount('count-milho', cardValues.milho, produtosTotais.milho, {
+  suffix: 'KG',
+  formatted: true
+});
+cardValues.milho = produtosTotais.milho;
+
+animateCount('count-sorgo', cardValues.sorgo, produtosTotais.sorgo, {
+  suffix: 'KG',
+  formatted: true
+});
+cardValues.sorgo = produtosTotais.sorgo;
+
+animateCount('count-total', cardValues.total, totalEmbarcado, {
+  suffix: 'KG',
+  formatted: true
+});
+cardValues.total = totalEmbarcado;
         const clientesComPesoFuturo = await groupByContract(rowsArrProg, 2, 7, statusIndex, freteIndex, transportadoraIndex, true);
         const clientesParaHoje = await groupByContract(rowsArrProgFiltered, 2, 7, statusIndex, freteIndex, transportadoraIndex, false);
         clientesParaHoje.forEach(c => {
