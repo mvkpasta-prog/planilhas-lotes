@@ -27,7 +27,7 @@
     }
 
     * {
-      box-sizing: border-box;
+      box-sizing: border-box
     }
 
     body {
@@ -35,7 +35,7 @@
       margin: 0;
       background: var(--bg);
       color: var(--text);
-      padding: 12px;
+      padding: 12px
     }
 
     body::before {
@@ -52,10 +52,6 @@
       opacity: 0.05;
       z-index: -1;
       pointer-events: none;
-    }
-
-    body.updating {
-      cursor: progress;
     }
 
     header {
@@ -90,7 +86,31 @@
     .wrap {
       max-width: 1400px;
       margin: 0 auto;
-      width: 100%;
+      width: 100%
+    }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px
+    }
+
+    .btn {
+      background: var(--primary);
+      color: #fff;
+      border: 0;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 14px
+    }
+
+    .btn:hover {
+      opacity: .95
     }
 
     .header-btn {
@@ -115,307 +135,389 @@
       opacity: 0.95;
     }
 
-    .status-cards,
+    .status-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px
+    }
+
+    .status-card {
+      background: var(--card);
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+      flex: 1;
+      min-width: 150px;
+      text-align: center;
+      transition: all 0.3s ease
+    }
+
+    .status-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.08)
+    }
+
+    .status-card h3 {
+      margin: 0 0 6px 0;
+      font-size: 14px;
+      color: var(--text);
+      font-weight: 600
+    }
+
+    .status-card .count {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 6px 0
+    }
+
+    .status-card-carregado {
+      border-top: 3px solid var(--status-carregado);
+    }
+
+    .status-card-embarque {
+      border-top: 3px solid var(--status-embarque);
+    }
+
+    .status-card-transito {
+      border-top: 3px solid var(--status-transito);
+    }
+
+    .status-card-contratar {
+      border-top: 3px solid var(--status-contratar);
+    }
+
     .produto-cards {
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
-      margin-bottom: 16px;
+      margin-bottom: 20px
     }
 
-    .status-card,
     .produto-card {
       background: var(--card);
       border-radius: 8px;
-      padding: 12px;
+      padding: 8px;
       box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
-      min-width: 160px;
       flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .status-card:hover,
-    .produto-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.08);
-    }
-
-    .status-card h3,
-    .produto-card h3 {
-      margin: 0 0 6px 0;
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .status-card .count,
-    .produto-card .count {
-      font-size: 22px;
-      font-weight: 800;
-    }
-
-    .status-card-carregado {
-      border-left: 4px solid var(--status-carregado);
-    }
-
-    .status-card-embarque {
-      border-left: 4px solid var(--status-embarque);
-    }
-
-    .status-card-transito {
-      border-left: 4px solid var(--status-transito);
-    }
-
-    .status-card-contratar {
-      border-left: 4px solid var(--status-contratar);
-    }
-
-    .produto-soja {
-      border-left: 4px solid var(--produto-soja);
-    }
-
-    .produto-milho {
-      border-left: 4px solid var(--produto-milho);
-    }
-
-    .produto-sorgo {
-      border-left: 4px solid var(--produto-sorgo);
-    }
-
-    .produto-total {
-      border-left: 4px solid var(--produto-total);
+      min-width: 140px;
+      text-align: center;
+      transition: all 0.3s ease;
+      border-top: 3px solid transparent;
       cursor: pointer;
     }
 
-    .produto-total:hover {
-      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.12);
+    .produto-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.08)
+    }
+
+    .produto-card h3 {
+      margin: 0 0 4px 0;
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 600
+    }
+
+    .produto-card .count {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 4px 0
+    }
+
+    .produto-soja {
+      border-top-color: var(--produto-soja);
+    }
+
+    .produto-milho {
+      border-top-color: var(--produto-milho);
+    }
+
+    .produto-sorgo {
+      border-top-color: var(--produto-sorgo);
+    }
+
+    .produto-total {
+      border-top-color: var(--produto-total);
     }
 
     .clientes-section {
-      margin-top: 12px;
-      margin-bottom: 16px;
-    }
-
-    .clientes-section h2 {
-      color: var(--primary);
-      margin: 6px 0 12px 0;
-      font-size: 18px;
+      margin-bottom: 24px
     }
 
     .clientes-container {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px
     }
 
     .cliente-card {
       background: var(--card);
       border-radius: 8px;
-      padding: 12px;
+      padding: 14px;
       box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      cursor: pointer;
+      transition: all 0.3s ease
     }
 
     .cliente-card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.08)
     }
 
     .cliente-name {
       font-weight: 700;
-      font-size: 15px;
-      margin-bottom: 4px;
+      font-size: 16px;
+      color: var(--text);
+      margin: 0 0 6px 0
+    }
+
+    .cliente-destino {
+      font-weight: 600;
+      color: var(--accent);
+      margin: 0 0 10px 0;
+      font-size: 13px
     }
 
     .cliente-info {
       display: flex;
       justify-content: space-between;
-      font-size: 12px;
-      margin-top: 2px;
+      margin-bottom: 6px;
+      align-items: center
     }
 
     .info-label {
-      color: var(--muted);
       font-weight: 600;
+      color: var(--muted);
+      font-size: 12px
     }
 
     .info-value {
-      font-weight: 600;
+      font-weight: 700;
+      font-size: 13px
     }
 
-    .status-tag {
-      padding: 2px 8px;
-      border-radius: 999px;
+    .cliente-produto {
+      padding: 3px 7px;
+      border-radius: 5px;
       font-size: 11px;
       font-weight: 600;
-      color: #fff;
-    }
-
-    .status-pendente-tag {
-      background: var(--status-embarque);
+      display: inline-block;
+      margin-top: 4px
     }
 
     .status-carregado-tag {
-      background: var(--status-carregado);
-    }
-
-    .produto-badge {
-      display: inline-block;
-      padding: 2px 6px;
-      border-radius: 6px;
+      background-color: var(--status-carregado);
+      color: white;
+      padding: 2px 7px;
+      border-radius: 10px;
       font-size: 11px;
       font-weight: 600;
-      color: #fff;
-      margin-right: 4px;
-      margin-top: 4px;
     }
 
-    .empty {
-      text-align: center;
-      color: var(--muted);
-      padding: 12px;
-      font-style: italic;
+    .status-pendente-tag {
+      background-color: var(--status-embarque);
+      color: white;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .caminhoes-info {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid #eee
+    }
+
+    .caminhoes-separados {
+      display: flex;
+      gap: 6px;
+      align-items: center
     }
 
     .section-header {
-      margin-top: 16px;
-      background: var(--card);
-      border-radius: 8px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      color: white;
       padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      cursor: pointer;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      cursor: pointer;
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+      font-weight: 700;
+      transition: all 0.3s ease;
+      font-size: 15px
     }
 
-    .section-header span {
-      font-weight: 700;
-      color: var(--text);
+    .section-header:hover {
+      opacity: 0.95
+    }
+
+    .section-header .toggle-icon {
+      transition: transform 0.3s ease
+    }
+
+    .section-header.collapsed .toggle-icon {
+      transform: rotate(-90deg)
     }
 
     .section-content {
-      margin-top: 6px;
+      display: block;
+      transition: all 0.3s ease;
+      overflow: hidden
+    }
+
+    .section-content.collapsed {
+      display: none
+    }
+
+    h2 {
+      color: var(--primary);
+      margin: 6px 0 12px 0;
+      font-size: 18px
+    }
+
+    .card {
       background: var(--card);
       border-radius: 8px;
-      padding: 10px;
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
-      display: none;
-    }
-
-    .section-content.open {
-      display: block;
-    }
-
-    .toggle-icon {
-      transition: transform 0.2s ease;
-    }
-
-    .section-header.open .toggle-icon {
-      transform: rotate(180deg);
+      padding: 12px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(16, 24, 40, 0.06)
     }
 
     .table-wrap {
-      overflow-x: auto;
+      overflow-x: auto
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 800px;
+      margin: 0;
+      font-size: 12px;
+      min-width: 750px
     }
 
     th,
     td {
-      border-bottom: 1px solid #e5e7eb;
-      padding: 6px 8px;
-      font-size: 12px;
+      border: 1px solid #e6eefc;
+      padding: 8px;
       text-align: left;
-      white-space: nowrap;
+      vertical-align: top
     }
 
     th {
-      background: #eff6ff;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      color: #fff;
       font-weight: 700;
-      color: #1f2937;
-      position: sticky;
-      top: 0;
-      z-index: 1;
+      white-space: nowrap
     }
 
-    tr:hover td {
-      background: #f9fafb;
+    tr:nth-child(even) {
+      background: #fbfdff
     }
 
-    .filter-input {
-      flex-grow: 1;
-      min-width: 220px;
-      padding: 8px 10px;
-      border-radius: 6px;
-      border: 1px solid #d1d5db;
-      font-size: 13px;
+    .status {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 14px;
+      color: #fff;
+      font-weight: 700;
+      font-size: 11px
     }
 
-    .filter-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-      align-items: center;
+    .status-aberto {
+      background: var(--warning)
     }
 
-    @media (max-width: 900px) {
+    .status-fechado {
+      background: var(--success)
+    }
+
+    .status-programacao {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 14px;
+      color: #fff;
+      font-weight: 700;
+      font-size: 11px;
+      min-width: 90px;
+      text-align: center
+    }
+
+    .status-carregado {
+      background-color: var(--status-carregado);
+    }
+
+    .status-embarque {
+      background-color: var(--status-embarque);
+    }
+
+    .status-transito {
+      background-color: var(--status-transito);
+    }
+
+    .status-contratar {
+      background-color: var(--status-contratar);
+    }
+
+    .empty {
+      color: var(--muted);
+      font-style: italic;
+      padding: 10px
+    }
+
+    @media (max-width:900px) {
       table {
-        min-width: 650px;
+        min-width: 650px
       }
 
       th,
       td {
         padding: 6px;
-        font-size: 11px;
+        font-size: 11px
       }
 
       .status-cards,
       .produto-cards {
-        flex-direction: column;
+        flex-direction: column
       }
 
       .clientes-container {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr
       }
 
       .cliente-card {
-        min-width: 260px;
+        min-width: 260px
       }
     }
 
-    @media (max-width: 600px) {
+    @media (max-width:600px) {
       body {
-        padding: 8px;
+        padding: 8px
       }
 
       .section-header {
         padding: 10px;
-        font-size: 14px;
+        font-size: 14px
       }
 
       .cliente-card {
         min-width: 100%;
-        padding: 12px;
+        padding: 12px
       }
 
       .status-card {
         min-width: 140px;
-        padding: 10px;
+        padding: 10px
       }
 
       .produto-card {
         min-width: 130px;
-        padding: 8px;
+        padding: 8px
       }
 
       header {
@@ -437,7 +539,6 @@
         order: 2;
         width: 100%;
         text-align: center;
-        justify-content: center;
       }
     }
   </style>
@@ -468,14 +569,13 @@
       </button>
     </div>
     <div class="last-update-top" id="lastUpdateTop">
-      <i class="fas fa-hourglass-half"></i> <span>Atualizando.</span>
+      <i class="fas fa-hourglass-half"></i> <span>Atualizando...</span>
     </div>
   </header>
-
-  <div class="wrap" id="content-wrapper">
+  <div class="wrap">
     <div class="status-cards">
       <div class="status-card status-card-carregado">
-        <h3>CARREGADO (PLACAS)</h3>
+        <h3>CARREGADO</h3>
         <div class="count" id="count-carregado">0</div>
       </div>
       <div class="status-card status-card-embarque">
@@ -487,11 +587,10 @@
         <div class="count" id="count-transito">0</div>
       </div>
       <div class="status-card status-card-contratar">
-        <h3>A CONTRATAR</h3>
+        <h3>CONTRATAR</h3>
         <div class="count" id="count-contratar">0</div>
       </div>
     </div>
-
     <div class="produto-cards">
       <div class="produto-card produto-soja">
         <h3>SOJA</h3>
@@ -510,27 +609,18 @@
         <div class="count" id="count-total">0 KG</div>
       </div>
     </div>
-
     <div class="clientes-section">
-      <h2>📍 Embarques de hoje por cliente</h2>
-      <div class="filter-row">
-        <input type="text" id="filterInput" class="filter-input"
-          placeholder="Filtrar por Cliente, Placa, Destino ou Produto">
-      </div>
       <div class="clientes-container" id="clientesContainer">
-        <div class="empty">Carregando dados...</div>
       </div>
     </div>
-
     <div class="section-header" id="toggle-programacao">
       <span>🗓 Programação</span>
       <i class="fas fa-chevron-down toggle-icon"></i>
     </div>
     <div class="section-content card" id="content-programacao">
-      <div class="table-wrap" id="programacaoContent"></div>
+      <div id="programacaoContent" class="table-wrap"></div>
     </div>
   </div>
-
   <script>
     const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
     const GIDS = {
@@ -539,83 +629,27 @@
       programacao: '1183141602'
     };
     const AUTO_UPDATE_INTERVAL = 300000;
-
+    const HIDDEN_COLS = ['nfp', 'royalties', 'safra'];
+    const REMOVED_COMMON = ['localizacao', 'idorigemymvk1'];
+    const REMOVED_PROGRAMACAO = [
+      'observacoes', 'ordem', 'notafiscal', 'dacte', 'mdfe', 'conftipocam', 'agendamento',
+      'descarga', 'comprovantededescarga', 'horarioprev', 'classificacaodestino', 'chaveid',
+      'frete', 'statusagendamento', 'datadedescarga', 'notafiscal'
+    ];
     let globalProdutosTotais = { soja: 0, milho: 0, sorgo: 0, total: 0 };
-
-    // valores anteriores dos cards (para animação)
-    const cardValues = {
-      carregado: 0,
-      embarque: 0,
-      transito: 0,
-      contratar: 0,
-      soja: 0,
-      milho: 0,
-      sorgo: 0,
-      total: 0
-    };
-
-    // animação de contadores (tipo placar)
-    function animateCount(id, from, to, { suffix = '', formatted = false, duration = 800 } = {}) {
-      const el = document.getElementById(id);
-      if (!el) return;
-
-      from = Number(from) || 0;
-      to = Number(to) || 0;
-      const diff = to - from;
-
-      const applyValue = (val) => {
-        const display = formatted ? formatNumber(val) : val;
-        el.textContent = suffix ? `${display} ${suffix}` : String(display);
-      };
-
-      if (diff === 0) {
-        applyValue(to);
-        return;
-      }
-
-      const startTime = performance.now();
-
-      function tick(now) {
-        const progress = Math.min((now - startTime) / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
-        const current = Math.round(from + diff * eased);
-        applyValue(current);
-        if (progress < 1) {
-          requestAnimationFrame(tick);
-        }
-      }
-
-      requestAnimationFrame(tick);
-    }
-
     function normalizeHeader(h) {
       if (h === undefined || h === null) return '';
-      return String(h)
-        .trim()
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9]/g, '');
+      return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
     }
-
     function normalizeText(text) {
       if (text === undefined || text === null) return '';
-      return String(text)
-        .trim()
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '');
+      return String(text).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
-
     function parseCSV(text) {
       if (!text) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
       const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
       if (lines.length === 0) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
-      const parsed = lines.map(line =>
-        line
-          .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
-          .map(c => c.replace(/^"|"$/g, '').trim())
-      );
+      const parsed = lines.map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim()));
       const headersOrig = parsed.shift().map(h => h || '');
       const headersNorm = headersOrig.map(h => normalizeHeader(h));
       const objects = parsed.map(cells => {
@@ -627,72 +661,461 @@
       });
       return { arrays: parsed, headersOrig, headersNorm, objects };
     }
-
-    // usa Sheets API v4 via auth_config.js
     async function fetchSheetByGid(gid) {
+      // Use the V4 function from auth_config.js
       return await fetchSheetByGidV4(SHEET_ID, gid);
     }
-
     function parseNumber(val) {
       if (val === undefined || val === null) return NaN;
       const s = String(val).replace(/\s/g, '').replace(/\./g, '').replace(/,/g, '.');
-      const n = parseFloat(s.replace(/[^\d.\-]/g, ''));
+      const n = parseFloat(s.replace(/[^\d\.\-]/g, ''));
       return isNaN(n) ? NaN : n;
     }
-
-    function formatNumber(value) {
-      if (isNaN(value)) return '0';
-      return new Intl.NumberFormat('pt-BR').format(Math.round(value));
+    function parseDateOnly(s) {
+      if (!s) return null;
+      const str = String(s).trim();
+      if (str.includes('/')) {
+        const parts = str.split('/');
+        if (parts.length >= 3) {
+          const d = parseInt(parts[0], 10), m = parseInt(parts[1], 10), y = parseInt(parts[2], 10);
+          if (!isNaN(d) && !isNaN(m) && !isNaN(y)) return new Date(y, m - 1, d);
+        }
+      }
+      if (str.includes('-') || (str.includes('/') && str.indexOf('/') === 4)) {
+        const sep = str.includes('-') ? '-' : '/';
+        const parts = str.split(sep);
+        if (parts.length >= 3) {
+          const y = parseInt(parts[0], 10), m = parseInt(parts[1], 10), d = parseInt(parts[2], 10);
+          if (!isNaN(d) && !isNaN(m) && !isNaN(y)) return new Date(y, m - 1, d);
+        }
+      }
+      const dt = new Date(str);
+      if (!isNaN(dt.getTime())) return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+      return null;
     }
-
+    function findHeaderKey(headersNorm, patterns) {
+      for (const p of patterns) {
+        const f = headersNorm.find(h => h.includes(p));
+        if (f) return f;
+      }
+      if (patterns.includes('saldoent')) {
+        const f = headersNorm.find(h => h.includes('saldo') && (h.includes('ent') || h.includes('entrega') || h.includes('entkg')));
+        if (f) return f;
+      }
+      if (patterns.includes('saldoret')) {
+        const f = headersNorm.find(h => h.includes('saldo') && (h.includes('ret') || h.includes('retirada') || h.includes('retkg')));
+        if (f) return f;
+      }
+      if (patterns.some(x => x.includes('contrato'))) {
+        const f = headersNorm.find(h => h.includes('contrato'));
+        if (f) return f;
+      }
+      const f = headersNorm.find(h => h.includes('saldo'));
+      if (f) return f;
+      return null;
+    }
+    function formatCurrencyBRL(value) {
+      if (isNaN(value)) return value;
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(value);
+    }
+    function formatStatusProgramacao(status) {
+      let className = 'status-programacao';
+      let text = status;
+      const statusNorm = normalizeText(status);
+      if (statusNorm.includes('carregado')) {
+        className += ' status-carregado';
+      } else if (statusNorm.includes('embarque') || statusNorm.includes('no embarque')) {
+        className += ' status-embarque';
+      } else if (statusNorm.includes('transito') || statusNorm.includes('em transito')) {
+        className += ' status-transito';
+      } else if (statusNorm.includes('contratar')) {
+        className += ' status-contratar';
+      } else {
+        className += ' status-aberto';
+      }
+      return `<span class="${className}">${escapeHtml(text)}</span>`;
+    }
+    function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts) {
+      const hiddenNorm = opts.hiddenNorm || [];
+      const removedNorm = opts.removedNorm || [];
+      const numericKey = opts.numericKey || '';
+      const forceInclude = opts.forceInclude || [];
+      const currencyCols = opts.currencyCols || [];
+      const statusCol = opts.statusCol || '';
+      const visible = headersNorm.filter(h => !removedNorm.includes(h));
+      let displayCols = visible.filter(h => !hiddenNorm.includes(h));
+      forceInclude.forEach(fc => {
+        if (visible.includes(fc) && !displayCols.includes(fc)) displayCols.unshift(fc);
+        else if (visible.includes(fc)) displayCols = [fc, ...displayCols.filter(x => x !== fc)];
+      });
+      if (displayCols.length === 0) {
+        return '<div class="empty">Sem colunas para exibir.</div>';
+      }
+      let html = '<table><thead><tr>';
+      displayCols.forEach(h => {
+        const idx = headersNorm.indexOf(h);
+        const title = (idx >= 0 ? headersOrig[idx] : h) || h;
+        html += `<th>${escapeHtml(title)}</th>`;
+      });
+      if (numericKey) html += '<th>Status</th>';
+      html += '</tr></thead><tbody>';
+      rowsObjects.forEach((obj, i) => {
+        const arr = rowsArrays[i] || [];
+        const n = numericKey ? parseNumber(obj[numericKey] || arr[numericKeyIndex(headersNorm, numericKey)] || '0') : NaN;
+        html += '<tr>';
+        displayCols.forEach(h => {
+          const idx = headersNorm.indexOf(h);
+          let value = (obj[h] !== undefined && obj[h] !== '') ? obj[h] : (arr[idx] !== undefined ? arr[idx] : '');
+          if (currencyCols.includes(h)) {
+            const numValue = parseNumber(value);
+            if (!isNaN(numValue)) {
+              value = formatCurrencyBRL(numValue);
+            }
+          }
+          if (h === statusCol) {
+            value = formatStatusProgramacao(value);
+            html += `<td>${value}</td>`;
+          } else {
+            html += `<td>${escapeHtml(value)}</td>`;
+          }
+        });
+        if (numericKey) html += `<td>${n > 0 ? '<span class="status status-aberto">ABERTO</span>' : '<span class="status status-fechado">FECHADO</span>'}</td>`;
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      return html;
+    }
+    function numericKeyIndex(headersNorm, key) { return headersNorm.indexOf(key); }
     function escapeHtml(s) {
       if (s === undefined || s === null) return '';
       return String(s).replace(/[&<>"'\/]/g, c => ({
         '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
+        '<': '<',
+        '>': '>',
         '"': '&quot;',
-        "'": '&#x2F;'
+        "'": '&#39;',
+        '/': '&#x2F;'
       }[c]));
     }
-
-    function parseDateOnly(v) {
-      if (!v) return null;
-      if (v instanceof Date) {
-        return new Date(v.getFullYear(), v.getMonth(), v.getDate());
-      }
-      const s = String(v).trim();
-      if (!s) return null;
-      // formatos comuns: dd/mm/aaaa, aaaa-mm-dd
-      if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
-        const [d, m, y] = s.split('/').map(Number);
-        return new Date(y, m - 1, d);
-      }
-      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-        const [y, m, d] = s.split('-').map(Number);
-        return new Date(y, m - 1, d);
-      }
-      const n = Number(s);
-      if (!isNaN(n)) {
-        // data em número (Google Sheets)
-        const base = new Date(1899, 11, 30);
-        const ms = base.getTime() + n * 86400000;
-        return new Date(new Date(ms).getFullYear(), new Date(ms).getMonth(), new Date(ms).getDate());
-      }
-      const dt = new Date(s);
-      if (!isNaN(dt.getTime())) {
-        return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
-      }
-      return null;
+    function countStatusProgramacao(rowsObjects, statusCol) {
+      let carregado = 0, embarque = 0, transito = 0, contratar = 0;
+      if (!statusCol) return { carregado, embarque, transito, contratar };
+      rowsObjects.forEach(obj => {
+        const status = obj[statusCol] || '';
+        const statusNorm = normalizeText(status);
+        if (statusNorm.includes('carregado')) {
+          carregado++;
+        } else if (statusNorm.includes('embarque') || statusNorm.includes('no embarque')) {
+          embarque++;
+        } else if (statusNorm.includes('transito') || statusNorm.includes('em transito')) {
+          transito++;
+        } else if (statusNorm.includes('contratar')) {
+          contratar++;
+        }
+      });
+      return { carregado, embarque, transito, contratar };
     }
-
+    function extractProduto(text) {
+      if (!text) return '';
+      const parts = text.split('-');
+      if (parts.length === 0) return '';
+      let produto = parts[parts.length - 1].trim().toLowerCase();
+      produto = produto.replace(/[0-9\.\,\(\)\[\]]/g, '').trim();
+      return produto;
+    }
+    function extractContratoInfo(text) {
+      if (!text || text.trim() === '') return { contrato: '', cliente: '', destino: '', produto: '', isValid: false };
+      const parts = text.split(' - ').map(part => part.trim());
+      if (parts.length < 6) {
+        const first = text.split('-')[0] ? text.split('-')[0].trim() : '';
+        const contratoFallback = first.replace(/\D/g, '');
+        const cliente = parts[1] || '';
+        const destino = parts[3] || '';
+        const produto = parts.slice(5).join(' - ').trim().toUpperCase() || (parts[parts.length - 1] || '').toUpperCase();
+        const isValidFallback = contratoFallback !== '' && cliente !== '' && destino !== '';
+        return {
+          contrato: contratoFallback,
+          cliente: cliente,
+          destino: destino,
+          produto: produto,
+          isValid: isValidFallback
+        };
+      }
+      const contrato = parts[0].replace(/\D/g, '');
+      const cliente = parts[1];
+      const destino = parts[3];
+      const produtoParts = parts.slice(5);
+      let produto = produtoParts.join(' - ').trim().toUpperCase();
+      if (!produto) {
+        produto = parts[parts.length - 1].trim().toUpperCase();
+      }
+      const isValid = contrato !== '' && cliente !== '' && destino !== '' && produto !== '';
+      return {
+        contrato: contrato,
+        cliente: cliente,
+        destino: destino,
+        produto: produto,
+        isValid: isValid
+      };
+    }
+    function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, destinoColIndex) {
+      let soja = 0, milho = 0, sorgo = 0;
+      rowsObjects.forEach(arr => {
+        let destinoText = '';
+        if (destinoColIndex !== -1) {
+          if (Array.isArray(arr) && arr[destinoColIndex] !== undefined) {
+            destinoText = arr[destinoColIndex];
+          }
+        }
+        const { isValid } = extractContratoInfo(destinoText);
+        if (!isValid) return;
+        let produtoText = '';
+        if (produtoColIndex !== -1) {
+          if (Array.isArray(arr) && arr[produtoColIndex] !== undefined) {
+            produtoText = arr[produtoColIndex];
+          }
+        }
+        const produto = extractProduto(produtoText);
+        let pesoText = '';
+        if (pesoColIndex !== -1) {
+          if (Array.isArray(arr) && arr[pesoColIndex] !== undefined) {
+            pesoText = arr[pesoColIndex];
+          }
+        }
+        const peso = parseNumber(pesoText);
+        if (isNaN(peso)) return;
+        if (produto.includes('soja')) {
+          soja += peso;
+        } else if (produto.includes('milho')) {
+          milho += peso;
+        } else if (produto.includes('sorgo')) {
+          sorgo += peso;
+        }
+      });
+      return { soja, milho, sorgo };
+    }
+    function updateLastUpdateTime() {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('pt-BR');
+      const dateString = now.toLocaleDateString('pt-BR');
+      document.getElementById('lastUpdateTop').innerHTML = `
+    <i class="fas fa-check-circle" style="color: rgba(255,255,255,0.9);"></i>
+    <span>Última atualização: ${timeString} - ${dateString}</span>
+  `;
+    }
+    function formatNumber(value) {
+      if (isNaN(value)) return '0';
+      return new Intl.NumberFormat('pt-BR').format(Math.round(value));
+    }
+    function extractWeightFromColumnI(text) {
+      if (!text || text.trim() === '') return 0;
+      const parts = text.split('-');
+      if (parts.length === 0) return 0;
+      let lastPart = parts[parts.length - 1].trim();
+      const match = lastPart.match(/(\d+)/);
+      if (match && match[1]) {
+        const tons = parseInt(match[1], 10);
+        return tons * 1000;
+      }
+      return 0;
+    }
+    function buildClientesHTML(clientes) {
+      if (clientes.length === 0) {
+        return '<div class="empty">Nenhum contrato encontrado para hoje.</div>';
+      }
+      let html = '';
+      clientes.forEach(cliente => {
+        let corProduto = '#6b7280';
+        const produtoUp = (cliente.produto || '').toUpperCase();
+        if (produtoUp.includes('SOJA')) {
+          corProduto = '#10b981';
+        } else if (produtoUp.includes('MILHO')) {
+          corProduto = '#fbbf24';
+        } else if (produtoUp.includes('SORGO')) {
+          corProduto = '#6b7280';
+        }
+        let saldoEntregaAjustado = cliente.saldoEntrega || 0;
+        if (cliente.pesoEmTransitoEmbarque && !isNaN(cliente.pesoEmTransitoEmbarque)) {
+          saldoEntregaAjustado -= cliente.pesoEmTransitoEmbarque;
+        }
+        const saldoEntregaDisplay = !isNaN(saldoEntregaAjustado) ? `${formatNumber(saldoEntregaAjustado)} KG` : '0 KG';
+        const valorMedioFrete = !isNaN(cliente.valorMedioFrete) ? formatCurrencyBRL(cliente.valorMedioFrete) : 'N/A';
+        html += `
+      <div class="cliente-card">
+        <h3 class="cliente-name">${escapeHtml(cliente.cliente)} - ${escapeHtml(cliente.destino)}</h3>
+        <div class="cliente-contrato">Contrato: ${escapeHtml(cliente.contrato)} <span class="cliente-produto" style="background-color: ${corProduto}; color: white; margin-left: 8px;">${escapeHtml(cliente.produto)}</span></div>
+        <div class="caminhoes-info">
+          <div class="caminhoes-separados">
+            <span class="status-carregado-tag">Carregados: ${cliente.totalCaminhoesCarregados}</span>
+            <span class="status-pendente-tag">Pendentes: ${cliente.totalCaminhoesPendentes}</span>
+          </div>
+        </div>
+        <div class="cliente-info" style="margin-top: 8px;">
+          <span class="info-label">Peso Carregado:</span>
+          <span class="info-value">${formatNumber(cliente.totalPesoCarregado)} KG</span>
+        </div>
+        <div class="cliente-info" style="margin-top: 6px;">
+          <span class="info-label">Saldo a entregar:</span>
+          <span class="info-value">${escapeHtml(saldoEntregaDisplay)}</span>
+        </div>
+        <div class="cliente-info" style="margin-top: 6px;">
+          <span class="info-label">Valor Médio Frete:</span>
+          <span class="info-value">${valorMedioFrete}</span>
+        </div>
+        ${cliente.pesoEmTransitoEmbarque && cliente.pesoEmTransitoEmbarque > 0 ?
+            `<div class="cliente-info" style="margin-top: 6px; font-size: 12px; color: #ef4444;">
+            <span class="info-label">Peso em Trânsito/Embarque:</span>
+            <span class="info-value">${formatNumber(cliente.pesoEmTransitoEmbarque)} KG
+          </div>` : ''}
+      </div>
+    `;
+      });
+      return html;
+    }
+    function updateClientesSummary(clientes) { }
+    async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusColIndex, freteColIndex, transportadoraColIndex, includeFutureDates = false) {
+      const grupos = {};
+      let rowsToProcess = rowsProg;
+      if (!includeFutureDates) {
+        const today = new Date();
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+        const dateIndexProg = 0;
+        rowsToProcess = rowsProg.filter(arr => {
+          let dtVal = '';
+          if (arr && arr[dateIndexProg] !== undefined) dtVal = arr[dateIndexProg];
+          const dt = parseDateOnly(dtVal);
+          return dt && dt.getTime() === todayStart;
+        });
+      }
+      rowsToProcess.forEach(arr => {
+        let destinoText = '';
+        if (destinoColIndex !== -1) {
+          if (Array.isArray(arr) && arr[destinoColIndex] !== undefined) {
+            destinoText = arr[destinoColIndex];
+          }
+        }
+        const { contrato, cliente, destino, produto, isValid } = extractContratoInfo(destinoText);
+        if (!isValid || !contrato) return;
+        const key = `contrato_${contrato}`;
+        let pesoRealText = '';
+        if (Array.isArray(arr) && arr[9] !== undefined) {
+          pesoRealText = arr[9];
+        }
+        const pesoReal = parseNumber(pesoRealText) || 0;
+        let placa = '';
+        if (placaColIndex !== -1) {
+          if (Array.isArray(arr) && arr[placaColIndex] !== undefined) {
+            placa = arr[placaColIndex];
+          }
+        }
+        let status = '';
+        if (statusColIndex !== -1) {
+          if (Array.isArray(arr) && arr[statusColIndex] !== undefined) {
+            status = arr[statusColIndex];
+          }
+        }
+        const statusNorm = normalizeText(status);
+        const isCarregado = statusNorm.includes('carregado');
+        const isEmbarque = statusNorm.includes('embarque') || statusNorm.includes('no embarque');
+        const isTransito = statusNorm.includes('transito') || statusNorm.includes('em transito');
+        if (!grupos[key]) {
+          grupos[key] = {
+            contrato: contrato,
+            cliente: cliente,
+            destino: destino,
+            produto: produto,
+            totalPeso: 0,
+            totalPesoCarregado: 0,
+            totalPesoPendente: 0,
+            placas: new Set(),
+            placasCarregadas: new Set(),
+            placasPendentes: new Set(),
+            count: 0,
+            pesoEmTransitoEmbarque: 0,
+            valoresFrete: [],
+            valorMedioFrete: 0
+          };
+        }
+        grupos[key].totalPeso += pesoReal;
+        if (placa && placa.trim() !== '') {
+          grupos[key].placas.add(placa.trim());
+        }
+        if (isCarregado) {
+          grupos[key].totalPesoCarregado += pesoReal;
+          if (placa && placa.trim() !== '') {
+            grupos[key].placasCarregadas.add(placa.trim());
+          }
+        } else {
+          grupos[key].totalPesoPendente += pesoReal;
+          if (placa && placa.trim() !== '') {
+            grupos[key].placasPendentes.add(placa.trim());
+          }
+        }
+        grupos[key].count++;
+        if (isEmbarque || isTransito) {
+          let textoColunaI = '';
+          if (Array.isArray(arr) && arr[8] !== undefined) {
+            textoColunaI = arr[8];
+          }
+          const pesoExtraido = extractWeightFromColumnI(textoColunaI);
+          grupos[key].pesoEmTransitoEmbarque += pesoExtraido;
+        }
+        if (freteColIndex !== -1 && transportadoraColIndex !== -1) {
+          let freteText = '';
+          let transportadoraText = '';
+          if (Array.isArray(arr) && arr[freteColIndex] !== undefined) {
+            freteText = arr[freteColIndex];
+          }
+          if (Array.isArray(arr) && arr[transportadoraColIndex] !== undefined) {
+            transportadoraText = arr[transportadoraColIndex];
+          }
+          const freteValue = parseNumber(freteText);
+          if (!isNaN(freteValue) && freteValue > 0) {
+            let freteReal = freteValue;
+            const isMVK = normalizeText(transportadoraText).includes('mvk');
+            const isTransportadoraEmpty = transportadoraText.trim() === '';
+            if (!isMVK && !isTransportadoraEmpty) {
+              freteReal = freteValue / 0.92;
+            }
+            grupos[key].valoresFrete.push(freteReal);
+          }
+        }
+      });
+      return Object.values(grupos).map(grupo => {
+        let valorMedioFrete = 0;
+        if (grupo.valoresFrete.length > 0) {
+          const somaFrete = grupo.valoresFrete.reduce((acc, val) => acc + val, 0);
+          valorMedioFrete = somaFrete / grupo.valoresFrete.length;
+        }
+        return {
+          ...grupo,
+          totalPeso: Math.round(grupo.totalPeso),
+          totalPesoCarregado: Math.round(grupo.totalPesoCarregado),
+          totalPesoPendente: Math.round(grupo.totalPesoPendente),
+          totalCaminhoes: grupo.placas.size,
+          totalCaminhoesCarregados: grupo.placasCarregadas.size,
+          totalCaminhoesPendentes: grupo.placasPendentes.size,
+          placas: Array.from(grupo.placas),
+          placasCarregadas: Array.from(grupo.placasCarregadas),
+          placasPendentes: Array.from(grupo.placasPendentes),
+          pesoEmTransitoEmbarque: Math.round(grupo.pesoEmTransitoEmbarque),
+          valorMedioFrete: valorMedioFrete
+        };
+      }).sort((a, b) => b.totalPeso - a.totalPeso);
+    }
     function getSaudacao() {
       const hora = new Date().getHours();
-      if (hora >= 5 && hora < 12) return 'Bom dia';
-      if (hora >= 12 && hora < 18) return 'Boa tarde';
-      return 'Boa noite';
+      if (hora >= 5 && hora < 12) {
+        return 'Bom dia';
+      } else if (hora >= 12 && hora < 18) {
+        return 'Boa tarde';
+      } else {
+        return 'Boa noite';
+      }
     }
-
     function formatResumoMessage(soja, milho, sorgo, total) {
       const saudacao = getSaudacao();
       const sojaKg = formatNumber(soja);
@@ -722,7 +1145,6 @@ Embarque encerrado ${iconesLine}
 Bom descanso a todos 🙌🏻🙏🏻`;
       return message.trim();
     }
-
     function handleTotalCardClick() {
       const { soja, milho, sorgo, total } = globalProdutosTotais;
       const message = formatResumoMessage(soja, milho, sorgo, total);
@@ -740,365 +1162,210 @@ ${message}`);
 ${message}`);
       }
     }
-
-    function buildClientesResumo(rows, headersNorm) {
-      const idxCliente = headersNorm.findIndex(h => h.includes('cliente'));
-      const idxProduto = headersNorm.findIndex(h => h.includes('produto'));
-      const idxDestino = headersNorm.findIndex(h =>
-        h.includes('destino') || h.includes('local') || h.includes('cidade')
-      );
-      const idxStatus = headersNorm.findIndex(h => h.includes('status') && !h.includes('agendamento'));
-      const idxPlaca = headersNorm.findIndex(h => h.includes('placa'));
-      const idxPeso = headersNorm.findIndex(h =>
-        h.includes('kg') || h.includes('peso') || h.includes('quantidade') || h.includes('qtd')
-      );
-
-      const map = new Map();
-
-      rows.forEach(arr => {
-        const cliente = (arr[idxCliente] || 'Cliente não informado').toString().trim();
-        const produto = (arr[idxProduto] || '').toString().trim();
-        const destino = (arr[idxDestino] || '').toString().trim();
-        const statusRaw = (arr[idxStatus] || '').toString();
-        const statusNorm = normalizeText(statusRaw);
-        const placa = (idxPlaca >= 0 ? (arr[idxPlaca] || '') : '').toString().trim();
-        const peso = parseNumber(arr[idxPeso]);
-
-        if (!map.has(cliente)) {
-          map.set(cliente, {
-            cliente,
-            produtos: new Set(),
-            destinos: new Set(),
-            placas: new Set(),
-            placasCarregadas: new Set(),
-            totalKg: 0,
-            totalViagens: 0,
-            emEmbarqueKg: 0,
-            emTransitoKg: 0
-          });
-        }
-        const obj = map.get(cliente);
-
-        if (produto) obj.produtos.add(produto);
-        if (destino) obj.destinos.add(destino);
-        if (placa) obj.placas.add(placa);
-        if (!isNaN(peso) && peso > 0) {
-          obj.totalKg += peso;
-        }
-        obj.totalViagens++;
-
-        if (statusNorm.includes('embarque')) {
-          if (!isNaN(peso)) obj.emEmbarqueKg += peso;
-        }
-        if (statusNorm.includes('transit')) {
-          if (!isNaN(peso)) obj.emTransitoKg += peso;
-        }
-        if (statusNorm.includes('carregado') && placa) {
-          obj.placasCarregadas.add(placa);
-        }
-      });
-
-      return Array.from(map.values()).sort((a, b) => b.totalKg - a.totalKg);
-    }
-
-    function renderClientes(cards, filterText) {
-      const container = document.getElementById('clientesContainer');
-      container.innerHTML = '';
-      if (!cards || cards.length === 0) {
-        container.innerHTML = '<div class="empty">Nenhum embarque encontrado para hoje.</div>';
-        return;
-      }
-      const normFilter = normalizeText(filterText || '');
-      const filtered = cards.filter(c => {
-        if (!normFilter) return true;
-        const texto = [
-          c.cliente,
-          Array.from(c.destinos).join(' '),
-          Array.from(c.produtos).join(' '),
-          Array.from(c.placas).join(' ')
-        ].join(' ');
-        return normalizeText(texto).includes(normFilter);
-      });
-
-      if (filtered.length === 0) {
-        container.innerHTML = '<div class="empty">Nenhum cliente encontrado com esse filtro.</div>';
-        return;
-      }
-
-      filtered.forEach(c => {
-        const card = document.createElement('div');
-        card.className = 'cliente-card';
-
-        let produtosTags = '';
-        c.produtos.forEach(p => {
-          const prodNorm = normalizeText(p);
-          let cor = 'var(--produto-sorgo)';
-          if (prodNorm.includes('soja')) cor = 'var(--produto-soja)';
-          else if (prodNorm.includes('milho')) cor = 'var(--produto-milho)';
-          produtosTags += `<span class="produto-badge" style="background:${cor};">${escapeHtml(p)}</span>`;
-        });
-
-        const destinos = Array.from(c.destinos).join(' / ') || '—';
-
-        card.innerHTML = `
-          <div class="cliente-name">${escapeHtml(c.cliente)}</div>
-          <div>${produtosTags}</div>
-          <div class="cliente-info">
-            <span class="info-label">Total embarcado:</span>
-            <span class="info-value">${formatNumber(c.totalKg)} KG</span>
-          </div>
-          <div class="cliente-info">
-            <span class="info-label">Caminhões:</span>
-            <span class="info-value">${c.placas.size}</span>
-          </div>
-          <div class="cliente-info">
-            <span class="info-label">Embarque / Trânsito:</span>
-            <span class="info-value">${formatNumber(c.emEmbarqueKg)} / ${formatNumber(c.emTransitoKg)} KG</span>
-          </div>
-          <div class="cliente-info">
-            <span class="info-label">Destinos:</span>
-            <span class="info-value">${escapeHtml(destinos)}</span>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    function buildProgramacaoTable(rows, headersOrig, headersNorm) {
-      if (!rows || rows.length === 0) {
-        return '<div class="empty">Nenhuma linha na programação de hoje.</div>';
-      }
-      // remove algumas colunas mais poluídas
-      const removed = ['observacoes', 'ordem', 'chaveid', 'mdfe', 'dacte', 'statusagendamento']
-        .map(normalizeHeader);
-      const visibleIdx = [];
-      const visibleHeaders = [];
-      headersNorm.forEach((h, idx) => {
-        if (!h) return;
-        if (removed.includes(h)) return;
-        visibleIdx.push(idx);
-        visibleHeaders.push(headersOrig[idx] || '');
-      });
-
-      let html = '<table><thead><tr>';
-      visibleHeaders.forEach(h => {
-        html += `<th>${escapeHtml(h)}</th>`;
-      });
-      html += '</tr></thead><tbody>';
-
-      rows.forEach(arr => {
-        html += '<tr>';
-        visibleIdx.forEach(idx => {
-          const val = arr[idx] !== undefined ? arr[idx] : '';
-          html += `<td>${escapeHtml(val)}</td>`;
-        });
-        html += '</tr>';
-      });
-
-      html += '</tbody></table>';
-      return html;
-    }
-
     async function loadAll(isAutoUpdate = false) {
       try {
         if (isAutoUpdate) {
           document.getElementById('lastUpdateTop').innerHTML = `
-            <i class="fas fa-hourglass-half" style="color: rgba(255,255,255,0.9);"></i>
-            <span>Atualizando...</span>`;
+        <i class="fas fa-hourglass-half" style="color: rgba(255,255,255,0.9);"></i>
+        <span>Atualizando...</span>
+      `;
           document.body.classList.add('updating');
         }
 
+        // Wait for auth if not ready
         if (!accessToken) {
-          console.log('Waiting for authentication.');
-          document.getElementById('lastUpdateTop').innerHTML = '<span>Aguardando Login.</span>';
+          // If not authenticated, we can't fetch. 
+          // The UI should show the login button.
+          // We can just return or throw a silent error.
+          console.log('Waiting for authentication...');
+          document.getElementById('lastUpdateTop').innerHTML = '<span>Aguardando Login...</span>';
           document.body.classList.remove('updating');
           return;
         }
-
         const prog = await fetchSheetByGid(GIDS.programacao);
-        const rowsArrProg = prog.arrays || [];
-        const headersOrigProg = prog.headersOrig || [];
-        const headersNormProg = prog.headersNorm || [];
-
-        if (!rowsArrProg.length || !headersNormProg.length) {
-          document.getElementById('clientesContainer').innerHTML =
-            '<div class="empty">Nenhum dado encontrado na aba Programação.</div>';
-          document.body.classList.remove('updating');
-          return;
-        }
-
-        const dateKeyProg =
-          headersNormProg.find(h => h.includes('data') && !h.includes('atualizacao')) ||
-          headersNormProg[0];
-        const dateIndexProg = headersNormProg.indexOf(dateKeyProg);
-
-        const today = new Date();
-        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
-
+        const rowsArrProg = prog.arrays;
+        const headersOrigProg = prog.headersOrig;
+        const headersNormProg = prog.headersNorm;
+        const objsProg = prog.objects;
+        const statusKey = headersNormProg.find(h => h.includes('status') && !h.includes('agendamento')) || null;
+        const statusIndex = headersNormProg.indexOf(statusKey);
+        const freteIndex = 4;
+        const transportadoraIndex = 5;
+        const dateKeyProg = findHeaderKey(headersNormProg, ['data', 'dataprogramacao', 'dataprog', 'dataentrega']) || headersNormProg[0] || null;
+        const dateIndexProg = 0;
+        const today = new Date(); const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
         const rowsArrProgFiltered = [];
+        const rowsObjProgFiltered = [];
         for (let i = 0; i < rowsArrProg.length; i++) {
           const arr = rowsArrProg[i];
-          const dtVal = arr[dateIndexProg];
+          const obj = objsProg[i] || {};
+          let dtVal = '';
+          if (dateKeyProg && obj[dateKeyProg]) dtVal = obj[dateKeyProg];
+          else if (arr[dateIndexProg] !== undefined) dtVal = arr[dateIndexProg];
           const dt = parseDateOnly(dtVal);
-          if (!dt) continue;
-          if (dt.getTime() === todayStart) {
+          if (dt && dt.getTime() === todayStart) {
             rowsArrProgFiltered.push(arr);
+            rowsObjProgFiltered.push(obj);
           }
         }
-
-        if (rowsArrProgFiltered.length === 0) {
-          document.getElementById('clientesContainer').innerHTML =
-            '<div class="empty">Nenhum embarque programado para hoje.</div>';
+        const ent = await fetchSheetByGid(GIDS.entrega);
+        const rowsArrEnt = ent.arrays;
+        const headersOrigEnt = ent.headersOrig;
+        const headersNormEnt = ent.headersNorm;
+        const objsEnt = ent.objects;
+        const infoDestinoKey = headersNormEnt.find(h => h.includes('informacoesdestino') || h.includes('informacaodestino') || h.includes('destino'));
+        const saldoKeyEnt = findHeaderKey(headersNormEnt, ['saldoent', 'saldoentrega', 'saldoentkg']) || null;
+        const saldoIndexEnt = 8;
+        const existingContratoKeys = headersNormEnt.filter(h => h.includes('contrato') || h.includes('ncontrato') || h.includes('numerocontrato'));
+        const saldoPorContrato = {};
+        for (let i = 0; i < rowsArrEnt.length; i++) {
+          const arr = rowsArrEnt[i] || [];
+          const obj = objsEnt[i] || {};
+          let contratoRaw = '';
+          if (infoDestinoKey && obj[infoDestinoKey]) {
+            contratoRaw = String(obj[infoDestinoKey]).split('-')[0].trim();
+          } else if (arr[1] !== undefined && String(arr[1]).trim() !== '') {
+            contratoRaw = String(arr[1]).trim();
+          } else {
+            for (const k of existingContratoKeys) {
+              if (obj[k]) { contratoRaw = String(obj[k]).trim(); break; }
+            }
+          }
+          let contratoNorm = String(contratoRaw || '').replace(/\D/g, '').trim();
+          if (!contratoNorm) {
+            contratoNorm = String(contratoRaw || '').trim();
+          }
+          let saldoVal = '';
+          if (saldoKeyEnt && obj[saldoKeyEnt] !== undefined && obj[saldoKeyEnt] !== '') saldoVal = obj[saldoKeyEnt];
+          else if (arr[saldoIndexEnt] !== undefined) saldoVal = arr[saldoIndexEnt];
+          const n = parseNumber(saldoVal || '0');
+          if (!isNaN(n) && contratoNorm) {
+            saldoPorContrato[contratoNorm] = (saldoPorContrato[contratoNorm] || 0) + n;
+          }
         }
+        const ret = await fetchSheetByGid(GIDS.retirada);
 
-        const statusKey =
-          headersNormProg.find(h => h.includes('status') && !h.includes('agendamento')) || null;
-        const statusIndex = statusKey ? headersNormProg.indexOf(statusKey) : -1;
-        const placaIndex = headersNormProg.findIndex(h => h.includes('placa'));
-
-        // contagem de status
+        // 👇👇👇 CORREÇÃO AQUI: contagem de placas únicas para "CARREGADO"
+        const placaColIndex = 7;
         const placasCarregadas = new Set();
-        let embarqueCount = 0;
-        let transitoCount = 0;
-        let contratarCount = 0;
-
-        rowsArrProgFiltered.forEach(arr => {
-          if (statusIndex < 0) return;
-          const status = normalizeText(arr[statusIndex] || '');
-          const placa = placaIndex >= 0 ? (arr[placaIndex] || '').toString().trim() : '';
-          if (status.includes('carregado') && placa) {
+        for (let i = 0; i < rowsArrProgFiltered.length; i++) {
+          const arr = rowsArrProgFiltered[i];
+          const status = (arr[statusIndex] || '').trim();
+          const placa = (arr[placaColIndex] || '').trim();
+          if (placa && normalizeText(status).includes('carregado')) {
             placasCarregadas.add(placa);
           }
-          if (status.includes('embarque')) {
-            embarqueCount++;
-          }
-          if (status.includes('transit')) {
-            transitoCount++;
-          }
-          if (status.includes('contrat')) {
-            contratarCount++;
-          }
-        });
-
+        }
         const carregadoUnico = placasCarregadas.size;
+        // 👆👆👆 FIM DA CORREÇÃO
 
-        // anima cards de status
-        animateCount('count-carregado', cardValues.carregado, carregadoUnico);
-        cardValues.carregado = carregadoUnico;
+        // Mantém os demais status contando linhas (comportamento original)
+        const statusCounts = countStatusProgramacao(rowsObjProgFiltered, statusKey);
+        document.getElementById('count-carregado').textContent = carregadoUnico;
+        document.getElementById('count-embarque').textContent = statusCounts.embarque;
+        document.getElementById('count-transito').textContent = statusCounts.transito;
+        document.getElementById('count-contratar').textContent = statusCounts.contratar;
 
-        animateCount('count-embarque', cardValues.embarque, embarqueCount);
-        cardValues.embarque = embarqueCount;
-
-        animateCount('count-transito', cardValues.transito, transitoCount);
-        cardValues.transito = transitoCount;
-
-        animateCount('count-contratar', cardValues.contratar, contratarCount);
-        cardValues.contratar = contratarCount;
-
-        // totais por produto
-        const idxProduto = headersNormProg.findIndex(h => h.includes('produto'));
-        const idxPeso = headersNormProg.findIndex(h =>
-          h.includes('kg') || h.includes('peso') || h.includes('quantidade') || h.includes('qtd')
-        );
-
-        let soja = 0, milho = 0, sorgo = 0;
-        rowsArrProgFiltered.forEach(arr => {
-          const produto = normalizeText(arr[idxProduto] || '');
-          const peso = parseNumber(arr[idxPeso]);
-          if (isNaN(peso) || peso <= 0) return;
-          if (produto.includes('soja')) soja += peso;
-          else if (produto.includes('milho')) milho += peso;
-          else if (produto.includes('sorgo')) sorgo += peso;
+        const produtosTotais = calculateProdutosTotais(rowsArrProgFiltered, 1, 9, 2);
+        globalProdutosTotais.soja = produtosTotais.soja;
+        globalProdutosTotais.milho = produtosTotais.milho;
+        globalProdutosTotais.sorgo = produtosTotais.sorgo;
+        const totalEmbarcado = produtosTotais.soja + produtosTotais.milho + produtosTotais.sorgo;
+        globalProdutosTotais.total = totalEmbarcado;
+        document.getElementById('count-soja').textContent = `${formatNumber(produtosTotais.soja)} KG`;
+        document.getElementById('count-milho').textContent = `${formatNumber(produtosTotais.milho)} KG`;
+        document.getElementById('count-sorgo').textContent = `${formatNumber(produtosTotais.sorgo)} KG`;
+        document.getElementById('count-total').textContent = `${formatNumber(totalEmbarcado)} KG`;
+        const clientesComPesoFuturo = await groupByContract(rowsArrProg, 2, 7, statusIndex, freteIndex, transportadoraIndex, true);
+        const clientesParaHoje = await groupByContract(rowsArrProgFiltered, 2, 7, statusIndex, freteIndex, transportadoraIndex, false);
+        clientesParaHoje.forEach(c => {
+          const key = String(c.contrato || '').replace(/\D/g, '').trim() || String(c.contrato || '').trim();
+          c.saldoEntrega = saldoPorContrato[key] || 0;
+          const clienteFuturo = clientesComPesoFuturo.find(cf => cf.contrato === c.contrato);
+          if (clienteFuturo) {
+            c.pesoEmTransitoEmbarque = clienteFuturo.pesoEmTransitoEmbarque || 0;
+          }
         });
-
-        const totalEmbarcado = soja + milho + sorgo;
-        globalProdutosTotais = {
-          soja: Math.round(soja),
-          milho: Math.round(milho),
-          sorgo: Math.round(sorgo),
-          total: Math.round(totalEmbarcado)
-        };
-
-        // anima cards de produto
-        animateCount('count-soja', cardValues.soja, soja, { suffix: 'KG', formatted: true });
-        cardValues.soja = soja;
-
-        animateCount('count-milho', cardValues.milho, milho, { suffix: 'KG', formatted: true });
-        cardValues.milho = milho;
-
-        animateCount('count-sorgo', cardValues.sorgo, sorgo, { suffix: 'KG', formatted: true });
-        cardValues.sorgo = sorgo;
-
-        animateCount('count-total', cardValues.total, totalEmbarcado, { suffix: 'KG', formatted: true });
-        cardValues.total = totalEmbarcado;
-
-        // cards de clientes
-        const clientesResumo = buildClientesResumo(rowsArrProgFiltered, headersNormProg);
-        const filterText = document.getElementById('filterInput').value || '';
-        renderClientes(clientesResumo, filterText);
-
-        // tabela Programação
-        document.getElementById('programacaoContent').innerHTML =
-          buildProgramacaoTable(rowsArrProgFiltered, headersOrigProg, headersNormProg);
-
-        // update header
-        document.getElementById('lastUpdateTop').innerHTML = `
-          <i class="fas fa-check-circle" style="color: rgba(255,255,255,0.9);"></i>
-          <span>Atualizado em ${new Date().toLocaleString('pt-BR')}</span>`;
+        document.getElementById('clientesContainer').innerHTML = buildClientesHTML(clientesParaHoje);
+        updateClientesSummary(clientesParaHoje);
+        let removedProg = [...REMOVED_COMMON.map(normalizeHeader), ...REMOVED_PROGRAMACAO.map(normalizeHeader)];
+        if (headersNormProg.length > 1) {
+          const visibleCols = headersNormProg.filter(h => !removedProg.includes(h));
+          if (visibleCols.length > 1) {
+            const penultimaCol = visibleCols[visibleCols.length - 2];
+            removedProg.push(penultimaCol);
+          }
+        }
+        const freteEmpresaKey = headersNormProg.find(h => h.includes('freteempresa') || h.includes('frete') && h.includes('empresa')) || null;
+        const tableProgHTML = buildTableHTML(rowsArrProgFiltered, rowsObjProgFiltered, headersOrigProg, headersNormProg, {
+          hiddenNorm: HIDDEN_COLS.map(normalizeHeader),
+          removedNorm: removedProg,
+          numericKey: '',
+          currencyCols: freteEmpresaKey ? [freteEmpresaKey] : [],
+          statusCol: statusKey
+        });
+        document.getElementById('programacaoContent').innerHTML = tableProgHTML || '<div class="empty">Nenhuma programação para hoje.</div>';
+        document.getElementById('content-programacao').classList.add('collapsed');
+        document.getElementById('toggle-programacao').classList.add('collapsed');
+        updateLastUpdateTime();
         document.body.classList.remove('updating');
-      } catch (err) {
-        console.error('Erro loadAll (Página Inicial):', err);
-        document.getElementById('clientesContainer').innerHTML =
-          '<div class="empty">Erro ao carregar dados. Verifique a conexão ou as configurações da planilha (ver console).</div>';
+      }
+      catch (err) {
+        console.error('Erro loadAll:', err);
+        document.getElementById('programacaoContent').innerHTML = '<div class="empty">Erro ao carregar dados da Programação (ver console).</div>';
+        document.getElementById('clientesContainer').innerHTML = '<div class="empty">Erro ao carregar dados dos contratos (ver console).</div>';
         document.getElementById('lastUpdateTop').innerHTML = `
-          <i class="fas fa-exclamation-triangle" style="color: rgba(255,255,255,0.9);"></i>
-          <span>Erro na atualização</span>`;
+      <i class="fas fa-exclamation-triangle" style="color: rgba(255,255,255,0.9);"></i>
+      <span>Erro na atualização</span>
+    `;
         document.body.classList.remove('updating');
       }
     }
-
-    // callback quando o login estiver pronto
+    function setupToggleHandlers() {
+      document.getElementById('toggle-programacao').addEventListener('click', function () {
+        toggleSection('programacao');
+      });
+    }
+    function toggleSection(sectionId) {
+      const content = document.getElementById(`content-${sectionId}`);
+      const header = document.getElementById(`toggle-${sectionId}`);
+      const isCollapsed = content.classList.contains('collapsed');
+      if (isCollapsed) {
+        content.classList.remove('collapsed');
+        header.classList.remove('collapsed');
+      } else {
+        content.classList.add('collapsed');
+        header.classList.add('collapsed');
+      }
+    }
+    // Set the callback for when auth is ready
     onAuthSuccess = () => {
       loadAll(true);
     };
 
     let autoUpdateInterval;
     function startAutoUpdate() {
+      // loadAll(true); // Removed initial call, let onAuthSuccess handle it
       autoUpdateInterval = setInterval(() => {
         loadAll(true);
       }, AUTO_UPDATE_INTERVAL);
     }
-
+    function stopAutoUpdate() {
+      if (autoUpdateInterval) {
+        clearInterval(autoUpdateInterval);
+        autoUpdateInterval = null;
+      }
+    }
     document.addEventListener('DOMContentLoaded', function () {
-      document.getElementById('filterInput').addEventListener('input', () => {
-        // refaz apenas os cards de clientes com filtro atual
-        // (reaproveitamos os dados recalculando rapidamente de novo)
-        // Para simplificar, chamamos loadAll(true) se estiver autenticado
-        if (accessToken) {
-          loadAll(true);
-        }
-      });
-
+      setupToggleHandlers();
       document.getElementById('card-total-embarcado').addEventListener('click', handleTotalCardClick);
-
-      const toggle = document.getElementById('toggle-programacao');
-      const content = document.getElementById('content-programacao');
-      toggle.addEventListener('click', () => {
-        const isOpen = content.classList.toggle('open');
-        if (isOpen) {
-          toggle.classList.add('open');
-        } else {
-          toggle.classList.remove('open');
-        }
-      });
-
       startAutoUpdate();
-
       document.addEventListener('visibilitychange', function () {
-        if (!document.hidden) {
-          if (accessToken) {
-            loadAll(true);
-          }
+        if (document.hidden) {
+          console.log('Página oculta - pausando atualizações automáticas');
+        } else {
+          console.log('Página visível - retomando atualizações automáticas');
+          loadAll(true);
         }
       });
     });
