@@ -424,11 +424,8 @@
     }
     function isArmazemMVK(arr) {
       if (!arr || !arr[1]) return false;
-      const colB = String(arr[1]);
-      const parts = colB.split('-');
-      if (parts.length < 2) return false;
-      const local = normalizeText(parts[1]);
-      return local.includes('armazem mvk');
+      const colB = normalizeText(String(arr[1]));
+      return colB.includes('mvk agro cereais');
     }
     function buildClientesHTML(clientes) {
       if (clientes.length === 0) {
