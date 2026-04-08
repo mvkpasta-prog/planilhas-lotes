@@ -175,17 +175,18 @@ header {
 /* Metric Cards */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
 }
 
+
 .metric-card {
-    border-radius: 1rem;
-    padding: 1.5rem;
+    border-radius: 0.85rem;
+    padding: 1rem 1.25rem;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.35rem;
     transition: var(--transition);
     position: relative;
     overflow: hidden;
@@ -206,7 +207,7 @@ header {
 }
 
 .metric-label {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -214,11 +215,12 @@ header {
 }
 
 .metric-value {
-    font-size: 2rem;
+    font-size: 1.6rem;
     font-weight: 800;
     font-family: 'Outfit', sans-serif;
     color: var(--text-main);
 }
+
 
 /* Status variants */
 .metric-carregado::after { background: var(--status-carregado); }
@@ -469,87 +471,100 @@ tr:hover td {
     color: var(--text-muted);
 }
 
-/* Weather Display */
+/* Weather Display (Minimalist) */
 .weather-card {
-    margin: 1.5rem 0;
-    padding: 1.5rem;
+    margin: 1rem 0 0 0;
+    padding: 0.75rem 1rem;
     background: rgba(255, 255, 255, 0.4);
-    border-radius: 1.25rem;
-    text-align: center;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.2);
 }
 
 .weather-header {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--text-muted);
-    margin-bottom: 1rem;
+    margin-bottom: 0.25rem;
     font-weight: 700;
 }
 
 .weather-main {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 1.5rem;
+    gap: 0.75rem;
 }
 
 .weather-icon-large {
-    font-size: 3.5rem;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+    font-size: 1.5rem;
 }
 
 .weather-temp-large {
-    font-size: 3rem;
+    font-size: 1.25rem;
     font-weight: 800;
     font-family: 'Outfit', sans-serif;
-    line-height: 1;
 }
 
 .weather-condition {
-    margin-top: 0.75rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    color: var(--text-main);
+    color: var(--text-muted);
     text-transform: capitalize;
 }
 
 .city-name-large {
     font-family: 'Outfit', sans-serif;
-    font-size: 1.75rem;
+    font-size: 2.25rem;
     font-weight: 800;
     color: var(--primary);
-    margin-bottom: 0.5rem;
-    line-height: 1.2;
+    margin-bottom: 1rem;
+    line-height: 1.1;
 }
 
 .shipment-details-large {
-    margin-top: auto;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.5rem;
+    flex: 1;
 }
 
 .shipment-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.75rem;
+    padding: 1rem;
     background: rgba(255, 255, 255, 0.6);
-    border-radius: 0.75rem;
-    font-size: 0.9rem;
+    border-radius: 1rem;
+    font-size: 1rem;
 }
 
 .shipment-label {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
 }
 
 .shipment-value {
-    font-weight: 800;
+    font-weight: 900;
     color: var(--text-main);
+    font-size: 1.25rem;
+    font-family: 'Outfit', sans-serif;
 }
+
+.shipment-total-row {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
+    color: white !important;
+    margin-top: 0.5rem;
+    padding: 1.25rem 1rem !important;
+}
+
+.shipment-total-row .shipment-label { color: rgba(255,255,255,0.7); }
+.shipment-total-row .shipment-value { color: white; font-size: 1.75rem; }
+
 
 @media (max-width: 1100px) {
     .dashboard-composite {
