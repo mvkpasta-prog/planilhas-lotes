@@ -580,27 +580,44 @@
         const idx = sortedCities.indexOf(sortedCities.find(x => x[0] === city));
         const weather = await fetchCityWeather(city);
         
-        const prodRows = Object.entries(data.produtos).map(([p, v]) => `
-          <div class="shipment-row">
-            <span class="shipment-label">${p}</span>
-            <span class="shipment-value">${formatNumber(v)} KG</span>
-          </div>
-        `).join('');
+        const prodKeys = Object.keys(data.produtos);
+        let prodContent = '';
+        
+        if (prodKeys.length === 1) {
+          // Single product: Show only a special "Total" row to save space
+          const p = prodKeys[0];
+          prodContent = `
+            <div class="shipment-row shipment-total-row">
+              <span class="shipment-label">${p} (TOTAL)</span>
+              <span class="shipment-value">${formatNumber(data.total)} KG</span>
+            </div>`;
+        } else {
+          // Multiple products: Show breakdown + total
+          const prodRows = prodKeys.map(p => `
+            <div class="shipment-row">
+              <span class="shipment-label">${p}</span>
+              <span class="shipment-value">${formatNumber(data.produtos[p])} KG</span>
+            </div>
+          `).join('');
+          
+          prodContent = `
+            ${prodRows}
+            <div class="shipment-row shipment-total-row">
+              <span class="shipment-label">TOTAL</span>
+              <span class="shipment-value">${formatNumber(data.total)} KG</span>
+            </div>`;
+        }
 
         html += `
           <div class="carousel-item ${idx === 0 ? 'active' : ''}">
-            <div class="city-name-large">${city}</div>
+            <div class="city-name-large" style="margin-top: 0;">${city}</div>
             
             <div class="shipment-details-large">
-              <div class="weather-header" style="margin-bottom: 0.5rem;">Volumes Embarcados</div>
-              ${prodRows}
-              <div class="shipment-row shipment-total-row">
-                <span class="shipment-label">TOTAL</span>
-                <span class="shipment-value">${formatNumber(data.total)} KG</span>
-              </div>
+              <div class="weather-header" style="margin-bottom: 0.25rem;">Volumes do Dia</div>
+              ${prodContent}
             </div>
 
-            <div class="weather-card">
+            <div class="weather-card" style="margin-top: 8px;">
               <div class="weather-main">
                 <div class="weather-icon-large">${getWeatherIcon(weather.code)}</div>
                 <div class="weather-temp-large">${weather.temp}°C</div>
@@ -612,6 +629,7 @@
       container.innerHTML = html;
       startCityCarousel();
     }
+
 
 
     let carouselInterval;
