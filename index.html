@@ -43,78 +43,91 @@
   </header>
 
   <main class="wrap animate-in">
-    <div class="section-title" style="margin-bottom: 1rem; color: var(--primary); display: flex; align-items: center; gap: 8px;">
-      <i class="fas fa-warehouse"></i> Armazém MVK
-    </div>
-    <div class="stats-grid" style="margin-bottom: 2rem;">
-      <div class="metric-card glass metric-carregado">
-        <div class="metric-label">Carregado</div>
-        <div class="metric-value" id="count-mvk-carregado">0</div>
-      </div>
-      <div class="metric-card glass metric-embarque">
-        <div class="metric-label">No Embarque</div>
-        <div class="metric-value" id="count-mvk-embarque">0</div>
-      </div>
-      <div class="metric-card glass metric-transito">
-        <div class="metric-label">Em Trânsito</div>
-        <div class="metric-value" id="count-mvk-transito">0</div>
-      </div>
-      <div class="metric-card glass metric-contratar">
-        <div class="metric-label">Contratar</div>
-        <div class="metric-value" id="count-mvk-contratar">0</div>
-      </div>
-      <div class="metric-card glass city-highlights-card">
-        <div class="metric-label">Destaques por Cidade</div>
-        <div class="carousel-container" id="city-carousel">
-          <div class="carousel-item active">
-            <div class="city-name"><i class="fas fa-city"></i> Aguardando...</div>
-            <div class="city-info">Carregando dados do dia</div>
+    <div class="dashboard-composite">
+      <div class="metrics-column">
+        <div class="section-title" style="margin-bottom: 1rem; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-warehouse"></i> Armazém MVK
+        </div>
+        <div class="stats-grid" style="margin-bottom: 2rem;">
+          <div class="metric-card glass metric-carregado">
+            <div class="metric-label">Carregado</div>
+            <div class="metric-value" id="count-mvk-carregado">0</div>
+          </div>
+          <div class="metric-card glass metric-embarque">
+            <div class="metric-label">No Embarque</div>
+            <div class="metric-value" id="count-mvk-embarque">0</div>
+          </div>
+          <div class="metric-card glass metric-transito">
+            <div class="metric-label">Em Trânsito</div>
+            <div class="metric-value" id="count-mvk-transito">0</div>
+          </div>
+          <div class="metric-card glass metric-contratar">
+            <div class="metric-label">Contratar</div>
+            <div class="metric-value" id="count-mvk-contratar">0</div>
+          </div>
+        </div>
+
+        <div class="section-title" style="margin-bottom: 1rem; color: var(--muted); display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-map-marked-alt"></i> Demais Locais
+        </div>
+        <div class="stats-grid" style="margin-bottom: 2rem;">
+          <div class="metric-card glass metric-carregado">
+            <div class="metric-label">Carregado</div>
+            <div class="metric-value" id="count-others-carregado">0</div>
+          </div>
+          <div class="metric-card glass metric-embarque">
+            <div class="metric-label">No Embarque</div>
+            <div class="metric-value" id="count-others-embarque">0</div>
+          </div>
+          <div class="metric-card glass metric-transito">
+            <div class="metric-label">Em Trânsito</div>
+            <div class="metric-value" id="count-others-transito">0</div>
+          </div>
+          <div class="metric-card glass metric-contratar">
+            <div class="metric-label">Contratar</div>
+            <div class="metric-value" id="count-others-contratar">0</div>
+          </div>
+        </div>
+
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 0;">
+          <div class="metric-card glass metric-soja">
+            <div class="metric-label">Soja</div>
+            <div class="metric-value" id="count-soja">0 KG</div>
+          </div>
+          <div class="metric-card glass metric-milho">
+            <div class="metric-label">Milho</div>
+            <div class="metric-value" id="count-milho">0 KG</div>
+          </div>
+          <div class="metric-card glass metric-sorgo">
+            <div class="metric-label">Sorgo</div>
+            <div class="metric-value" id="count-sorgo">0 KG</div>
+          </div>
+          <div class="metric-card glass metric-total" id="card-total-embarcado">
+            <div class="metric-label">Total Embarcado</div>
+            <div class="metric-value" id="count-total">0 KG</div>
           </div>
         </div>
       </div>
+
+      <div class="sidebar-column">
+        <div class="section-title" style="margin-bottom: 1rem; opacity: 0; pointer-events: none;">
+          <i class="fas fa-city"></i> Sidebar
+        </div>
+        <div class="metric-card glass city-highlights-card">
+          <div class="metric-label">Destaques por Cidade</div>
+          <div class="carousel-container" id="city-carousel">
+            <div class="carousel-item active">
+              <div class="carousel-loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Sincronizando dados...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
-
-    <div class="section-title" style="margin-bottom: 1rem; color: var(--muted); display: flex; align-items: center; gap: 8px;">
-      <i class="fas fa-map-marked-alt"></i> Demais Locais
-    </div>
-    <div class="stats-grid" style="margin-bottom: 2rem;">
-      <div class="metric-card glass metric-carregado">
-        <div class="metric-label">Carregado</div>
-        <div class="metric-value" id="count-others-carregado">0</div>
-      </div>
-      <div class="metric-card glass metric-embarque">
-        <div class="metric-label">No Embarque</div>
-        <div class="metric-value" id="count-others-embarque">0</div>
-      </div>
-      <div class="metric-card glass metric-transito">
-        <div class="metric-label">Em Trânsito</div>
-        <div class="metric-value" id="count-others-transito">0</div>
-      </div>
-      <div class="metric-card glass metric-contratar">
-        <div class="metric-label">Contratar</div>
-        <div class="metric-value" id="count-others-contratar">0</div>
-      </div>
-    </div>
-
-    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
-      <div class="metric-card glass metric-soja">
-        <div class="metric-label">Soja</div>
-        <div class="metric-value" id="count-soja">0 KG</div>
-      </div>
-      <div class="metric-card glass metric-milho">
-        <div class="metric-label">Milho</div>
-        <div class="metric-value" id="count-milho">0 KG</div>
-      </div>
-      <div class="metric-card glass metric-sorgo">
-        <div class="metric-label">Sorgo</div>
-        <div class="metric-value" id="count-sorgo">0 KG</div>
-      </div>
-      <div class="metric-card glass metric-total" id="card-total-embarcado">
-        <div class="metric-label">Total Embarcado</div>
-        <div class="metric-value" id="count-total">0 KG</div>
-      </div>
-    </div>
 
     <div class="client-grid" id="clientesContainer" style="margin-bottom: 2rem;">
     </div>
@@ -468,7 +481,67 @@
       window.requestAnimationFrame(step);
     }
 
-    function updateCityHighlights(rowsArr, destinoIndex, pesoIndex, produtoIndex) {
+    const CITY_COORDS = {
+      'MARINGA': { lat: -23.4209, lon: -51.9331 },
+      'LONDRINA': { lat: -23.3103, lon: -51.1628 },
+      'CURITIBA': { lat: -25.4290, lon: -49.2671 },
+      'CASCAVEL': { lat: -24.9555, lon: -53.4552 },
+      'PONTA GROSSA': { lat: -25.0950, lon: -50.1614 },
+      'FLORESTA': { lat: -23.6033, lon: -52.0833 },
+      'PAICANDU': { lat: -23.4578, lon: -52.0469 },
+      'SARANDI': { lat: -23.4436, lon: -51.8739 },
+      'CAMBE': { lat: -23.2758, lon: -51.2783 },
+      'ROLANDIA': { lat: -23.2342, lon: -51.3731 }
+    };
+
+    function getWeatherIcon(code) {
+      if (code === 0) return '<i class="fas fa-sun" style="color: #fbbf24;"></i>';
+      if (code >= 1 && code <= 3) return '<i class="fas fa-cloud-sun" style="color: #f59e0b;"></i>';
+      if (code === 45 || code === 48) return '<i class="fas fa-smog" style="color: #94a3b8;"></i>';
+      if (code >= 51 && code <= 65) return '<i class="fas fa-cloud-showers-heavy" style="color: #3b82f6;"></i>';
+      if (code >= 95) return '<i class="fas fa-cloud-bolt" style="color: #6366f1;"></i>';
+      return '<i class="fas fa-cloud" style="color: #64748b;"></i>';
+    }
+
+    function getWeatherDesc(code) {
+      if (code === 0) return 'Céu Limpo';
+      if (code >= 1 && code <= 3) return 'Parcialmente Nublado';
+      if (code === 45 || code === 48) return 'Nevoeiro';
+      if (code >= 51 && code <= 55) return 'Garoa';
+      if (code >= 61 && code <= 65) return 'Chuva';
+      if (code >= 95) return 'Tempestade';
+      return 'Nublado';
+    }
+
+    async function fetchCityWeather(city) {
+      const cityNorm = city.toUpperCase().trim();
+      const coords = CITY_COORDS[cityNorm] || CITY_COORDS['MARINGA'];
+      
+      const cacheKey = `weather_cache_${cityNorm}`;
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const decoded = JSON.parse(cached);
+        const age = (Date.now() - decoded.timestamp) / (1000 * 60 * 60);
+        if (age < 4) return decoded.weather;
+      }
+
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true`;
+        const resp = await fetch(url);
+        const data = await resp.json();
+        const weather = {
+          temp: Math.round(data.current_weather.temperature),
+          code: data.current_weather.weathercode
+        };
+        localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), weather }));
+        return weather;
+      } catch (e) {
+        console.error('Weather Error:', e);
+        return { temp: '--', code: -1 };
+      }
+    }
+
+    async function updateCityHighlights(rowsArr, destinoIndex, pesoIndex, produtoIndex) {
       const summary = {};
       rowsArr.forEach(arr => {
         const destinoText = arr[destinoIndex] || '';
@@ -494,24 +567,49 @@
       if (sortedCities.length === 0) {
         container.innerHTML = `
           <div class="carousel-item active">
-            <div class="city-name"><i class="fas fa-info-circle"></i> Sem embarques</div>
-            <div class="city-info">Nenhum dado para hoje</div>
+            <div class="carousel-loading">
+              <i class="fas fa-info-circle"></i>
+              <span>Sem embarques hoje</span>
+            </div>
           </div>`;
         return;
       }
 
       let html = '';
-      sortedCities.forEach(([city, data], idx) => {
-        const prodSummary = Object.entries(data.produtos)
-          .map(([p, v]) => `<b>${formatNumber(v)}</b> ${p}`)
-          .join(' | ');
+      for (const [city, data] of sortedCities) {
+        const idx = sortedCities.indexOf(sortedCities.find(x => x[0] === city));
+        const weather = await fetchCityWeather(city);
         
+        const prodRows = Object.entries(data.produtos).map(([p, v]) => `
+          <div class="shipment-row">
+            <span class="shipment-label">${p}</span>
+            <span class="shipment-value">${formatNumber(v)} KG</span>
+          </div>
+        `).join('');
+
         html += `
           <div class="carousel-item ${idx === 0 ? 'active' : ''}">
-            <div class="city-name"><i class="fas fa-location-dot"></i> ${city}</div>
-            <div class="city-info">${prodSummary}</div>
+            <div class="city-name-large">${city}</div>
+            
+            <div class="weather-card">
+              <div class="weather-header">Previsão Local</div>
+              <div class="weather-main">
+                <div class="weather-icon-large">${getWeatherIcon(weather.code)}</div>
+                <div class="weather-temp-large">${weather.temp}°C</div>
+              </div>
+              <div class="weather-condition">${getWeatherDesc(weather.code)}</div>
+            </div>
+
+            <div class="shipment-details-large">
+              <div class="weather-header" style="margin-bottom: 0.5rem;">Volumes Embarcados</div>
+              ${prodRows}
+              <div class="shipment-row" style="background: var(--primary); color: white; margin-top: 0.5rem;">
+                <span class="shipment-label" style="color: rgba(255,255,255,0.8);">TOTAL</span>
+                <span class="shipment-value">${formatNumber(data.total)} KG</span>
+              </div>
+            </div>
           </div>`;
-      });
+      }
       container.innerHTML = html;
       startCityCarousel();
     }
