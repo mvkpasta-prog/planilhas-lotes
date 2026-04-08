@@ -486,12 +486,7 @@
       'LONDRINA': { lat: -23.3103, lon: -51.1628 },
       'CURITIBA': { lat: -25.4290, lon: -49.2671 },
       'CASCAVEL': { lat: -24.9555, lon: -53.4552 },
-      'PONTA GROSSA': { lat: -25.0950, lon: -50.1614 },
-      'FLORESTA': { lat: -23.6033, lon: -52.0833 },
-      'PAICANDU': { lat: -23.4578, lon: -52.0469 },
-      'SARANDI': { lat: -23.4436, lon: -51.8739 },
-      'CAMBE': { lat: -23.2758, lon: -51.2783 },
-      'ROLANDIA': { lat: -23.2342, lon: -51.3731 }
+      'BATAGUASSU': { lat: -21.7142, lon: -52.4222 }
     };
 
     function getWeatherIcon(code) {
@@ -513,16 +508,39 @@
       return 'Nublado';
     }
 
+    async function getCityCoords(city) {
+      const cityNorm = city.toUpperCase().trim();
+      if (CITY_COORDS[cityNorm]) return CITY_COORDS[cityNorm];
+
+      const cacheKey = `coords_cache_${cityNorm}`;
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) return JSON.parse(cached);
+
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city + ', Brazil')}&format=json&limit=1`;
+        const resp = await fetch(url, { headers: { 'Accept-Language': 'pt-BR' } });
+        const data = await resp.json();
+        if (data && data.length > 0) {
+          const coords = { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+          localStorage.setItem(cacheKey, JSON.stringify(coords));
+          return coords;
+        }
+      } catch (e) {
+        console.error('Geocoding Error:', e);
+      }
+      return CITY_COORDS['MARINGA'];
+    }
+
     async function fetchCityWeather(city) {
       const cityNorm = city.toUpperCase().trim();
-      const coords = CITY_COORDS[cityNorm] || CITY_COORDS['MARINGA'];
+      const coords = await getCityCoords(city);
       
       const cacheKey = `weather_cache_${cityNorm}`;
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
         const decoded = JSON.parse(cached);
         const age = (Date.now() - decoded.timestamp) / (1000 * 60 * 60);
-        if (age < 4) return decoded.weather;
+        if (age < 1) return decoded.weather;
       }
 
       try {
@@ -652,7 +670,8 @@
         setTimeout(() => {
           items[prev].classList.remove('exit');
         }, 600);
-      }, 5000);
+      }, 7000); // 7 seconds
+
     }
     function buildClientesHTML(clientes) {
       if (clientes.length === 0) {

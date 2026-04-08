@@ -407,11 +407,12 @@ tr:hover td {
 /* Composite Layout */
 .dashboard-composite {
     display: grid;
-    grid-template-columns: 1fr 350px;
+    grid-template-columns: 1fr 400px;
     gap: 1.5rem;
     margin-bottom: 2rem;
     align-items: stretch;
 }
+
 
 .metrics-column {
     display: flex;
@@ -503,14 +504,15 @@ tr:hover td {
 }
 
 .weather-icon-large {
-    font-size: 1.5rem;
+    font-size: 2.2rem;
 }
 
 .weather-temp-large {
-    font-size: 1.25rem;
+    font-size: 1.8rem;
     font-weight: 800;
     font-family: 'Outfit', sans-serif;
 }
+
 
 .weather-condition {
     font-size: 0.75rem;
