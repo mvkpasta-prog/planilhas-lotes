@@ -591,21 +591,20 @@
           <div class="carousel-item ${idx === 0 ? 'active' : ''}">
             <div class="city-name-large">${city}</div>
             
-            <div class="weather-card">
-              <div class="weather-header">Previsão Local</div>
-              <div class="weather-main">
-                <div class="weather-icon-large">${getWeatherIcon(weather.code)}</div>
-                <div class="weather-temp-large">${weather.temp}°C</div>
-              </div>
-              <div class="weather-condition">${getWeatherDesc(weather.code)}</div>
-            </div>
-
             <div class="shipment-details-large">
               <div class="weather-header" style="margin-bottom: 0.5rem;">Volumes Embarcados</div>
               ${prodRows}
-              <div class="shipment-row" style="background: var(--primary); color: white; margin-top: 0.5rem;">
-                <span class="shipment-label" style="color: rgba(255,255,255,0.8);">TOTAL</span>
+              <div class="shipment-row shipment-total-row">
+                <span class="shipment-label">TOTAL</span>
                 <span class="shipment-value">${formatNumber(data.total)} KG</span>
+              </div>
+            </div>
+
+            <div class="weather-card">
+              <div class="weather-main">
+                <div class="weather-icon-large">${getWeatherIcon(weather.code)}</div>
+                <div class="weather-temp-large">${weather.temp}°C</div>
+                <div class="weather-condition">${getWeatherDesc(weather.code)}</div>
               </div>
             </div>
           </div>`;
@@ -613,6 +612,7 @@
       container.innerHTML = html;
       startCityCarousel();
     }
+
 
     let carouselInterval;
     function startCityCarousel() {
