@@ -43,22 +43,47 @@
   </header>
 
   <main class="wrap animate-in">
-    <div class="stats-grid">
+    <div class="section-title" style="margin-bottom: 1rem; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+      <i class="fas fa-warehouse"></i> Armazém MVK
+    </div>
+    <div class="stats-grid" style="margin-bottom: 2rem;">
       <div class="metric-card glass metric-carregado">
         <div class="metric-label">Carregado</div>
-        <div class="metric-value" id="count-carregado">0</div>
+        <div class="metric-value" id="count-mvk-carregado">0</div>
       </div>
       <div class="metric-card glass metric-embarque">
         <div class="metric-label">No Embarque</div>
-        <div class="metric-value" id="count-embarque">0</div>
+        <div class="metric-value" id="count-mvk-embarque">0</div>
       </div>
       <div class="metric-card glass metric-transito">
         <div class="metric-label">Em Trânsito</div>
-        <div class="metric-value" id="count-transito">0</div>
+        <div class="metric-value" id="count-mvk-transito">0</div>
       </div>
       <div class="metric-card glass metric-contratar">
         <div class="metric-label">Contratar</div>
-        <div class="metric-value" id="count-contratar">0</div>
+        <div class="metric-value" id="count-mvk-contratar">0</div>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-bottom: 1rem; color: var(--muted); display: flex; align-items: center; gap: 8px;">
+      <i class="fas fa-map-marked-alt"></i> Demais Locais
+    </div>
+    <div class="stats-grid" style="margin-bottom: 2rem;">
+      <div class="metric-card glass metric-carregado">
+        <div class="metric-label">Carregado</div>
+        <div class="metric-value" id="count-others-carregado">0</div>
+      </div>
+      <div class="metric-card glass metric-embarque">
+        <div class="metric-label">No Embarque</div>
+        <div class="metric-value" id="count-others-embarque">0</div>
+      </div>
+      <div class="metric-card glass metric-transito">
+        <div class="metric-label">Em Trânsito</div>
+        <div class="metric-value" id="count-others-transito">0</div>
+      </div>
+      <div class="metric-card glass metric-contratar">
+        <div class="metric-label">Contratar</div>
+        <div class="metric-value" id="count-others-contratar">0</div>
       </div>
     </div>
 
@@ -397,6 +422,14 @@
       }
       return 0;
     }
+    function isArmazemMVK(arr) {
+      if (!arr || !arr[1]) return false;
+      const colB = String(arr[1]);
+      const parts = colB.split('-');
+      if (parts.length < 2) return false;
+      const local = normalizeText(parts[1]);
+      return local.includes('armazem mvk');
+    }
     function buildClientesHTML(clientes) {
       if (clientes.length === 0) {
         return '<div class="empty">Nenhum contrato encontrado para hoje.</div>';
@@ -729,27 +762,53 @@ ${message}`);
           }
         }
         const ret = await fetchSheetByGid(GIDS.retirada);
-
-        // 👇👇👇 CORREÇÃO AQUI: contagem de placas únicas para "CARREGADO"
         const placaColIndex = 7;
-        const placasCarregadas = new Set();
+
+        // Split data into MVK and Others
+        const mvkRowsArr = [];
+        const mvkRowsObj = [];
+        const othersRowsArr = [];
+        const othersRowsObj = [];
+
         for (let i = 0; i < rowsArrProgFiltered.length; i++) {
-          const arr = rowsArrProgFiltered[i];
-          const status = (arr[statusIndex] || '').trim();
-          const placa = (arr[placaColIndex] || '').trim();
-          if (placa && normalizeText(status).includes('carregado')) {
-            placasCarregadas.add(placa);
+          if (isArmazemMVK(rowsArrProgFiltered[i])) {
+            mvkRowsArr.push(rowsArrProgFiltered[i]);
+            mvkRowsObj.push(rowsObjProgFiltered[i]);
+          } else {
+            othersRowsArr.push(rowsArrProgFiltered[i]);
+            othersRowsObj.push(rowsObjProgFiltered[i]);
           }
         }
-        const carregadoUnico = placasCarregadas.size;
-        // 👆👆👆 FIM DA CORREÇÃO
 
-        // Mantém os demais status contando linhas (comportamento original)
-        const statusCounts = countStatusProgramacao(rowsObjProgFiltered, statusKey);
-        document.getElementById('count-carregado').textContent = carregadoUnico;
-        document.getElementById('count-embarque').textContent = statusCounts.embarque;
-        document.getElementById('count-transito').textContent = statusCounts.transito;
-        document.getElementById('count-contratar').textContent = statusCounts.contratar;
+        const countCarregadoUnico = (rows) => {
+          const placas = new Set();
+          rows.forEach(arr => {
+            const status = (arr[statusIndex] || '').trim();
+            const placa = (arr[placaColIndex] || '').trim();
+            if (placa && normalizeText(status).includes('carregado')) {
+              placas.add(placa);
+            }
+          });
+          return placas.size;
+        };
+
+        const mvkCarregadoUnico = countCarregadoUnico(mvkRowsArr);
+        const othersCarregadoUnico = countCarregadoUnico(othersRowsArr);
+
+        const mvkStatusCounts = countStatusProgramacao(mvkRowsObj, statusKey);
+        const othersStatusCounts = countStatusProgramacao(othersRowsObj, statusKey);
+
+        // Update MVK IDs
+        document.getElementById('count-mvk-carregado').textContent = mvkCarregadoUnico;
+        document.getElementById('count-mvk-embarque').textContent = mvkStatusCounts.embarque;
+        document.getElementById('count-mvk-transito').textContent = mvkStatusCounts.transito;
+        document.getElementById('count-mvk-contratar').textContent = mvkStatusCounts.contratar;
+
+        // Update Others IDs
+        document.getElementById('count-others-carregado').textContent = othersCarregadoUnico;
+        document.getElementById('count-others-embarque').textContent = othersStatusCounts.embarque;
+        document.getElementById('count-others-transito').textContent = othersStatusCounts.transito;
+        document.getElementById('count-others-contratar').textContent = othersStatusCounts.contratar;
 
         const produtosTotais = calculateProdutosTotais(rowsArrProgFiltered, 1, 9, 2);
         globalProdutosTotais.soja = produtosTotais.soja;
