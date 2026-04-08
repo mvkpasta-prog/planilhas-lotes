@@ -6,454 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Controle de Lotes — Resumo de Retirada</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <style>
-    :root {
-      --primary: #2563eb;
-      --accent: #0ea5e9;
-      --bg: #f6fbff;
-      --card: #fff;
-      --text: #0f172a;
-      --muted: #6b7280;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --status-carregado: #10b981;
-      --status-embarque: #3b82f6;
-      --status-transito: #ef4444;
-      --status-contratar: #f97316;
-      --produto-soja: #10b981;
-      --produto-milho: #fbbf24;
-      --produto-sorgo: #6b7280;
-      --produto-total: #8b5cf6;
-    }
-
-    * {
-      box-sizing: border-box
-    }
-
-    body {
-      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      padding: 12px
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-image: url('https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png');
-      background-repeat: no-repeat;
-      background-position: center center;
-      background-size: 80vh;
-      opacity: 0.05;
-      z-index: -1;
-      pointer-events: none;
-    }
-
-    header {
-      background: linear-gradient(90deg, var(--primary), var(--accent));
-      color: white;
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 16px;
-      text-align: center;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      position: relative;
-      flex-wrap: wrap;
-    }
-
-    .header-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-width: 200px;
-    }
-
-    .last-update-top {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.9);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .wrap {
-      max-width: 1400px;
-      margin: 0 auto;
-      width: 100%
-    }
-
-    .header-btn {
-      background: #fff;
-      color: var(--primary);
-      border: none;
-      padding: 6px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 700;
-      font-size: 13px;
-      text-decoration: none;
-      transition: background 0.2s ease, opacity 0.2s ease;
-      white-space: nowrap;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .header-btn:hover {
-      background: var(--bg);
-      opacity: 0.95;
-    }
-
-    .status-cards {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 20px
-    }
-
-    .status-card {
-      background: var(--card);
-      border-radius: 8px;
-      padding: 10px;
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
-      flex: 1;
-      min-width: 150px;
-      text-align: center;
-      transition: all 0.3s ease
-    }
-
-    .status-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.08)
-    }
-
-    .status-card h3 {
-      margin: 0 0 6px 0;
-      font-size: 14px;
-      color: var(--text);
-      font-weight: 600
-    }
-
-    .status-card .count {
-      font-size: 22px;
-      font-weight: 700;
-      margin: 6px 0
-    }
-
-    .status-card-carregado {
-      border-top: 3px solid var(--status-carregado);
-    }
-
-    .status-card-embarque {
-      border-top: 3px solid var(--status-embarque);
-    }
-
-    .status-card-transito {
-      border-top: 3px solid var(--status-transito);
-    }
-
-    .status-card-contratar {
-      border-top: 3px solid var(--status-contratar);
-    }
-
-    .produto-cards {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 20px
-    }
-
-    .produto-card {
-      background: var(--card);
-      border-radius: 8px;
-      padding: 8px;
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
-      flex: 1;
-      min-width: 140px;
-      text-align: center;
-      transition: all 0.3s ease;
-      border-top: 3px solid transparent;
-      cursor: pointer;
-    }
-
-    .produto-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.08)
-    }
-
-    .produto-card h3 {
-      margin: 0 0 4px 0;
-      font-size: 13px;
-      color: var(--text);
-      font-weight: 600
-    }
-
-    .produto-card .count {
-      font-size: 18px;
-      font-weight: 700;
-      margin: 4px 0
-    }
-
-    .produto-soja {
-      border-top-color: var(--produto-soja);
-    }
-
-    .produto-milho {
-      border-top-color: var(--produto-milho);
-    }
-
-    .produto-sorgo {
-      border-top-color: var(--produto-sorgo);
-    }
-
-    .produto-total {
-      border-top-color: var(--produto-total);
-    }
-
-    .clientes-section {
-      margin-bottom: 24px
-    }
-
-    .clientes-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px
-    }
-
-    .cliente-card {
-      background: var(--card);
-      border-radius: 8px;
-      padding: 14px;
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-
-    .cliente-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.08)
-    }
-
-    .cliente-name {
-      font-weight: 700;
-      font-size: 16px;
-      color: var(--text);
-      margin: 0 0 6px 0
-    }
-
-    .cliente-destino {
-      font-weight: 600;
-      color: var(--accent);
-      margin: 0 0 10px 0;
-      font-size: 13px
-    }
-
-    .cliente-info {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 6px;
-      align-items: center
-    }
-
-    .info-label {
-      font-weight: 600;
-      color: var(--muted);
-      font-size: 12px
-    }
-
-    .info-value {
-      font-weight: 700;
-      font-size: 13px
-    }
-
-    .cliente-produto {
-      padding: 3px 7px;
-      border-radius: 5px;
-      font-size: 11px;
-      font-weight: 600;
-      display: inline-block;
-      margin-top: 4px
-    }
-
-    .cliente-produto i {
-      margin-right: 4px;
-    }
-
-    .status-carregado-tag {
-      background-color: var(--status-carregado);
-      color: white;
-      padding: 2px 7px;
-      border-radius: 10px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    .status-pendente-tag {
-      background-color: var(--status-embarque);
-      color: white;
-      padding: 2px 7px;
-      border-radius: 10px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    .modal-content {
-      background: var(--card);
-      padding: 20px;
-      border-radius: 8px;
-      max-width: 500px;
-      width: 90%;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-      position: relative;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-
-    .modal-close {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: none;
-      border: none;
-      font-size: 20px;
-      cursor: pointer;
-      color: var(--muted);
-    }
-
-    .modal-header h3 {
-      margin-top: 0;
-      font-size: 18px;
-      color: var(--primary);
-      border-bottom: 2px solid var(--accent);
-      padding-bottom: 8px;
-      margin-bottom: 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .modal-body p {
-      margin: 5px 0;
-      font-size: 14px;
-    }
-
-    .modal-body .info-label {
-      font-weight: 600;
-      color: var(--text);
-      display: inline-block;
-      min-width: 180px;
-    }
-
-    .modal-body .info-value {
-      font-weight: 400;
-      color: var(--muted);
-    }
-
-    .modal-clientes-list {
-      margin-top: 15px;
-      padding-top: 10px;
-      border-top: 1px dashed #ddd;
-    }
-
-    .modal-clientes-list h4 {
-      margin-top: 0;
-      margin-bottom: 8px;
-      font-size: 14px;
-      color: var(--accent);
-    }
-
-    .modal-clientes-list span {
-      display: block;
-      padding: 3px 0;
-      font-size: 13px;
-      color: var(--text);
-    }
-
-    h2 {
-      color: var(--primary);
-      margin: 6px 0 12px 0;
-      font-size: 18px
-    }
-
-    .toggle-btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 700;
-      font-size: 14px;
-      transition: opacity 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      white-space: nowrap;
-    }
-
-    .toggle-btn:hover {
-      opacity: 0.9;
-    }
-
-    .toggle-btn i {
-      margin-right: 5px;
-    }
-
-    @media (max-width:600px) {
-      body {
-        padding: 8px
-      }
-
-      .cliente-card {
-        min-width: 100%;
-        padding: 12px
-      }
-
-      header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-      }
-
-      .header-btn {
-        width: 100%;
-        justify-content: center;
-        order: 2;
-      }
-
-      .header-title {
-        width: 100%;
-        justify-content: space-between;
-      }
-
-      .last-update-top {
-        order: 3;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
   <script src="https://accounts.google.com/gsi/client" onload="gisLoaded()" async defer></script>
   <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()" async defer></script>
   <script src="auth_config.js"></script>
@@ -461,81 +14,89 @@
 
 <body>
   <header>
-    <div class="header-title">
-      <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK"
-        style="height: 22px; vertical-align: middle; margin-right: 8px;">
-      Controle de Lotes — Resumo de Retirada
+    <div class="wrap nav-container">
+      <div class="brand">
+        <img src="mvklogo.png" alt="MVK">
+        Retiradas
+      </div>
+      
+      <div class="nav-links">
+        <a href="index.html" class="nav-link"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a href="lotes-entrega.html" class="nav-link"><i class="fas fa-truck"></i> Entrega</a>
+        <a href="Retiradas.html" class="nav-link active"><i class="fas fa-box"></i> Retirada</a>
+        
+        <div id="auth_container">
+          <button id="authorize_button" class="btn-auth" onclick="handleAuthClick()" style="display: none;">
+            <i class="fab fa-google"></i> Login
+          </button>
+          <button id="signout_button" class="btn-auth" onclick="handleSignoutClick()" style="display: none; background: rgba(255,255,255,0.1); color: white;">
+            <i class="fas fa-sign-out-alt"></i> Sair
+          </button>
+        </div>
+      </div>
     </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-      <a href="index.html" class="header-btn" title="Voltar para a página de Embarques"><i class="fas fa-home"></i>
-        Página Inicial</a>
-      <a href="lotes-entrega.html" class="header-btn" title="Acessar Lotes de Entrega"><i class="fas fa-truck"></i>
-        Lotes de Entrega</a>
-
-      <!-- Auth Buttons -->
-      <button id="authorize_button" class="header-btn" onclick="handleAuthClick()" style="display: none;">
-        <i class="fab fa-google"></i> Login
-      </button>
-      <button id="signout_button" class="header-btn" onclick="handleSignoutClick()" style="display: none;">
-        <i class="fas fa-sign-out-alt"></i> Sair
-      </button>
-    </div>
-    <div class="last-update-top" id="lastUpdateTop">
-      <i class="fas fa-hourglass-half"></i> <span>Atualizando...</span>
+    
+    <div class="wrap" style="margin-top: 0.5rem;">
+      <div class="last-update" id="lastUpdateTop">
+        <i class="fas fa-sync-alt fa-spin"></i> <span>Atualizando informações...</span>
+      </div>
     </div>
   </header>
-  <div class="wrap">
-    <div class="status-cards">
-      <div class="status-card status-card-carregado">
-        <h3>CONTRATOS ABERTOS</h3>
-        <div class="count" id="count-aberto">0</div>
+  <main class="wrap animate-in">
+    <div class="stats-grid">
+      <div class="metric-card glass metric-carregado">
+        <div class="metric-label">Contratos Abertos</div>
+        <div class="metric-value" id="count-aberto">0</div>
       </div>
-      <div class="status-card status-card-embarque">
-        <h3>CONTRATOS FINALIZADOS</h3>
-        <div class="count" id="count-finalizado">0</div>
+      <div class="metric-card glass metric-embarque">
+        <div class="metric-label">Contratos Finalizados</div>
+        <div class="metric-value" id="count-finalizado">0</div>
       </div>
-      <div class="status-card status-card-transito">
-        <h3>CONTRATOS TOTAIS</h3>
-        <div class="count" id="count-contratos">0</div>
+      <div class="metric-card glass metric-transito">
+        <div class="metric-label">Contratos Totais</div>
+        <div class="metric-value" id="count-contratos">0</div>
       </div>
-      <div class="status-card status-card-contratar">
-        <h3>PRODUTOS ÚNICOS</h3>
-        <div class="count" id="count-produtos">0</div>
-      </div>
-    </div>
-    <div class="produto-cards">
-      <div class="produto-card produto-soja">
-        <h3>SOJA A RETIRAR</h3>
-        <div class="count" id="count-soja">0 KG</div>
-      </div>
-      <div class="produto-card produto-milho">
-        <h3>MILHO A RETIRAR</h3>
-        <div class="count" id="count-milho">0 KG</div>
-      </div>
-      <div class="produto-card produto-sorgo">
-        <h3>SORGO A RETIRAR</H3>
-        <div class="count" id="count-sorgo">0 KG</div>
-      </div>
-      <div class="produto-card produto-total" id="card-total-retirada">
-        <h3>TOTAL A RETIRAR</h3>
-        <div class="count" id="count-total">0 KG</div>
+      <div class="metric-card glass metric-contratar">
+        <div class="metric-label">Produtos Únicos</div>
+        <div class="metric-value" id="count-produtos">0</div>
       </div>
     </div>
-    <div class="clientes-section">
-      <h2 style="margin-top: 0;">
-        <span id="resumoTitle">📍 Resumo por Local de Embarque</span>
-      </h2>
-      <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
-        <input type="text" id="filterInput" placeholder="Filtrar por Local ou Cliente..."
-          style="flex-grow: 1; min-width: 200px; padding: 10px; border: 1px solid #ccc; border-radius: 6px;">
-        <button class="toggle-btn" id="toggleViewBtn" onclick="toggleView()">
-          <i class="fas fa-sync-alt"></i> Mudar para Clientes
+
+    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+      <div class="metric-card glass metric-soja">
+        <div class="metric-label">Soja a Retirar</div>
+        <div class="metric-value" id="count-soja">0 KG</div>
+      </div>
+      <div class="metric-card glass metric-milho">
+        <div class="metric-label">Milho a Retirar</div>
+        <div class="metric-value" id="count-milho">0 KG</div>
+      </div>
+      <div class="metric-card glass metric-sorgo">
+        <div class="metric-label">Sorgo a Retirar</div>
+        <div class="metric-value" id="count-sorgo">0 KG</div>
+      </div>
+      <div class="metric-card glass metric-total" id="card-total-retirada">
+        <div class="metric-label">Total a Retirar</div>
+        <div class="metric-value" id="count-total">0 KG</div>
+      </div>
+    </div>
+
+    <div class="card-section glass" style="padding: 1.5rem;">
+      <div class="section-title" style="margin-bottom: 1.5rem;">
+        <i class="fas fa-map-marker-alt"></i> <span id="resumoTitle">Resumo por Local de Embarque</span>
+      </div>
+      
+      <div class="filter-bar">
+        <input type="text" id="filterInput" class="search-input" placeholder="Filtrar por Local ou Cliente...">
+        <button class="btn-auth" id="toggleViewBtn" onclick="toggleView()" style="background: var(--primary); color: white;">
+          <i class="fas fa-exchange-alt"></i> Mudar para Clientes
         </button>
       </div>
-      <div class="clientes-container" id="clientesContainer">
+
+      <div class="client-grid" id="clientesContainer">
       </div>
     </div>
-  </div>
+  </main>
   <div id="resumoModal" class="modal-overlay">
     <div class="modal-content">
       <button class="modal-close" onclick="closeModal()">&times;</button>
@@ -597,21 +158,21 @@
     function generateProductTagsHtml(produtosString) {
       const produtosArray = produtosString.split(' / ').filter(p => p.trim() !== '');
       if (produtosArray.length === 0) {
-        return '<span class="cliente-produto" style="background-color: var(--muted); color: white;"><i class="fas fa-question-circle"></i> N/A</span>';
+        return '<span class="badge badge-info"><i class="fas fa-question-circle"></i> N/A</span>';
       }
       let tagsHtml = '';
       produtosArray.forEach(p => {
         const pUp = p.toUpperCase();
         let tagIcon = 'fas fa-cubes';
-        let tagColor = 'var(--produto-sorgo)';
+        let badgeClass = 'badge-info';
         if (pUp.includes('SOJA')) {
           tagIcon = 'fas fa-seedling';
-          tagColor = 'var(--produto-soja)';
+          badgeClass = 'badge-success';
         } else if (pUp.includes('MILHO')) {
           tagIcon = 'fas fa-sun';
-          tagColor = 'var(--produto-milho)';
+          badgeClass = 'badge-warning';
         }
-        tagsHtml += `<span class="cliente-produto" style="background-color: ${tagColor}; color: white; margin-right: 5px;">
+        tagsHtml += `<span class="badge ${badgeClass}" style="margin-right: 5px;">
             <i class="${tagIcon}"></i> ${escapeHtml(p)}
         </span>`;
       });
@@ -740,30 +301,42 @@
         const globalIndex = globalResumoData[resumo.groupBy].findIndex(r => r.key === resumo.key);
         const title = resumo.key;
         const productTagsHtml = generateProductTagsHtml(resumo.produtos);
+        
+        const secondaryLabel = resumo.groupBy === 'local' ? 'Clientes' : 'Locais';
+        const secondaryValue = resumo.groupBy === 'local' ? resumo.clientes : resumo.locais;
+
         html += `
-      <div class="cliente-card" onclick="openResumoModal(${globalIndex}, '${resumo.groupBy}')">
-        <h3 class="cliente-name">${escapeHtml(title)}</h3>
-        <div class="cliente-contrato" style="margin-bottom: 8px;">
-            ${productTagsHtml}
-        </div>
-        <div class="cliente-info" style="margin-top: 12px;">
-          <span class="info-label">Contratos Abertos:</span>
-          <span class="info-value status-pendente-tag">${resumo.totalAbertos}</span>
-        </div>
-        <div class="cliente-info" style="margin-top: 6px;">
-          <span class="info-label">Contratos Finalizados:</span>
-          <span class="info-value status-carregado-tag">${resumo.totalFinalizados}</span>
-        </div>
-        <div class="cliente-info" style="margin-top: 12px; border-top: 1px solid #eee; padding-top: 8px;">
-          <span class="info-label">Total a Retirar:</span>
-          <span class="info-value">${formatNumber(resumo.totalARetirar)} KG</span>
-        </div>
-        <div class="cliente-info" style="margin-top: 6px;">
-          <span class="info-label">Total Embarcado:</span>
-          <span class="info-value">${formatNumber(resumo.totalEmbarcada)} KG</span>
-        </div>
-      </div>
-    `;
+          <div class="client-card glass animate-in" onclick="openResumoModal(${globalIndex}, '${resumo.groupBy}')">
+            <div class="client-header">
+              <div class="client-name">${escapeHtml(title)}</div>
+              <div class="client-destination" style="color: var(--text-muted); font-size: 0.75rem;">${secondaryLabel}: ${escapeHtml(secondaryValue)}</div>
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                ${productTagsHtml}
+            </div>
+
+            <div class="caminhoes-info" style="border: none; padding: 0; margin-bottom: 1rem;">
+              <span class="badge badge-warning">Abertos: ${resumo.totalAbertos}</span>
+              <span class="badge badge-success">Finalizados: ${resumo.totalFinalizados}</span>
+            </div>
+
+            <div class="client-details">
+              <div class="detail-item">
+                <span class="detail-label">Total a Retirar</span>
+                <span class="detail-value">${formatNumber(resumo.totalARetirar)} KG</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Total Embarcado</span>
+                <span class="detail-value">${formatNumber(resumo.totalEmbarcada)} KG</span>
+              </div>
+            </div>
+            
+            <div style="margin-top: 1rem; text-align: right;">
+              <span style="font-size: 0.7rem; color: var(--primary); font-weight: 600;">Ver Detalhes <i class="fas fa-search-plus"></i></span>
+            </div>
+          </div>
+        `;
       });
       return html;
     }
@@ -886,9 +459,9 @@
       const timeString = now.toLocaleTimeString('pt-BR');
       const dateString = now.toLocaleDateString('pt-BR');
       document.getElementById('lastUpdateTop').innerHTML = `
-    <i class="fas fa-check-circle" style="color: rgba(255,255,255,0.9);"></i>
-    <span>Última atualização: ${timeString} - ${dateString}</span>
-  `;
+        <i class="fas fa-check-circle" style="color: rgba(255,255,255,0.9);"></i>
+        <span>Última atualização: ${timeString} - ${dateString}</span>
+      `;
     }
     async function loadAll(isAutoUpdate = false) {
       try {

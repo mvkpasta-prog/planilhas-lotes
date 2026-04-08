@@ -5,402 +5,90 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Controle de Lotes — Lotes de Entrega</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <style>
-  :root{
-    --primary:#2563eb; --accent:#0ea5e9; --bg:#f6fbff; --card:#fff; --text:#0f172a;
-    --muted:#6b7280; --success:#10b981; --warning:#f59e0b;
-    --status-carregado: #10b981;
-    --status-embarque: #3b82f6;
-    --status-transito: #ef4444;
-    --status-contratar: #f97316;
-    --produto-soja: #10b981;
-    --produto-milho: #fbbf24;
-    --produto-sorgo: #6b7280;
-    --produto-total: #8b5cf6;
-  }
-  *{box-sizing:border-box}
-  body{
-    font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;
-    margin:0;
-    background:var(--bg);
-    color:var(--text);
-    padding:12px
-  }
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png');
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: 80vh;
-    opacity: 0.05;
-    z-index: -1;
-    pointer-events: none;
-  }
-  header{
-    background:linear-gradient(90deg,var(--primary),var(--accent));
-    color:white;
-    padding:12px;
-    border-radius:8px;
-    margin-bottom:16px;
-    text-align:center;
-    font-weight:700;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:8px;
-    flex-wrap: wrap;
-  }
-  .header-title { 
-    display:flex; 
-    align-items:center; 
-    gap:8px; 
-    min-width:200px; 
-  }
-  .last-update-top { 
-    font-size:12px; 
-    color:rgba(255,255,255,0.9); 
-    display:flex; 
-    align-items:center; 
-    gap:6px; 
-  }
-  .wrap{
-    max-width:1400px;
-    margin:0 auto;
-    width:100%
-  }
-  .header-btn { 
-    background:#fff; 
-    color:var(--primary); 
-    border:none; 
-    padding:6px 10px; 
-    border-radius:6px; 
-    cursor:pointer; 
-    font-weight:700; 
-    font-size:13px; 
-    text-decoration:none; 
-    transition:background .2s, opacity .2s; 
-    display:flex; 
-    align-items:center; 
-    gap:6px; 
-    white-space: nowrap;
-  }
-  .header-btn:hover { 
-    background:var(--bg); 
-    opacity:.95; 
-  }
-  .status-cards {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-  .status-card{
-    background:var(--card);
-    border-radius:8px;
-    padding:10px;
-    box-shadow:0 3px 8px rgba(0,0,0,0.06);
-    text-align:center;
-    transition:all .3s; 
-    min-height:72px; 
-    display:flex; 
-    flex-direction:column; 
-    justify-content:center;
-  }
-  .status-card:hover{
-    transform:translateY(-2px);
-    box-shadow:0 5px 12px rgba(0,0,0,0.08)
-  }
-  .status-card h3{
-    margin:0 0 6px 0;
-    font-size:14px;
-    color:var(--text);
-    font-weight:600
-  }
-  .status-card .count{
-    font-size:22px;
-    font-weight:700;
-    margin:6px 0
-  }
-  .product-row {
-    grid-column: 1 / -1;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-  }
-  .clientes-section{
-    margin-bottom:24px
-  }
-  .clientes-container{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
-    gap:16px;
-    margin-bottom:24px
-  }
-  .cliente-card{
-    background:var(--card);
-    border-radius:8px;
-    padding:14px;
-    box-shadow:0 3px 8px rgba(0,0,0,0.06);
-    transition:all .3s; 
-    cursor:pointer;
-  }
-  .cliente-card:hover{
-    transform:translateY(-2px);
-    box-shadow:0 5px 12px rgba(0,0,0,0.08)
-  }
-  .cliente-name{
-    font-weight:700;
-    font-size:16px;
-    color:var(--text);
-    margin:0 0 6px 0
-  }
-  .cliente-info{
-    display:flex;
-    justify-content:space-between;
-    margin-bottom:6px;
-    align-items:center
-  }
-  .info-label{
-    font-weight:600;
-    color:var(--muted);
-    font-size:12px
-  }
-  .info-value{
-    font-weight:700;
-    font-size:13px
-  }
-  .cliente-produto{
-    padding:3px 7px;
-    border-radius:5px;
-    font-size:11px;
-    font-weight:600;
-    display:inline-block;
-    margin-top:4px;
-    color: white;
-  }
-  .status-pendente-tag{
-    background-color: var(--status-embarque);
-    color: white;
-    padding: 2px 7px;
-    border-radius: 10px;
-    font-size: 11px;
-    font-weight: 600;
-  }
-  .empty{
-    color:var(--muted);
-    font-style:italic;
-    padding:10px;
-    text-align:center;
-  }
-  #filterInput {
-    flex-grow:1; 
-    min-width:200px; 
-    padding:10px; 
-    border:1px solid #ccc; 
-    border-radius:6px; 
-    font-size:14px
-  }
-  .modal-overlay {
-    position:fixed; 
-    top:0; 
-    left:0; 
-    width:100%; 
-    height:100%; 
-    background:rgba(0,0,0,0.6); 
-    display:none; 
-    justify-content:center; 
-    align-items:center; 
-    z-index:1000
-  }
-  .modal-content {
-    background:var(--card); 
-    padding:20px; 
-    border-radius:8px; 
-    max-width:600px; 
-    width:95%; 
-    max-height:90vh; 
-    overflow-y:auto; 
-    position:relative;
-  }
-  .modal-close {
-    position:absolute; 
-    top:10px; 
-    right:10px; 
-    background:none; 
-    border:none; 
-    font-size:22px; 
-    cursor:pointer; 
-    color:var(--muted)
-  }
-  .modal-header h3 {
-    margin-top:0; 
-    font-size:18px; 
-    color:var(--primary); 
-    border-bottom:2px solid var(--accent); 
-    padding-bottom:8px; 
-    margin-bottom:15px;
-  }
-  .modal-body p {
-    margin:5px 0; 
-    font-size:14px
-  }
-  .modal-body .info-label {
-    font-weight:600; 
-    color:var(--text); 
-    display:inline-block; 
-    min-width:160px;
-  }
-  .modal-body .info-value {
-    font-weight:400; 
-    color:var(--muted);
-  }
-  .modal-clientes-list {
-    margin-top:15px; 
-    padding-top:10px; 
-    border-top:1px dashed #ddd;
-  }
-  .modal-clientes-list h4 {
-    margin-top:0; 
-    margin-bottom:12px; 
-    font-size:14px; 
-    color:var(--accent);
-  }
-  .contrato-item {
-    background: #fbfdff;
-    padding: 10px;
-    border-radius: 6px;
-    margin-bottom: 8px;
-    border: 1px solid #edf2f7;
-  }
-  .contrato-item:last-child {margin-bottom: 0;}
-  .contrato-linha {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 4px;
-    font-size: 13px;
-  }
-  .contrato-linha:first-child {margin-top: 0;}
-  .toggle-btn {
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 14px;
-    transition: opacity 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-  }
-  .toggle-btn.secondary {
-    background: #ffffff;
-    color: var(--primary);
-    border: 2px solid rgba(255,255,255,0.15);
-  }
-  .toggle-btn:hover { opacity: 0.95; }
-  @media (max-width:1100px){
-    .product-row { grid-template-columns: repeat(2, 1fr); }
-  }
-  @media (max-width:700px){
-    .status-cards { grid-template-columns: 1fr; }
-    .product-row { grid-template-columns: repeat(2,1fr); }
-  }
-  @media (max-width:480px){
-    .product-row { grid-template-columns: 1fr; }
-  }
-  @media (max-width:600px){
-    body{padding:8px}
-    .cliente-card{min-width:100%; padding:12px}
-    header {flex-direction:column; align-items:flex-start; gap:10px}
-    .header-btn {width:100%; justify-content:center; order:2}
-    .header-title {width:100%; justify-content:space-between}
-    .last-update-top {order:3}
-  }
-  </style>
-
-  <!-- Scripts de autenticação Google (iguais às outras páginas) -->
+  <link rel="stylesheet" href="style.css" />
   <script src="https://accounts.google.com/gsi/client" onload="gisLoaded()" async defer></script>
   <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()" async defer></script>
   <script src="auth_config.js"></script>
 </head>
 <body>
   <header>
-    <div class="header-title">
-      <img src="https://raw.githubusercontent.com/mvkpasta-prog/planilhas-lotes/main/mvklogo.png" alt="Logo MVK" style="height:22px; vertical-align:middle; margin-right:8px;">
-      Controle de Lotes — Lotes de Entrega
+    <div class="wrap nav-container">
+      <div class="brand">
+        <img src="mvklogo.png" alt="MVK">
+        Entregas
+      </div>
+      
+      <div class="nav-links">
+        <a href="index.html" class="nav-link"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a href="lotes-entrega.html" class="nav-link active"><i class="fas fa-truck"></i> Entrega</a>
+        <a href="Retiradas.html" class="nav-link"><i class="fas fa-box"></i> Retirada</a>
+        
+        <div id="auth_container">
+          <button id="authorize_button" class="btn-auth" onclick="handleAuthClick()" style="display: none;">
+            <i class="fab fa-google"></i> Login
+          </button>
+          <button id="signout_button" class="btn-auth" onclick="handleSignoutClick()" style="display: none; background: rgba(255,255,255,0.1); color: white;">
+            <i class="fas fa-sign-out-alt"></i> Sair
+          </button>
+        </div>
+      </div>
     </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-      <a href="index.html" class="header-btn" title="Voltar para a página principal">
-        <i class="fas fa-home"></i> Página Inicial
-      </a>
-      <a href="Retiradas.html" class="header-btn" title="Acessar Lotes de Retirada">
-        <i class="fas fa-box"></i> Lotes de Retirada
-      </a>
-
-      <!-- Botões de autenticação -->
-      <button id="authorize_button" class="header-btn" onclick="handleAuthClick()" style="display:none;">
-        <i class="fab fa-google"></i> Login
-      </button>
-      <button id="signout_button" class="header-btn" onclick="handleSignoutClick()" style="display:none;">
-        <i class="fas fa-sign-out-alt"></i> Sair
-      </button>
-    </div>
-    <div class="last-update-top" id="lastUpdateTop">
-      <i class="fas fa-hourglass-half"></i> <span>Atualizando.</span>
+    
+    <div class="wrap" style="margin-top: 0.5rem;">
+      <div class="last-update" id="lastUpdateTop">
+        <i class="fas fa-sync-alt fa-spin"></i> <span>Atualizando informações...</span>
+      </div>
     </div>
   </header>
 
-  <div class="wrap">
-    <div class="status-cards">
-      <div class="status-card">
-        <h3>CLIENTES</h3>
-        <div class="count" id="count-clientes">0</div>
+  <main class="wrap animate-in">
+    <div class="stats-grid">
+      <div class="metric-card glass">
+        <div class="metric-label">Clientes</div>
+        <div class="metric-value" id="count-clientes">0</div>
       </div>
-      <div class="status-card">
-        <h3>CONTRATOS</h3>
-        <div class="count" id="count-contratos">0</div>
-      </div>
-      <div class="product-row">
-        <div class="status-card produto-soja">
-          <h3>SOJA (KG)</h3>
-          <div class="count" id="count-soja">0</div>
-        </div>
-        <div class="status-card produto-milho">
-          <h3>MILHO (KG)</h3>
-          <div class="count" id="count-milho">0</div>
-        </div>
-        <div class="status-card">
-          <h3>SORGO (KG)</h3>
-          <div class="count" id="count-sorgo">0</div>
-        </div>
-        <div class="status-card">
-          <h3>TOTAL (KG)</h3>
-          <div class="count" id="count-total">0</div>
-        </div>
+      <div class="metric-card glass">
+        <div class="metric-label">Contratos</div>
+        <div class="metric-value" id="count-contratos">0</div>
       </div>
     </div>
 
-    <div class="clientes-section">
-      <h2 style="margin-top:0;">📍 Lotes com Saldo a Entregar</h2>
-      <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
-        <input type="text" id="filterInput" placeholder="Filtrar por Cliente, Contrato ou Cidade.">
-        <button class="toggle-btn" id="toggleViewBtn" onclick="toggleView()">
-          <i class="fas fa-sync-alt"></i> Mudar para Locais
-        </button>
+    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+      <div class="metric-card glass metric-soja">
+        <div class="metric-label">Soja (KG)</div>
+        <div class="metric-value" id="count-soja">0</div>
       </div>
-      <div class="clientes-container" id="clientesContainer">
-        <div class="empty">Carregando.</div>
+      <div class="metric-card glass metric-milho">
+        <div class="metric-label">Milho (KG)</div>
+        <div class="metric-value" id="count-milho">0</div>
+      </div>
+      <div class="metric-card glass metric-sorgo">
+        <div class="metric-label">Sorgo (KG)</div>
+        <div class="metric-value" id="count-sorgo">0</div>
+      </div>
+      <div class="metric-card glass metric-total">
+        <div class="metric-label">Total (KG)</div>
+        <div class="metric-value" id="count-total">0</div>
       </div>
     </div>
-  </div>
+
+    <div class="card-section glass" style="padding: 1.5rem;">
+      <div class="section-title" style="margin-bottom: 1.5rem;">
+        <i class="fas fa-map-marker-alt"></i> 📍 Lotes com Saldo a Entregar
+      </div>
+      
+      <div class="filter-bar">
+        <input type="text" id="filterInput" class="search-input" placeholder="Filtrar por Cliente, Contrato ou Cidade...">
+        <button class="btn-auth" id="toggleViewBtn" onclick="toggleView()" style="background: var(--primary); color: white;">
+          <i class="fas fa-exchange-alt"></i> Mudar para Locais
+        </button>
+      </div>
+
+      <div class="client-grid" id="clientesContainer">
+        <div class="empty">Carregando informações...</div>
+      </div>
+    </div>
+  </main>
 
   <div id="resumoModal" class="modal-overlay">
     <div class="modal-content" role="dialog" aria-modal="true">
@@ -654,37 +342,46 @@
     }
     filtered.forEach(cli => {
       const card = document.createElement('div');
-      card.className = 'cliente-card';
+      card.className = 'client-card glass animate-in';
       const produtosList = Array.from(cli.produtos).join(' / ') || 'N/A';
       const cidadesList = Array.from(cli.cidades).join(' / ') || 'N/A';
 
       let produtosTags = '';
       cli.produtos.forEach(p => {
-        const corVar = getProdutoCorClasse(p);
-        produtosTags += `<span class="cliente-produto" style="background-color:${corVar};">${escapeHtml(p)}</span> `;
+        const pUp = p.toUpperCase();
+        let badgeClass = 'badge-info';
+        if (pUp.includes('SOJA')) badgeClass = 'badge-success';
+        else if (pUp.includes('MILHO')) badgeClass = 'badge-warning';
+        produtosTags += `<span class="badge ${badgeClass}" style="margin-right: 4px;">${escapeHtml(p)}</span>`;
       });
 
       card.innerHTML = `
-        <div class="cliente-name">${escapeHtml(cli.cliente)}</div>
-        <div class="cliente-info">
-          <span class="info-label">Saldo total:</span>
-          <span class="info-value">${formatNumber(cli.totalFalta)} KG</span>
+        <div class="client-header">
+          <div class="client-name">${escapeHtml(cli.cliente)}</div>
+          <div class="client-destination">${escapeHtml(cidadesList)}</div>
         </div>
-        <div class="cliente-info">
-          <span class="info-label">Volume total:</span>
-          <span class="info-value">${formatNumber(cli.totalVolume)} KG</span>
+        
+        <div style="margin-bottom: 1rem;">
+          ${produtosTags}
         </div>
-        <div class="cliente-info">
-          <span class="info-label">Cidades:</span>
-          <span class="info-value">${escapeHtml(cidadesList)}</span>
+
+        <div class="client-details">
+          <div class="detail-item">
+            <span class="detail-label">Saldo Total</span>
+            <span class="detail-value">${formatNumber(cli.totalFalta)} KG</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Volume Total</span>
+            <span class="detail-value">${formatNumber(cli.totalVolume)} KG</span>
+          </div>
+          <div class="detail-item" style="grid-column: span 2; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--border);">
+            <span class="detail-label">Contratos</span>
+            <span class="detail-value">${cli.contratos.length}</span>
+          </div>
         </div>
-        <div class="cliente-info">
-          <span class="info-label">Produtos:</span>
-          <span class="info-value">${produtosTags || escapeHtml(produtosList)}</span>
-        </div>
-        <div class="cliente-info">
-          <span class="info-label">Contratos:</span>
-          <span class="info-value">${cli.contratos.length}</span>
+
+        <div style="margin-top: 1rem; text-align: right;">
+          <span style="font-size: 0.7rem; color: var(--primary); font-weight: 600;">Ver Detalhes <i class="fas fa-search-plus"></i></span>
         </div>
       `;
       card.addEventListener('click', () => openResumoModalCliente(cli));
@@ -715,43 +412,48 @@
     }
     filtered.forEach(city => {
       const card = document.createElement('div');
-      card.className = 'cliente-card';
+      card.className = 'client-card glass animate-in';
       const produtosList = Array.from(city.produtos).join(' / ') || 'N/A';
       const clientesList = Array.from(city.clientes).join(' / ') || 'N/A';
       const safraList = Array.from(city.safraSet).join(' / ');
 
       let produtosTags = '';
       city.produtos.forEach(p => {
-        const corVar = getProdutoCorClasse(p);
-        produtosTags += `<span class="cliente-produto" style="background-color:${corVar};">${escapeHtml(p)}</span> `;
+        const pUp = p.toUpperCase();
+        let badgeClass = 'badge-info';
+        if (pUp.includes('SOJA')) badgeClass = 'badge-success';
+        else if (pUp.includes('MILHO')) badgeClass = 'badge-warning';
+        produtosTags += `<span class="badge ${badgeClass}" style="margin-right: 4px;">${escapeHtml(p)}</span>`;
       });
 
       card.innerHTML = `
-        <div class="cliente-name">${escapeHtml(city.cidade)}</div>
-        <div class="cliente-info">
-          <span class="info-label">Saldo total:</span>
-          <span class="info-value">${formatNumber(city.totalFalta)} KG</span>
+        <div class="client-header">
+          <div class="client-name">${escapeHtml(city.cidade)}</div>
+          <div class="client-destination">${escapeHtml(clientesList)}</div>
         </div>
-        <div class="cliente-info">
-          <span class="info-label">Volume total:</span>
-          <span class="info-value">${formatNumber(city.totalVolume)} KG</span>
+        
+        <div style="margin-bottom: 1rem;">
+          ${produtosTags}
+          ${safraList ? `<span class="badge badge-info"><i class="fas fa-calendar-alt"></i> ${escapeHtml(safraList)}</span>` : ''}
         </div>
-        <div class="cliente-info">
-          <span class="info-label">Clientes:</span>
-          <span class="info-value">${escapeHtml(clientesList)}</span>
+
+        <div class="client-details">
+          <div class="detail-item">
+            <span class="detail-label">Saldo Total</span>
+            <span class="detail-value">${formatNumber(city.totalFalta)} KG</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Volume Total</span>
+            <span class="detail-value">${formatNumber(city.totalVolume)} KG</span>
+          </div>
+          <div class="detail-item" style="grid-column: span 2; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--border);">
+            <span class="detail-label">Contratos</span>
+            <span class="detail-value">${city.contratos.length}</span>
+          </div>
         </div>
-        <div class="cliente-info">
-          <span class="info-label">Produtos:</span>
-          <span class="info-value">${produtosTags || escapeHtml(produtosList)}</span>
-        </div>
-        ${safraList ? `
-        <div class="cliente-info">
-          <span class="info-label">Safra(s):</span>
-          <span class="info-value">${escapeHtml(safraList)}</span>
-        </div>` : ''}
-        <div class="cliente-info">
-          <span class="info-label">Contratos:</span>
-          <span class="info-value">${city.contratos.length}</span>
+
+        <div style="margin-top: 1rem; text-align: right;">
+          <span style="font-size: 0.7rem; color: var(--primary); font-weight: 600;">Ver Detalhes <i class="fas fa-search-plus"></i></span>
         </div>
       `;
       card.addEventListener('click', () => openResumoModalCidade(city));
@@ -771,7 +473,11 @@
     html += `<div class="modal-clientes-list">`;
     html += `<h4>Contratos (${group.contratos.length}):</h4>`;
     group.contratos.forEach(c => {
-      const corVar = getProdutoCorClasse(c.produto);
+      const pUp = (c.produto || '').toUpperCase();
+      let badgeClass = 'badge-info';
+      if (pUp.includes('SOJA')) badgeClass = 'badge-success';
+      else if (pUp.includes('MILHO')) badgeClass = 'badge-warning';
+
       html += `
         <div class="contrato-item">
           <div class="contrato-linha">
@@ -784,7 +490,7 @@
           </div>
           <div class="contrato-linha">
             <strong>Produto:</strong>
-            <span class="produto-tag" style="background-color:${corVar}; color:white; padding:2px 6px; border-radius:4px; font-weight:600;">${escapeHtml(c.produto)}</span>
+            <span class="badge ${badgeClass}" style="font-size: 0.7rem;">${escapeHtml(c.produto)}</span>
           </div>
           <div class="contrato-linha">
             <strong>Volume:</strong>
@@ -819,7 +525,11 @@
     html += `<div class="modal-clientes-list">`;
     html += `<h4>Contratos (${group.contratos.length}):</h4>`;
     group.contratos.forEach(c => {
-      const corVar = getProdutoCorClasse(c.produto);
+      const pUp = (c.produto || '').toUpperCase();
+      let badgeClass = 'badge-info';
+      if (pUp.includes('SOJA')) badgeClass = 'badge-success';
+      else if (pUp.includes('MILHO')) badgeClass = 'badge-warning';
+
       html += `
         <div class="contrato-item">
           <div class="contrato-linha">
@@ -832,7 +542,7 @@
           </div>
           <div class="contrato-linha">
             <strong>Produto:</strong>
-            <span class="produto-tag" style="background-color:${corVar}; color:white; padding:2px 6px; border-radius:4px; font-weight:600;">${escapeHtml(c.produto)}</span>
+            <span class="badge ${badgeClass}" style="font-size: 0.7rem;">${escapeHtml(c.produto)}</span>
           </div>
           <div class="contrato-linha">
             <strong>Cidade:</strong>
@@ -889,29 +599,35 @@
 
   async function loadDataAndRender(isAutoUpdate = false) {
     try {
-      // se não tiver token ainda, não tenta buscar
       if (!accessToken) {
         console.log('Waiting for authentication.');
-        document.getElementById('lastUpdateTop').querySelector('span').innerText = 'Aguardando Login.';
+        document.getElementById('lastUpdateTop').innerHTML = `
+          <i class="fas fa-user-lock"></i> <span>Aguardando Login.</span>
+        `;
         return;
       }
 
-      if (isAutoUpdate) {
-        document.getElementById('lastUpdateTop').querySelector('span').innerText = 'Atualizando.';
-      } else {
-        document.getElementById('lastUpdateTop').querySelector('span').innerText = 'Atualizando.';
-      }
+      document.getElementById('lastUpdateTop').innerHTML = `
+        <i class="fas fa-sync-alt fa-spin"></i> <span>Atualizando informações...</span>
+      `;
 
       const parsed = await fetchSheetByGid(GID_ENTREGA);
       globalData = parsed.arrays || [];
       renderCurrentView();
-      document.getElementById('lastUpdateTop').querySelector('span').innerText =
-        `Última atualização: ${new Date().toLocaleString('pt-BR')}`;
+      
+      const now = new Date();
+      document.getElementById('lastUpdateTop').innerHTML = `
+        <i class="fas fa-check-circle"></i>
+        <span>Última atualização: ${now.toLocaleTimeString('pt-BR')} - ${now.toLocaleDateString('pt-BR')}</span>
+      `;
     } catch (err) {
       console.error(err);
       document.getElementById('clientesContainer').innerHTML =
         `<div class="empty">Erro ao carregar dados: ${escapeHtml(err.message)}</div>`;
-      document.getElementById('lastUpdateTop').querySelector('span').innerText = 'Erro na atualização';
+      document.getElementById('lastUpdateTop').innerHTML = `
+        <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
+        <span>Erro na atualização</span>
+      `;
     }
   }
 
