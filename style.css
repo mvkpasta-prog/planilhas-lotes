@@ -427,11 +427,13 @@ tr:hover td {
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 2rem !important;
+    padding: 1.5rem !important; /* Slightly reduced padding to give more breathing room */
     border-left: none !important;
     border-right: 4px solid var(--accent) !important;
     min-height: 500px;
+    overflow: hidden;
 }
+
 
 .carousel-container {
     height: 100%;
@@ -517,12 +519,15 @@ tr:hover td {
 
 .city-name-large {
     font-family: 'Outfit', sans-serif;
-    font-size: 2.25rem;
+    font-size: 1.8rem; /* Reduced from 2.25rem to prevent overflow */
     font-weight: 800;
     color: var(--primary);
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
     line-height: 1.1;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
+
 
 .shipment-details-large {
     display: flex;
@@ -558,12 +563,13 @@ tr:hover td {
 .shipment-total-row {
     background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
     color: white !important;
-    margin-top: 0.5rem;
-    padding: 1.25rem 1rem !important;
+    margin-top: auto; /* Push to bottom of shipment area */
+    padding: 1rem !important;
 }
 
 .shipment-total-row .shipment-label { color: rgba(255,255,255,0.7); }
-.shipment-total-row .shipment-value { color: white; font-size: 1.75rem; }
+.shipment-total-row .shipment-value { color: white; font-size: 1.5rem; }
+
 
 
 @media (max-width: 1100px) {
@@ -597,7 +603,7 @@ tr:hover td {
     }
 }
 
-/* Animations & Carousel */
+/* Animations & Carousel Logic */
 .updating-value {
     animation: countPulse 0.4s ease-out;
 }
@@ -606,61 +612,5 @@ tr:hover td {
     0% { transform: scale(1); }
     50% { transform: scale(1.1); color: var(--primary-light); }
     100% { transform: scale(1); }
-}
-
-.city-highlights-card {
-    min-height: 120px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    border-left: 4px solid var(--accent) !important;
-    position: relative;
-    overflow: hidden;
-}
-
-.carousel-container {
-    position: relative;
-    height: 60px;
-}
-
-.carousel-item {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.carousel-item.active {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.carousel-item.exit {
-    opacity: 0;
-    transform: translateY(-20px);
-}
-
-.city-name {
-    font-family: 'Outfit', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--primary);
-    margin-bottom: 0.2rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.city-info {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    font-weight: 600;
-}
-
-.city-info b {
-    color: var(--text-main);
 }
 
