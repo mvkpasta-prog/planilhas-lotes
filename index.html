@@ -63,7 +63,17 @@
         <div class="metric-label">Contratar</div>
         <div class="metric-value" id="count-mvk-contratar">0</div>
       </div>
+      <div class="metric-card glass city-highlights-card">
+        <div class="metric-label">Destaques por Cidade</div>
+        <div class="carousel-container" id="city-carousel">
+          <div class="carousel-item active">
+            <div class="city-name"><i class="fas fa-city"></i> Aguardando...</div>
+            <div class="city-info">Carregando dados do dia</div>
+          </div>
+        </div>
+      </div>
     </div>
+
 
     <div class="section-title" style="margin-bottom: 1rem; color: var(--muted); display: flex; align-items: center; gap: 8px;">
       <i class="fas fa-map-marked-alt"></i> Demais Locais
@@ -431,6 +441,102 @@
       if (!arr || !arr[1]) return false;
       const colB = normalizeText(String(arr[1]));
       return colB.includes('mvk agro cereais');
+    }
+
+    function animateValue(id, end, duration, suffix = '') {
+      const obj = document.getElementById(id);
+      if (!obj) return;
+      
+      const start = parseInt(obj.getAttribute('data-value') || '0', 10);
+      if (start === end && obj.textContent !== '0') return;
+
+      obj.setAttribute('data-value', end);
+      obj.classList.add('updating-value');
+      
+      let startTimestamp = null;
+      const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const currentVal = Math.floor(progress * (end - start) + start);
+        obj.textContent = formatNumber(currentVal) + (suffix ? ' ' + suffix : '');
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        } else {
+          setTimeout(() => obj.classList.remove('updating-value'), 400);
+        }
+      };
+      window.requestAnimationFrame(step);
+    }
+
+    function updateCityHighlights(rowsArr, destinoIndex, pesoIndex, produtoIndex) {
+      const summary = {};
+      rowsArr.forEach(arr => {
+        const destinoText = arr[destinoIndex] || '';
+        const { destino, isValid } = extractContratoInfo(destinoText);
+        if (!isValid) return;
+
+        const city = destino.split('/')[0].split('-')[0].trim().toUpperCase();
+        const peso = parseNumber(arr[pesoIndex]);
+        const produtoRaw = extractProduto(arr[produtoIndex] || '');
+        const produto = produtoRaw.includes('soja') ? 'SOJA' : (produtoRaw.includes('milho') ? 'MILHO' : 'OUTROS');
+
+        if (!summary[city]) summary[city] = { total: 0, produtos: {} };
+        const validPeso = isNaN(peso) ? 0 : peso;
+        summary[city].total += validPeso;
+        summary[city].produtos[produto] = (summary[city].produtos[produto] || 0) + validPeso;
+      });
+
+      const sortedCities = Object.entries(summary)
+        .sort((a, b) => b[1].total - a[1].total)
+        .slice(0, 10);
+
+      const container = document.getElementById('city-carousel');
+      if (sortedCities.length === 0) {
+        container.innerHTML = `
+          <div class="carousel-item active">
+            <div class="city-name"><i class="fas fa-info-circle"></i> Sem embarques</div>
+            <div class="city-info">Nenhum dado para hoje</div>
+          </div>`;
+        return;
+      }
+
+      let html = '';
+      sortedCities.forEach(([city, data], idx) => {
+        const prodSummary = Object.entries(data.produtos)
+          .map(([p, v]) => `<b>${formatNumber(v)}</b> ${p}`)
+          .join(' | ');
+        
+        html += `
+          <div class="carousel-item ${idx === 0 ? 'active' : ''}">
+            <div class="city-name"><i class="fas fa-location-dot"></i> ${city}</div>
+            <div class="city-info">${prodSummary}</div>
+          </div>`;
+      });
+      container.innerHTML = html;
+      startCityCarousel();
+    }
+
+    let carouselInterval;
+    function startCityCarousel() {
+      if (carouselInterval) clearInterval(carouselInterval);
+      const items = document.querySelectorAll('#city-carousel .carousel-item');
+      if (items.length <= 1) return;
+
+      let current = 0;
+      carouselInterval = setInterval(() => {
+        const currentItem = items[current];
+        currentItem.classList.remove('active');
+        currentItem.classList.add('exit');
+        
+        const prev = current;
+        current = (current + 1) % items.length;
+        
+        items[current].classList.add('active');
+        
+        setTimeout(() => {
+          items[prev].classList.remove('exit');
+        }, 600);
+      }, 5000);
     }
     function buildClientesHTML(clientes) {
       if (clientes.length === 0) {
@@ -801,16 +907,16 @@ ${message}`);
         const othersStatusCounts = countStatusProgramacao(othersRowsObj, statusKey);
 
         // Update MVK IDs
-        document.getElementById('count-mvk-carregado').textContent = mvkCarregadoUnico;
-        document.getElementById('count-mvk-embarque').textContent = mvkStatusCounts.embarque;
-        document.getElementById('count-mvk-transito').textContent = mvkStatusCounts.transito;
-        document.getElementById('count-mvk-contratar').textContent = mvkStatusCounts.contratar;
+        animateValue('count-mvk-carregado', mvkCarregadoUnico, 2000);
+        animateValue('count-mvk-embarque', mvkStatusCounts.embarque, 2000);
+        animateValue('count-mvk-transito', mvkStatusCounts.transito, 2000);
+        animateValue('count-mvk-contratar', mvkStatusCounts.contratar, 2000);
 
         // Update Others IDs
-        document.getElementById('count-others-carregado').textContent = othersCarregadoUnico;
-        document.getElementById('count-others-embarque').textContent = othersStatusCounts.embarque;
-        document.getElementById('count-others-transito').textContent = othersStatusCounts.transito;
-        document.getElementById('count-others-contratar').textContent = othersStatusCounts.contratar;
+        animateValue('count-others-carregado', othersCarregadoUnico, 2000);
+        animateValue('count-others-embarque', othersStatusCounts.embarque, 2000);
+        animateValue('count-others-transito', othersStatusCounts.transito, 2000);
+        animateValue('count-others-contratar', othersStatusCounts.contratar, 2000);
 
         const produtosTotais = calculateProdutosTotais(rowsArrProgFiltered, 1, 9, 2);
         globalProdutosTotais.soja = produtosTotais.soja;
@@ -818,10 +924,14 @@ ${message}`);
         globalProdutosTotais.sorgo = produtosTotais.sorgo;
         const totalEmbarcado = produtosTotais.soja + produtosTotais.milho + produtosTotais.sorgo;
         globalProdutosTotais.total = totalEmbarcado;
-        document.getElementById('count-soja').textContent = `${formatNumber(produtosTotais.soja)} KG`;
-        document.getElementById('count-milho').textContent = `${formatNumber(produtosTotais.milho)} KG`;
-        document.getElementById('count-sorgo').textContent = `${formatNumber(produtosTotais.sorgo)} KG`;
-        document.getElementById('count-total').textContent = `${formatNumber(totalEmbarcado)} KG`;
+        
+        animateValue('count-soja', produtosTotais.soja, 2000, 'KG');
+        animateValue('count-milho', produtosTotais.milho, 2000, 'KG');
+        animateValue('count-sorgo', produtosTotais.sorgo, 2000, 'KG');
+        animateValue('count-total', totalEmbarcado, 2000, 'KG');
+
+        updateCityHighlights(rowsArrProgFiltered, 2, 9, 1);
+
         const clientesComPesoFuturo = await groupByContract(rowsArrProg, 2, 7, statusIndex, freteIndex, transportadoraIndex, true);
         const clientesParaHoje = await groupByContract(rowsArrProgFiltered, 2, 7, statusIndex, freteIndex, transportadoraIndex, false);
         clientesParaHoje.forEach(c => {
