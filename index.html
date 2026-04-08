@@ -329,11 +329,18 @@
     function extractContratoInfo(text) {
       if (!text || text.trim() === '') return { contrato: '', cliente: '', destino: '', produto: '', isValid: false };
       const parts = text.split(' - ').map(part => part.trim());
+      
+      const cliente = parts[1] || '';
+      let destino = parts[3] || '';
+      
+      // Exceção para o cliente CHS AGRONEGOCIO (A cidade fica entre o 4º e 5º traço)
+      if (normalizeText(cliente).includes('chs agronegocio')) {
+        destino = parts[4] || destino;
+      }
+
       if (parts.length < 6) {
         const first = text.split('-')[0] ? text.split('-')[0].trim() : '';
         const contratoFallback = first.replace(/\D/g, '');
-        const cliente = parts[1] || '';
-        const destino = parts[3] || '';
         const produto = parts.slice(5).join(' - ').trim().toUpperCase() || (parts[parts.length - 1] || '').toUpperCase();
         const isValidFallback = contratoFallback !== '' && cliente !== '' && destino !== '';
         return {
@@ -345,8 +352,6 @@
         };
       }
       const contrato = parts[0].replace(/\D/g, '');
-      const cliente = parts[1];
-      const destino = parts[3];
       const produtoParts = parts.slice(5);
       let produto = produtoParts.join(' - ').trim().toUpperCase();
       if (!produto) {

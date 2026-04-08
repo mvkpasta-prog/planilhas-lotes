@@ -166,12 +166,16 @@
     if (s.includes('-')) return s.split('-')[0].trim();
     return s;
   }
-  function extractCidadeFromDestino(texto) {
+  function extractCidadeFromDestino(texto, cliente) {
     if (!texto) return '';
     const s = String(texto);
     if (s.includes('-')) {
-      const parts = s.split('-');
-      return parts[parts.length - 1].trim();
+      const parts = s.split(' - ').map(p => p.trim());
+      // Exceção para o cliente CHS AGRONEGOCIO (A cidade fica entre o 4º e 5º traço)
+      if (cliente && normalizeText(cliente).includes('chs agronegocio')) {
+        return parts[4] || parts[parts.length - 1];
+      }
+      return parts[parts.length - 1];
     }
     return s.trim();
   }
@@ -196,7 +200,7 @@
       const cliente = (arr[clienteIndex] || 'Cliente Desconhecido').toString().trim();
       const produto = (arr[produtoIndex] || 'Produto Desconhecido').toString().trim();
       const destino = arr[destinoIndex] || '';
-      const cidade = extractCidadeFromDestino(destino);
+      const cidade = extractCidadeFromDestino(destino, cliente);
       const safra = arr[safraIndex] || '';
       const volume = parseNumber(arr[volumeIndex] || '0');
       const falta = parseNumber(arr[faltaIndex] || '0');
