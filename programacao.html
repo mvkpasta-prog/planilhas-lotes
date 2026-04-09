@@ -216,7 +216,14 @@
         document.getElementById('lastUpdateTop').innerHTML = `<i class="fas fa-check-circle"></i> <span>Atualizado em: ${now.toLocaleTimeString('pt-BR')}</span>`;
       } catch (err) {
         console.error(err);
-        document.getElementById('programacaoContent').innerHTML = '<div class="empty">Erro ao carregar dados.</div>';
+        const isOffline = !navigator.onLine;
+        const msg = isOffline ? 'Sem internet - Tentando reconectar...' : 'Erro ao carregar dados.';
+        
+        document.getElementById('programacaoContent').innerHTML = `<div class="empty">${msg}</div>`;
+        document.getElementById('lastUpdateTop').innerHTML = `
+          <i class="fas fa-${isOffline ? 'wifi' : 'exclamation-triangle'}" style="color: rgba(255,255,255,0.9);"></i>
+          <span>${isOffline ? 'Offline' : 'Erro na atualização'}</span>
+        `;
       }
     }
 
@@ -228,6 +235,9 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      // Registro de reconexão automática
+      registerOnlineRefresh(() => loadProgramacao(true));
+      
       startAutoUpdate();
       document.addEventListener('visibilitychange', () => {
         if (!document.hidden) loadProgramacao(true);

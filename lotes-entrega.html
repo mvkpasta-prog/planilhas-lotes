@@ -628,11 +628,13 @@
       `;
     } catch (err) {
       console.error(err);
-      document.getElementById('clientesContainer').innerHTML =
-        `<div class="empty">Erro ao carregar dados: ${escapeHtml(err.message)}</div>`;
+      const isOffline = !navigator.onLine;
+      const msg = isOffline ? 'Sem internet - Tentando reconectar...' : `Erro ao carregar dados: ${escapeHtml(err.message)}`;
+      
+      document.getElementById('clientesContainer').innerHTML = `<div class="empty">${msg}</div>`;
       document.getElementById('lastUpdateTop').innerHTML = `
-        <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
-        <span>Erro na atualização</span>
+        <i class="fas fa-${isOffline ? 'wifi' : 'exclamation-triangle'}" style="color: #ef4444;"></i>
+        <span>${isOffline ? 'Offline' : 'Erro na atualização'}</span>
       `;
     }
   }
@@ -655,6 +657,15 @@
   setInterval(() => {
     loadDataAndRender(true);
   }, AUTO_UPDATE_INTERVAL);
+
+  // Registro de reconexão automática
+  registerOnlineRefresh(() => loadDataAndRender(true));
+
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) {
+      loadDataAndRender(true);
+    }
+  });
   </script>
 </body>
 </html>
