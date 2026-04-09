@@ -928,10 +928,8 @@ ${message}`);
         }
 
         // Wait for auth if not ready
-        if (!accessToken) {
-          // If not authenticated, we can't fetch. 
-          // The UI should show the login button.
-          // We can just return or throw a silent error.
+        const hasAuth = localStorage.getItem('google_has_auth') === 'true';
+        if (!accessToken && !hasAuth) {
           console.log('Waiting for authentication...');
           document.getElementById('lastUpdateTop').innerHTML = '<span>Aguardando Login...</span>';
           document.body.classList.remove('updating');

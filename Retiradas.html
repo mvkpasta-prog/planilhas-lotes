@@ -475,7 +475,8 @@
         }
 
         // Wait for auth if not ready
-        if (!accessToken) {
+        const hasAuth = localStorage.getItem('google_has_auth') === 'true';
+        if (!accessToken && !hasAuth) {
           console.log('Waiting for authentication...');
           document.getElementById('lastUpdateTop').innerHTML = '<span>Aguardando Login...</span>';
           document.body.classList.remove('updating');

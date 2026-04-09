@@ -604,7 +604,8 @@
 
   async function loadDataAndRender(isAutoUpdate = false) {
     try {
-      if (!accessToken) {
+      const hasAuth = localStorage.getItem('google_has_auth') === 'true';
+      if (!accessToken && !hasAuth) {
         console.log('Waiting for authentication.');
         document.getElementById('lastUpdateTop').innerHTML = `
           <i class="fas fa-user-lock"></i> <span>Aguardando Login.</span>

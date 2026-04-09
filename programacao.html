@@ -174,7 +174,8 @@
 
     async function loadProgramacao(isAutoUpdate = false) {
       try {
-        if (!accessToken) {
+        const hasAuth = localStorage.getItem('google_has_auth') === 'true';
+        if (!accessToken && !hasAuth) {
           document.getElementById('lastUpdateTop').innerHTML = '<span>Aguardando Login...</span>';
           return;
         }
