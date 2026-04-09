@@ -207,22 +207,25 @@ header {
 }
 
 .metric-label {
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--text-muted);
-    position: relative;
-    z-index: 2;
+}
+/* Aumentar apenas os nomes dos produtos principais */
+.metric-soja .metric-label,
+.metric-milho .metric-label,
+.metric-sorgo .metric-label {
+    font-size: 1.4rem;
+    color: var(--text-main);
 }
 
 .metric-value {
-    font-size: 2.4rem;
+    font-size: 1.8rem;
     font-weight: 800;
     font-family: 'Outfit', sans-serif;
     color: var(--text-main);
-    position: relative;
-    z-index: 2;
 }
 
 
