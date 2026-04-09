@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Programação de Lotes - Controle de Lotes</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://accounts.google.com/gsi/client" onload="gisLoaded()" async defer></script>
+  <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()" async defer></script>
+  <script src="auth_config.js"></script>
+</head>
+
+<body>
+  <header>
+    <div class="wrap nav-container">
+      <div class="brand">
+        <img src="mvklogo.png" alt="MVK">
+        Controle de Lotes
+      </div>
+      
+      <div class="nav-links">
+        <a href="index.html" class="nav-link"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a href="lotes-entrega.html" class="nav-link"><i class="fas fa-truck"></i> Entrega</a>
+        <a href="Retiradas.html" class="nav-link"><i class="fas fa-box"></i> Retirada</a>
+        <a href="programacao.html" class="nav-link active"><i class="fas fa-calendar-alt"></i> Programação</a>
+        
+        <div id="auth_container">
+          <button id="authorize_button" class="btn-auth" onclick="handleAuthClick()" style="display: none;">
+            <i class="fab fa-google"></i> Login
+          </button>
+          <button id="signout_button" class="btn-auth" onclick="handleSignoutClick()" style="display: none; background: rgba(255,255,255,0.1); color: white;">
+            <i class="fas fa-sign-out-alt"></i> Sair
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="wrap" style="margin-top: 0.5rem;">
+      <div class="last-update" id="lastUpdateTop">
+        <i class="fas fa-sync-alt fa-spin"></i> <span>Atualizando informações...</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap animate-in">
+    <section class="card-section glass" style="margin-top: 2rem;">
+      <div class="section-header">
+        <div class="section-title">
+          <i class="fas fa-calendar-alt"></i> Programação de Lotes (Hoje)
+        </div>
+      </div>
+      <div class="table-container" id="content-programacao">
+        <div id="programacaoContent">
+          <div class="carousel-loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Carregando dados da programação...</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
+    const GID_PROG = '1183141602';
+    const AUTO_UPDATE_INTERVAL = 300000;
+    const HIDDEN_COLS = ['nfp', 'royalties', 'safra'];
+    const REMOVED_COMMON = ['localizacao', 'idorigemymvk1'];
+    const REMOVED_PROGRAMACAO = [
+      'observacoes', 'ordem', 'notafiscal', 'dacte', 'mdfe', 'conftipocam', 'agendamento',
+      'descarga', 'comprovantededescarga', 'horarioprev', 'classificacaodestino', 'chaveid',
+      'frete', 'statusagendamento', 'datadedescarga', 'notafiscal'
+    ];
+
+    function normalizeHeader(h) {
+      if (h === undefined || h === null) return '';
+      return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+    }
+
+    function normalizeText(text) {
+      if (text === undefined || text === null) return '';
+      return String(text).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function parseNumber(val) {
+      if (val === undefined || val === null) return NaN;
+      const s = String(val).replace(/\s/g, '').replace(/\./g, '').replace(/,/g, '.');
+      const n = parseFloat(s.replace(/[^\d\.\-]/g, ''));
+      return isNaN(n) ? NaN : n;
+    }
+
+    function parseDateOnly(s) {
+      if (!s) return null;
+      const str = String(s).trim();
+      if (str.includes('/')) {
+        const parts = str.split('/');
+        if (parts.length >= 3) {
+          const d = parseInt(parts[0], 10), m = parseInt(parts[1], 10), y = parseInt(parts[2], 10);
+          if (!isNaN(d) && !isNaN(m) && !isNaN(y)) return new Date(y, m - 1, d);
+        }
+      }
+      if (str.includes('-') || (str.includes('/') && str.indexOf('/') === 4)) {
+        const sep = str.includes('-') ? '-' : '/';
+        const parts = str.split(sep);
+        if (parts.length >= 3) {
+          const y = parseInt(parts[0], 10), m = parseInt(parts[1], 10), d = parseInt(parts[2], 10);
+          if (!isNaN(d) && !isNaN(m) && !isNaN(y)) return new Date(y, m - 1, d);
+        }
+      }
+      return null;
+    }
+
+    function escapeHtml(s) {
+      if (s === undefined || s === null) return '';
+      return String(s).replace(/[&<>"'\/]/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '/': '&#x2F;'
+      }[c]));
+    }
+
+    function formatCurrencyBRL(value) {
+      if (isNaN(value)) return value;
+      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+    }
+
+    function formatStatusProgramacao(status) {
+      let className = 'badge';
+      const statusNorm = normalizeText(status);
+      if (statusNorm.includes('carregado')) className += ' badge-success';
+      else if (statusNorm.includes('embarque') || statusNorm.includes('no embarque')) className += ' badge-info';
+      else if (statusNorm.includes('transito') || statusNorm.includes('em transito')) className += ' badge-danger';
+      else if (statusNorm.includes('contratar')) className += ' badge-warning';
+      else className += ' badge-info';
+      return `<span class="${className}">${escapeHtml(status)}</span>`;
+    }
+
+    function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts) {
+      const hiddenNorm = opts.hiddenNorm || [];
+      const removedNorm = opts.removedNorm || [];
+      const currencyCols = opts.currencyCols || [];
+      const statusCol = opts.statusCol || '';
+      
+      const visible = headersNorm.filter(h => !removedNorm.includes(h));
+      const displayCols = visible.filter(h => !hiddenNorm.includes(h));
+
+      if (displayCols.length === 0) return '<div class="empty">Sem colunas para exibir.</div>';
+
+      let html = '<table><thead><tr>';
+      displayCols.forEach(h => {
+        const idx = headersNorm.indexOf(h);
+        html += `<th>${escapeHtml(headersOrig[idx] || h)}</th>`;
+      });
+      html += '</tr></thead><tbody>';
+
+      rowsObjects.forEach((obj, i) => {
+        html += '<tr>';
+        displayCols.forEach(h => {
+          let value = obj[h] || '';
+          if (currencyCols.includes(h)) {
+            const num = parseNumber(value);
+            if (!isNaN(num)) value = formatCurrencyBRL(num);
+          }
+          if (h === statusCol) {
+            html += `<td>${formatStatusProgramacao(value)}</td>`;
+          } else {
+            html += `<td>${escapeHtml(value)}</td>`;
+          }
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      return html;
+    }
+
+    async function loadProgramacao(isAutoUpdate = false) {
+      try {
+        if (!accessToken) {
+          document.getElementById('lastUpdateTop').innerHTML = '<span>Aguardando Login...</span>';
+          return;
+        }
+
+        const prog = await fetchSheetByGidV4(SHEET_ID, GID_PROG);
+        const headersNorm = prog.headersNorm;
+        
+        const statusKey = headersNorm.find(h => h.includes('status') && !h.includes('agendamento')) || null;
+        const dateKey = headersNorm.find(h => h.includes('data') || h.includes('dataprogramacao')) || headersNorm[0];
+        
+        const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+        const todayStart = new Date(todayStr + 'T00:00:00').getTime();
+
+        const filteredRowsArr = [];
+        const filteredRowsObj = [];
+
+        prog.objects.forEach((obj, i) => {
+          const dt = parseDateOnly(obj[dateKey]);
+          if (dt && dt.getTime() === todayStart) {
+            filteredRowsArr.push(prog.arrays[i]);
+            filteredRowsObj.push(obj);
+          }
+        });
+
+        let removed = [...REMOVED_COMMON.map(normalizeHeader), ...REMOVED_PROGRAMACAO.map(normalizeHeader)];
+        const freteEmpresaKey = headersNorm.find(h => h.includes('freteempresa') || (h.includes('frete') && h.includes('empresa')));
+
+        const tableHTML = buildTableHTML(filteredRowsArr, filteredRowsObj, prog.headersOrig, headersNorm, {
+          hiddenNorm: HIDDEN_COLS.map(normalizeHeader),
+          removedNorm: removed,
+          currencyCols: freteEmpresaKey ? [freteEmpresaKey] : [],
+          statusCol: statusKey
+        });
+
+        document.getElementById('programacaoContent').innerHTML = tableHTML || '<div class="empty">Nenhuma programação para hoje.</div>';
+        
+        const now = new Date();
+        document.getElementById('lastUpdateTop').innerHTML = `<i class="fas fa-check-circle"></i> <span>Atualizado em: ${now.toLocaleTimeString('pt-BR')}</span>`;
+      } catch (err) {
+        console.error(err);
+        document.getElementById('programacaoContent').innerHTML = '<div class="empty">Erro ao carregar dados.</div>';
+      }
+    }
+
+    onAuthSuccess = () => loadProgramacao();
+    
+    let interval;
+    function startAutoUpdate() {
+      interval = setInterval(() => loadProgramacao(true), AUTO_UPDATE_INTERVAL);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      startAutoUpdate();
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) loadProgramacao(true);
+      });
+    });
+  </script>
+</body>
+</html>

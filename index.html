@@ -23,6 +23,7 @@
         <a href="index.html" class="nav-link active"><i class="fas fa-chart-line"></i> Dashboard</a>
         <a href="lotes-entrega.html" class="nav-link"><i class="fas fa-truck"></i> Entrega</a>
         <a href="Retiradas.html" class="nav-link"><i class="fas fa-box"></i> Retirada</a>
+        <a href="programacao.html" class="nav-link"><i class="fas fa-calendar-alt"></i> Programação</a>
         
         <div id="auth_container">
           <button id="authorize_button" class="btn-auth" onclick="handleAuthClick()" style="display: none;">
@@ -45,6 +46,28 @@
   <main class="wrap animate-in">
     <div class="dashboard-composite">
       <div class="metrics-column">
+        <div class="section-title" style="margin-bottom: 1rem; color: var(--prod-total); display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-boxes"></i> Volumes Totais
+        </div>
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 2rem;">
+          <div class="metric-card glass metric-soja">
+            <div class="metric-label">Soja</div>
+            <div class="metric-value" id="count-soja">0 KG</div>
+          </div>
+          <div class="metric-card glass metric-milho">
+            <div class="metric-label">Milho</div>
+            <div class="metric-value" id="count-milho">0 KG</div>
+          </div>
+          <div class="metric-card glass metric-sorgo">
+            <div class="metric-label">Sorgo</div>
+            <div class="metric-value" id="count-sorgo">0 KG</div>
+          </div>
+          <div class="metric-card glass metric-total" id="card-total-embarcado">
+            <div class="metric-label">Total Embarcado</div>
+            <div class="metric-value" id="count-total">0 KG</div>
+          </div>
+        </div>
+
         <div class="section-title" style="margin-bottom: 1rem; color: var(--primary); display: flex; align-items: center; gap: 8px;">
           <i class="fas fa-warehouse"></i> Armazém MVK
         </div>
@@ -70,7 +93,7 @@
         <div class="section-title" style="margin-bottom: 1rem; color: var(--muted); display: flex; align-items: center; gap: 8px;">
           <i class="fas fa-map-marked-alt"></i> Demais Locais
         </div>
-        <div class="stats-grid" style="margin-bottom: 2rem;">
+        <div class="stats-grid" style="margin-bottom: 0;">
           <div class="metric-card glass metric-carregado">
             <div class="metric-label">Carregado</div>
             <div class="metric-value" id="count-others-carregado">0</div>
@@ -86,25 +109,6 @@
           <div class="metric-card glass metric-contratar">
             <div class="metric-label">Contratar</div>
             <div class="metric-value" id="count-others-contratar">0</div>
-          </div>
-        </div>
-
-        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 0;">
-          <div class="metric-card glass metric-soja">
-            <div class="metric-label">Soja</div>
-            <div class="metric-value" id="count-soja">0 KG</div>
-          </div>
-          <div class="metric-card glass metric-milho">
-            <div class="metric-label">Milho</div>
-            <div class="metric-value" id="count-milho">0 KG</div>
-          </div>
-          <div class="metric-card glass metric-sorgo">
-            <div class="metric-label">Sorgo</div>
-            <div class="metric-value" id="count-sorgo">0 KG</div>
-          </div>
-          <div class="metric-card glass metric-total" id="card-total-embarcado">
-            <div class="metric-label">Total Embarcado</div>
-            <div class="metric-value" id="count-total">0 KG</div>
           </div>
         </div>
       </div>
@@ -132,17 +136,7 @@
     <div class="client-grid" id="clientesContainer" style="margin-bottom: 2rem;">
     </div>
 
-    <section class="card-section glass">
-      <div class="section-header" id="toggle-programacao">
-        <div class="section-title">
-          <i class="fas fa-calendar-alt"></i> Programação de Lotes
-        </div>
-        <i class="fas fa-chevron-down toggle-icon" id="toggle-icon-prog"></i>
-      </div>
-      <div class="table-container" id="content-programacao">
-        <div id="programacaoContent"></div>
-      </div>
-    </section>
+
   </main>
   <script>
     const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
@@ -1095,15 +1089,11 @@ ${message}`);
           currencyCols: freteEmpresaKey ? [freteEmpresaKey] : [],
           statusCol: statusKey
         });
-        document.getElementById('programacaoContent').innerHTML = tableProgHTML || '<div class="empty">Nenhuma programação para hoje.</div>';
-        document.getElementById('content-programacao').classList.add('collapsed');
-        document.getElementById('toggle-programacao').classList.add('collapsed');
         updateLastUpdateTime();
         document.body.classList.remove('updating');
       }
       catch (err) {
         console.error('Erro loadAll:', err);
-        document.getElementById('programacaoContent').innerHTML = '<div class="empty">Erro ao carregar dados da Programação (ver console).</div>';
         document.getElementById('clientesContainer').innerHTML = '<div class="empty">Erro ao carregar dados dos contratos (ver console).</div>';
         document.getElementById('lastUpdateTop').innerHTML = `
       <i class="fas fa-exclamation-triangle" style="color: rgba(255,255,255,0.9);"></i>
@@ -1112,23 +1102,8 @@ ${message}`);
         document.body.classList.remove('updating');
       }
     }
-    function setupToggleHandlers() {
-      document.getElementById('toggle-programacao').addEventListener('click', function () {
-        toggleSection('programacao');
-      });
-    }
-    function toggleSection(sectionId) {
-      const content = document.getElementById(`content-${sectionId}`);
-      const header = document.getElementById(`toggle-${sectionId}`);
-      const isCollapsed = content.classList.contains('collapsed');
-      if (isCollapsed) {
-        content.classList.remove('collapsed');
-        header.classList.remove('collapsed');
-      } else {
-        content.classList.add('collapsed');
-        header.classList.add('collapsed');
-      }
-    }
+    function setupToggleHandlers() { }
+    function toggleSection(sectionId) { }
     // Set the callback for when auth is ready
     onAuthSuccess = () => {
       loadAll(true);
