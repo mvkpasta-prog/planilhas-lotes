@@ -1092,11 +1092,14 @@ ${message}`);
       }
       catch (err) {
         console.error('Erro loadAll:', err);
-        document.getElementById('clientesContainer').innerHTML = '<div class="empty">Erro ao carregar dados dos contratos (ver console).</div>';
+        const isOffline = !navigator.onLine;
+        const msg = isOffline ? 'Sem internet - Tentando reconectar...' : 'Erro ao carregar dados dos contratos (ver console).';
+        
+        document.getElementById('clientesContainer').innerHTML = `<div class="empty">${msg}</div>`;
         document.getElementById('lastUpdateTop').innerHTML = `
-      <i class="fas fa-exclamation-triangle" style="color: rgba(255,255,255,0.9);"></i>
-      <span>Erro na atualização</span>
-    `;
+          <i class="fas fa-${isOffline ? 'wifi' : 'exclamation-triangle'}" style="color: rgba(255,255,255,0.9);"></i>
+          <span>${isOffline ? 'Offline' : 'Erro na atualização'}</span>
+        `;
         document.body.classList.remove('updating');
       }
     }
@@ -1123,6 +1126,10 @@ ${message}`);
     document.addEventListener('DOMContentLoaded', function () {
       setupToggleHandlers();
       document.getElementById('card-total-embarcado').addEventListener('click', handleTotalCardClick);
+      
+      // Regista refresh automático ao voltar a internet
+      registerOnlineRefresh(() => loadAll(true));
+      
       startAutoUpdate();
       document.addEventListener('visibilitychange', function () {
         if (document.hidden) {
