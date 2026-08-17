@@ -55,69 +55,75 @@
   <main class="wrap animate-in">
     <div class="dashboard-composite">
       <div class="metrics-column">
-        <div class="section-title" style="margin-bottom: 1rem; color: var(--prod-total); display: flex; align-items: center; gap: 8px;">
-          <i class="fas fa-boxes"></i> Volumes Totais
-        </div>
-        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 2rem;">
-          <div class="metric-card glass metric-soja">
-            <div class="metric-label">Soja</div>
-            <div class="metric-value" id="count-soja">0 KG</div>
+        <div class="tv-section-group">
+          <div class="section-title" style="color: var(--prod-total); display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-boxes"></i> Volumes Totais
           </div>
-          <div class="metric-card glass metric-milho">
-            <div class="metric-label">Milho</div>
-            <div class="metric-value" id="count-milho">0 KG</div>
-          </div>
-          <div class="metric-card glass metric-sorgo">
-            <div class="metric-label">Sorgo</div>
-            <div class="metric-value" id="count-sorgo">0 KG</div>
-          </div>
-          <div class="metric-card glass metric-total" id="card-total-embarcado">
-            <div class="metric-label">Total Embarcado</div>
-            <div class="metric-value" id="count-total">0 KG</div>
-          </div>
-        </div>
-
-        <div class="section-title" style="margin-bottom: 1rem; color: var(--primary); display: flex; align-items: center; gap: 8px;">
-          <i class="fas fa-warehouse"></i> Armazém MVK
-        </div>
-        <div class="stats-grid" style="margin-bottom: 2rem;">
-          <div class="metric-card glass metric-carregado">
-            <div class="metric-label">Carregado</div>
-            <div class="metric-value" id="count-mvk-carregado">0</div>
-          </div>
-          <div class="metric-card glass metric-embarque">
-            <div class="metric-label">No Embarque</div>
-            <div class="metric-value" id="count-mvk-embarque">0</div>
-          </div>
-          <div class="metric-card glass metric-transito">
-            <div class="metric-label">Em Trânsito</div>
-            <div class="metric-value" id="count-mvk-transito">0</div>
-          </div>
-          <div class="metric-card glass metric-contratar">
-            <div class="metric-label">Contratar</div>
-            <div class="metric-value" id="count-mvk-contratar">0</div>
+          <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+            <div class="metric-card glass metric-soja">
+              <div class="metric-label">Soja</div>
+              <div class="metric-value" id="count-soja">0 KG</div>
+            </div>
+            <div class="metric-card glass metric-milho">
+              <div class="metric-label">Milho</div>
+              <div class="metric-value" id="count-milho">0 KG</div>
+            </div>
+            <div class="metric-card glass metric-sorgo">
+              <div class="metric-label">Sorgo</div>
+              <div class="metric-value" id="count-sorgo">0 KG</div>
+            </div>
+            <div class="metric-card glass metric-total" id="card-total-embarcado">
+              <div class="metric-label">Total Embarcado</div>
+              <div class="metric-value" id="count-total">0 KG</div>
+            </div>
           </div>
         </div>
 
-        <div class="section-title" style="margin-bottom: 1rem; color: var(--muted); display: flex; align-items: center; gap: 8px;">
-          <i class="fas fa-map-marked-alt"></i> Demais Locais
+        <div class="tv-section-group">
+          <div class="section-title" style="color: var(--primary); display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-warehouse"></i> Armazém MVK
+          </div>
+          <div class="stats-grid">
+            <div class="metric-card glass metric-carregado">
+              <div class="metric-label">Carregado</div>
+              <div class="metric-value" id="count-mvk-carregado">0</div>
+            </div>
+            <div class="metric-card glass metric-embarque">
+              <div class="metric-label">No Embarque</div>
+              <div class="metric-value" id="count-mvk-embarque">0</div>
+            </div>
+            <div class="metric-card glass metric-transito">
+              <div class="metric-label">Em Trânsito</div>
+              <div class="metric-value" id="count-mvk-transito">0</div>
+            </div>
+            <div class="metric-card glass metric-contratar">
+              <div class="metric-label">Contratar</div>
+              <div class="metric-value" id="count-mvk-contratar">0</div>
+            </div>
+          </div>
         </div>
-        <div class="stats-grid" style="margin-bottom: 0;">
-          <div class="metric-card glass metric-carregado">
-            <div class="metric-label">Carregado</div>
-            <div class="metric-value" id="count-others-carregado">0</div>
+
+        <div class="tv-section-group">
+          <div class="section-title" style="color: var(--muted); display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-map-marked-alt"></i> Demais Locais
           </div>
-          <div class="metric-card glass metric-embarque">
-            <div class="metric-label">No Embarque</div>
-            <div class="metric-value" id="count-others-embarque">0</div>
-          </div>
-          <div class="metric-card glass metric-transito">
-            <div class="metric-label">Em Trânsito</div>
-            <div class="metric-value" id="count-others-transito">0</div>
-          </div>
-          <div class="metric-card glass metric-contratar">
-            <div class="metric-label">Contratar</div>
-            <div class="metric-value" id="count-others-contratar">0</div>
+          <div class="stats-grid" style="margin-bottom: 0;">
+            <div class="metric-card glass metric-carregado">
+              <div class="metric-label">Carregado</div>
+              <div class="metric-value" id="count-others-carregado">0</div>
+            </div>
+            <div class="metric-card glass metric-embarque">
+              <div class="metric-label">No Embarque</div>
+              <div class="metric-value" id="count-others-embarque">0</div>
+            </div>
+            <div class="metric-card glass metric-transito">
+              <div class="metric-label">Em Trânsito</div>
+              <div class="metric-value" id="count-others-transito">0</div>
+            </div>
+            <div class="metric-card glass metric-contratar">
+              <div class="metric-label">Contratar</div>
+              <div class="metric-value" id="count-others-contratar">0</div>
+            </div>
           </div>
         </div>
       </div>
