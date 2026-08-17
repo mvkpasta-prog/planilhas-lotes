@@ -12,7 +12,14 @@
 </head>
 
 <body>
-  <button id="btnExitTv" class="btn-tv-exit" onclick="exitTvMode()"><i class="fas fa-compress"></i> Sair do Modo TV (Esc)</button>
+  <div class="tv-controls-group" id="tvControlsGroup">
+    <button type="button" id="btnToggleTvLayout" class="btn-tv-ctrl" onclick="toggleTvLayout()" title="Alternar entre Layout Cockpit e Clássico">
+      <i class="fas fa-layer-group"></i> <span id="tvLayoutText">Layout: Cockpit</span>
+    </button>
+    <button type="button" id="btnExitTv" class="btn-tv-ctrl btn-tv-exit" onclick="exitTvMode()" title="Sair do Modo TV (Esc)">
+      <i class="fas fa-compress"></i> Sair (Esc)
+    </button>
+  </div>
   <header>
     <div class="wrap nav-container">
       <div class="brand">
@@ -53,37 +60,61 @@
   </header>
 
   <main class="wrap animate-in">
-    <div class="dashboard-composite">
-      <div class="metrics-column">
-        <div class="tv-section-group">
-          <div class="section-title" style="color: var(--prod-total); display: flex; align-items: center; gap: 8px;">
-            <i class="fas fa-boxes"></i> Volumes Totais
-          </div>
-          <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
-            <div class="metric-card glass metric-soja">
+    <div class="dashboard-composite" id="dashboardComposite">
+      <div class="tv-section-group group-volumes">
+        <div class="section-title" style="color: var(--prod-total); display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-boxes"></i> Volumes Totais
+        </div>
+        <div class="stats-grid volumes-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+          <div class="metric-card glass metric-soja">
+            <div class="metric-header-row">
               <div class="metric-label">Soja</div>
-              <div class="metric-value" id="count-soja">0 KG</div>
+              <span class="metric-pct" id="pct-soja">0%</span>
             </div>
-            <div class="metric-card glass metric-milho">
+            <div class="metric-value" id="count-soja">0 KG</div>
+            <div class="grain-bar-track">
+              <div class="grain-bar-fill bar-fill-soja" id="bar-soja" style="width: 0%;"></div>
+            </div>
+          </div>
+          <div class="metric-card glass metric-milho">
+            <div class="metric-header-row">
               <div class="metric-label">Milho</div>
-              <div class="metric-value" id="count-milho">0 KG</div>
+              <span class="metric-pct" id="pct-milho">0%</span>
             </div>
-            <div class="metric-card glass metric-sorgo">
+            <div class="metric-value" id="count-milho">0 KG</div>
+            <div class="grain-bar-track">
+              <div class="grain-bar-fill bar-fill-milho" id="bar-milho" style="width: 0%;"></div>
+            </div>
+          </div>
+          <div class="metric-card glass metric-sorgo">
+            <div class="metric-header-row">
               <div class="metric-label">Sorgo</div>
-              <div class="metric-value" id="count-sorgo">0 KG</div>
+              <span class="metric-pct" id="pct-sorgo">0%</span>
             </div>
-            <div class="metric-card glass metric-total" id="card-total-embarcado">
+            <div class="metric-value" id="count-sorgo">0 KG</div>
+            <div class="grain-bar-track">
+              <div class="grain-bar-fill bar-fill-sorgo" id="bar-sorgo" style="width: 0%;"></div>
+            </div>
+          </div>
+          <div class="metric-card glass metric-total" id="card-total-embarcado">
+            <div class="metric-header-row">
               <div class="metric-label">Total Embarcado</div>
-              <div class="metric-value" id="count-total">0 KG</div>
+              <span class="metric-pct" id="pct-total">100%</span>
+            </div>
+            <div class="metric-value" id="count-total">0 KG</div>
+            <div class="grain-bar-track">
+              <div class="grain-bar-fill bar-fill-total" id="bar-total" style="width: 100%;"></div>
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="tv-section-group">
+      <div class="tv-main-columns" id="tvMainColumns">
+        <div class="tv-section-group group-mvk">
           <div class="section-title" style="color: var(--primary); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-warehouse"></i> Armazém MVK
           </div>
-          <div class="stats-grid">
+          <div class="stats-grid group-status-grid">
             <div class="metric-card glass metric-carregado">
               <div class="metric-label">Carregado</div>
               <div class="metric-value" id="count-mvk-carregado">0</div>
@@ -103,11 +134,11 @@
           </div>
         </div>
 
-        <div class="tv-section-group">
+        <div class="tv-section-group group-others">
           <div class="section-title" style="color: var(--muted); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-map-marked-alt"></i> Demais Locais
           </div>
-          <div class="stats-grid" style="margin-bottom: 0;">
+          <div class="stats-grid group-status-grid">
             <div class="metric-card glass metric-carregado">
               <div class="metric-label">Carregado</div>
               <div class="metric-value" id="count-others-carregado">0</div>
@@ -126,27 +157,25 @@
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="sidebar-column">
-        <div class="section-title" style="margin-bottom: 1rem; opacity: 0; pointer-events: none;">
-          <i class="fas fa-city"></i> Sidebar
-        </div>
-        <div class="metric-card glass city-highlights-card">
-          <div class="metric-label">Destaques por Cidade</div>
-          <div class="carousel-container" id="city-carousel">
-            <div class="carousel-item active">
-              <div class="carousel-loading">
-                <i class="fas fa-spinner fa-spin"></i>
-                <span>Sincronizando dados...</span>
+        <div class="sidebar-column group-city">
+          <div class="section-title" style="color: var(--accent); display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-city"></i> Destaques por Cidade
+          </div>
+          <div class="metric-card glass city-highlights-card">
+            <div class="carousel-container" id="city-carousel">
+              <div class="carousel-item active">
+                <div class="carousel-loading">
+                  <i class="fas fa-spinner fa-spin"></i>
+                  <span>Sincronizando dados...</span>
+                </div>
               </div>
             </div>
+            <div class="carousel-dots-container" id="carouselDots"></div>
           </div>
         </div>
       </div>
-
     </div>
-
 
     <div class="client-grid" id="clientesContainer" style="margin-bottom: 2rem;">
     </div>
@@ -673,6 +702,14 @@
           </div>`;
       }
       container.innerHTML = html;
+      const dotsContainer = document.getElementById('carouselDots');
+      if (dotsContainer) {
+        if (sortedCities.length > 1) {
+          dotsContainer.innerHTML = sortedCities.map((_, i) => `<span class="carousel-dot ${i === 0 ? 'active' : ''}"></span>`).join('');
+        } else {
+          dotsContainer.innerHTML = '';
+        }
+      }
       startCityCarousel();
     }
 
@@ -694,6 +731,11 @@
         current = (current + 1) % items.length;
         
         items[current].classList.add('active');
+        
+        const dots = document.querySelectorAll('#carouselDots .carousel-dot');
+        dots.forEach((dot, idx) => {
+          dot.classList.toggle('active', idx === current);
+        });
         
         setTimeout(() => {
           items[prev].classList.remove('exit');
@@ -990,8 +1032,56 @@ Bom descanso a todos 🙌🏻🙏🏻`;
     }
 
     // ==========================================
-    // 📺 CONTROLE DO MODO TV (FULLSCREEN COMPOSITE)
+    // 📺 CONTROLE DO MODO TV & LAYOUT TOGGLE
     // ==========================================
+    function initTvLayout() {
+      const saved = localStorage.getItem('mvk_tv_layout') || 'cockpit';
+      applyTvLayout(saved);
+    }
+
+    function applyTvLayout(layout) {
+      document.body.setAttribute('data-tv-layout', layout);
+      localStorage.setItem('mvk_tv_layout', layout);
+      const label = document.getElementById('tvLayoutText');
+      if (label) {
+        label.textContent = layout === 'cockpit' ? 'Layout: Cockpit' : 'Layout: Clássico';
+      }
+    }
+
+    function toggleTvLayout() {
+      const current = document.body.getAttribute('data-tv-layout') || 'cockpit';
+      const next = current === 'cockpit' ? 'classic' : 'cockpit';
+      applyTvLayout(next);
+      showToast(`Modo TV: ${next === 'cockpit' ? 'Cockpit' : 'Clássico'} ativado`, 'info');
+    }
+
+    function updateGrainProgressBars(soja, milho, sorgo, total) {
+      const totalSafe = (total && total > 0) ? total : 1;
+      const pctSoja = total > 0 ? Math.round((soja / totalSafe) * 100) : 0;
+      const pctMilho = total > 0 ? Math.round((milho / totalSafe) * 100) : 0;
+      const pctSorgo = total > 0 ? Math.round((sorgo / totalSafe) * 100) : 0;
+
+      const barSoja = document.getElementById('bar-soja');
+      const barMilho = document.getElementById('bar-milho');
+      const barSorgo = document.getElementById('bar-sorgo');
+      const barTotal = document.getElementById('bar-total');
+
+      if (barSoja) barSoja.style.width = `${Math.min(pctSoja, 100)}%`;
+      if (barMilho) barMilho.style.width = `${Math.min(pctMilho, 100)}%`;
+      if (barSorgo) barSorgo.style.width = `${Math.min(pctSorgo, 100)}%`;
+      if (barTotal) barTotal.style.width = total > 0 ? '100%' : '0%';
+
+      const pctSojaEl = document.getElementById('pct-soja');
+      const pctMilhoEl = document.getElementById('pct-milho');
+      const pctSorgoEl = document.getElementById('pct-sorgo');
+      const pctTotalEl = document.getElementById('pct-total');
+
+      if (pctSojaEl) pctSojaEl.textContent = `${pctSoja}%`;
+      if (pctMilhoEl) pctMilhoEl.textContent = `${pctMilho}%`;
+      if (pctSorgoEl) pctSorgoEl.textContent = `${pctSorgo}%`;
+      if (pctTotalEl) pctTotalEl.textContent = total > 0 ? '100%' : '0%';
+    }
+
     function toggleTvMode() {
       if (document.body.classList.contains('tv-mode-active')) {
         exitTvMode();
@@ -1002,6 +1092,7 @@ Bom descanso a todos 🙌🏻🙏🏻`;
 
     function enterTvMode() {
       document.body.classList.add('tv-mode-active');
+      initTvLayout();
       const elem = document.documentElement;
       if (elem.requestFullscreen) {
         elem.requestFullscreen().catch(() => {});
@@ -1176,6 +1267,7 @@ Bom descanso a todos 🙌🏻🙏🏻`;
         animateValue('count-milho', produtosTotais.milho, 2000, 'KG');
         animateValue('count-sorgo', produtosTotais.sorgo, 2000, 'KG');
         animateValue('count-total', totalEmbarcado, 2000, 'KG');
+        updateGrainProgressBars(produtosTotais.soja, produtosTotais.milho, produtosTotais.sorgo, totalEmbarcado);
 
         updateCityHighlights(rowsArrProgFiltered, 2, 9, 1);
 
