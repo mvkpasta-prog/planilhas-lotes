@@ -1007,26 +1007,159 @@ tr:hover td {
     box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
 }
 
-/* Agrupamentos de seção e colunas */
-.tv-section-group {
-    margin-bottom: 1.5rem;
+/* =========================================================
+   🌤️ ANIMAÇÕES DE CLIMA E ÍCONES VIVOS
+   ========================================================= */
+.weather-anim-box {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    vertical-align: middle;
 }
 
-.tv-section-group:last-child {
+/* Sol girando suavemente com pulsação de luz dourada */
+.weather-anim-sun i {
+    color: #fbbf24;
+    display: inline-block;
+    animation: sunRotate 12s linear infinite, sunPulse 3s ease-in-out infinite alternate;
+}
+
+@keyframes sunRotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes sunPulse {
+    0% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.5)); }
+    100% { transform: scale(1.1); filter: drop-shadow(0 0 16px rgba(245, 158, 11, 0.9)); }
+}
+
+/* Sol com nuvem flutuando */
+.weather-anim-cloud-sun {
+    position: relative;
+    width: 1.3em;
+    height: 1.1em;
+}
+
+.weather-anim-cloud-sun .anim-sun {
+    position: absolute;
+    top: -2px;
+    right: 0px;
+    color: #fbbf24;
+    font-size: 0.85em;
+    animation: sunRotate 12s linear infinite;
+}
+
+.weather-anim-cloud-sun .anim-cloud {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    color: #94a3b8;
+    font-size: 0.95em;
+    animation: cloudFloat 4s ease-in-out infinite alternate;
+}
+
+@keyframes cloudFloat {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(4px); }
+}
+
+/* Chuva caindo suavemente */
+.weather-anim-rain i {
+    color: #3b82f6;
+    animation: rainBounce 2s ease-in-out infinite alternate, rainGlow 2.5s infinite;
+}
+
+@keyframes rainBounce {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-3px); }
+}
+
+@keyframes rainGlow {
+    0%, 100% { filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.4)); }
+    50% { filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.8)); }
+}
+
+/* Tempestade com relâmpago */
+.weather-anim-storm i {
+    color: #8b5cf6;
+    animation: stormShake 3s ease-in-out infinite;
+}
+
+@keyframes stormShake {
+    0%, 88%, 100% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(139, 92, 246, 0.4)); }
+    90% { transform: scale(1.15) rotate(-2deg); filter: drop-shadow(0 0 18px #fbbf24); color: #fbbf24; }
+    94% { transform: scale(1.08) rotate(2deg); filter: drop-shadow(0 0 14px rgba(139, 92, 246, 0.9)); color: #8b5cf6; }
+}
+
+/* Nevoeiro */
+.weather-anim-fog i {
+    color: #94a3b8;
+    animation: fogDrift 4s ease-in-out infinite alternate;
+}
+
+@keyframes fogDrift {
+    0% { transform: translateX(-3px); opacity: 0.8; }
+    100% { transform: translateX(3px); opacity: 1; }
+}
+
+/* Nuvem */
+.weather-anim-cloud i {
+    color: #64748b;
+    animation: cloudFloat 5s ease-in-out infinite alternate;
+}
+
+/* =========================================================
+   LAYOUT DO DASHBOARD (MODO NORMAL DESKTOP / PC)
+   ========================================================= */
+.dashboard-composite {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    margin-bottom: 2rem;
+}
+
+.tv-section-group {
     margin-bottom: 0;
 }
 
-.tv-main-columns {
+.volumes-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 380px;
-    gap: 1.5rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+}
+
+.dashboard-main-area {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 1.75rem;
     align-items: stretch;
+}
+
+.status-columns-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
 }
 
 .group-status-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
+}
+
+.sidebar-column.group-city {
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-column.group-city .city-highlights-card {
+    flex: 1;
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 /* =========================================================
@@ -1157,13 +1290,17 @@ body.tv-mode-active .group-volumes .metric-pct {
     font-size: clamp(0.7rem, 0.8vw, 1rem);
 }
 
-body.tv-mode-active .tv-main-columns {
+body.tv-mode-active .dashboard-main-area {
     display: grid;
     grid-template-columns: 1fr 1fr clamp(340px, 28vw, 480px);
     gap: clamp(1rem, 1.8vw, 2rem);
     flex: 1;
     min-height: 0;
     align-items: stretch;
+}
+
+body.tv-mode-active .status-columns-wrapper {
+    display: contents;
 }
 
 body.tv-mode-active .group-mvk,
@@ -1176,7 +1313,7 @@ body.tv-mode-active .group-city {
     margin-bottom: 0;
 }
 
-body.tv-mode-active .tv-main-columns .section-title {
+body.tv-mode-active .dashboard-main-area .section-title {
     font-size: clamp(1.1rem, 1.3vw, 1.6rem);
     margin-bottom: clamp(0.35rem, 0.8vh, 0.65rem) !important;
 }
@@ -1341,17 +1478,22 @@ body.tv-mode-active .weather-condition {
    OPÇÃO DE VOLTAR PARA O LAYOUT CLÁSSICO (data-tv-layout="classic")
    ========================================================= */
 body.tv-mode-active[data-tv-layout="classic"] .dashboard-composite {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+body.tv-mode-active[data-tv-layout="classic"] .dashboard-main-area {
     display: grid;
     grid-template-columns: 1fr clamp(360px, 28vw, 520px);
     gap: clamp(1.2rem, 2.2vw, 2.5rem);
 }
 
-body.tv-mode-active[data-tv-layout="classic"] .group-volumes {
-    flex: 1;
-}
-
-body.tv-mode-active[data-tv-layout="classic"] .tv-main-columns {
-    display: contents;
+body.tv-mode-active[data-tv-layout="classic"] .status-columns-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
 }
 
 body.tv-mode-active[data-tv-layout="classic"] .group-status-grid {
@@ -1376,11 +1518,7 @@ body.tv-mode-active[data-tv-layout="classic"] .group-status-grid .metric-value {
    RESPONSIVIDADE E AJUSTES DE TELAS
    ========================================================= */
 @media (max-width: 1100px) {
-    .dashboard-composite {
-        grid-template-columns: 1fr;
-    }
-    
-    .tv-main-columns {
+    .dashboard-main-area {
         grid-template-columns: 1fr;
     }
     
@@ -1406,7 +1544,7 @@ body.tv-mode-active[data-tv-layout="classic"] .group-status-grid .metric-value {
         justify-content: flex-start;
     }
     
-    .stats-grid,
+    .volumes-grid,
     .group-status-grid {
         grid-template-columns: 1fr 1fr;
     }
@@ -1418,7 +1556,7 @@ body.tv-mode-active[data-tv-layout="classic"] .group-status-grid .metric-value {
 }
 
 @media (max-width: 480px) {
-    .stats-grid,
+    .volumes-grid,
     .group-status-grid {
         grid-template-columns: 1fr;
     }

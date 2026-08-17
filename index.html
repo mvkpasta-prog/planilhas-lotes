@@ -109,51 +109,53 @@
         </div>
       </div>
 
-      <div class="tv-main-columns" id="tvMainColumns">
-        <div class="tv-section-group group-mvk">
-          <div class="section-title" style="color: var(--primary); display: flex; align-items: center; gap: 8px;">
-            <i class="fas fa-warehouse"></i> Armazém MVK
+      <div class="dashboard-main-area" id="dashboardMainArea">
+        <div class="status-columns-wrapper" id="statusColsWrapper">
+          <div class="tv-section-group group-mvk">
+            <div class="section-title" style="color: var(--primary); display: flex; align-items: center; gap: 8px;">
+              <i class="fas fa-warehouse"></i> Armazém MVK
+            </div>
+            <div class="stats-grid group-status-grid">
+              <div class="metric-card glass metric-carregado">
+                <div class="metric-label">Carregado</div>
+                <div class="metric-value" id="count-mvk-carregado">0</div>
+              </div>
+              <div class="metric-card glass metric-embarque">
+                <div class="metric-label">No Embarque</div>
+                <div class="metric-value" id="count-mvk-embarque">0</div>
+              </div>
+              <div class="metric-card glass metric-transito">
+                <div class="metric-label">Em Trânsito</div>
+                <div class="metric-value" id="count-mvk-transito">0</div>
+              </div>
+              <div class="metric-card glass metric-contratar">
+                <div class="metric-label">Contratar</div>
+                <div class="metric-value" id="count-mvk-contratar">0</div>
+              </div>
+            </div>
           </div>
-          <div class="stats-grid group-status-grid">
-            <div class="metric-card glass metric-carregado">
-              <div class="metric-label">Carregado</div>
-              <div class="metric-value" id="count-mvk-carregado">0</div>
-            </div>
-            <div class="metric-card glass metric-embarque">
-              <div class="metric-label">No Embarque</div>
-              <div class="metric-value" id="count-mvk-embarque">0</div>
-            </div>
-            <div class="metric-card glass metric-transito">
-              <div class="metric-label">Em Trânsito</div>
-              <div class="metric-value" id="count-mvk-transito">0</div>
-            </div>
-            <div class="metric-card glass metric-contratar">
-              <div class="metric-label">Contratar</div>
-              <div class="metric-value" id="count-mvk-contratar">0</div>
-            </div>
-          </div>
-        </div>
 
-        <div class="tv-section-group group-others">
-          <div class="section-title" style="color: var(--muted); display: flex; align-items: center; gap: 8px;">
-            <i class="fas fa-map-marked-alt"></i> Demais Locais
-          </div>
-          <div class="stats-grid group-status-grid">
-            <div class="metric-card glass metric-carregado">
-              <div class="metric-label">Carregado</div>
-              <div class="metric-value" id="count-others-carregado">0</div>
+          <div class="tv-section-group group-others">
+            <div class="section-title" style="color: var(--muted); display: flex; align-items: center; gap: 8px;">
+              <i class="fas fa-map-marked-alt"></i> Demais Locais
             </div>
-            <div class="metric-card glass metric-embarque">
-              <div class="metric-label">No Embarque</div>
-              <div class="metric-value" id="count-others-embarque">0</div>
-            </div>
-            <div class="metric-card glass metric-transito">
-              <div class="metric-label">Em Trânsito</div>
-              <div class="metric-value" id="count-others-transito">0</div>
-            </div>
-            <div class="metric-card glass metric-contratar">
-              <div class="metric-label">Contratar</div>
-              <div class="metric-value" id="count-others-contratar">0</div>
+            <div class="stats-grid group-status-grid">
+              <div class="metric-card glass metric-carregado">
+                <div class="metric-label">Carregado</div>
+                <div class="metric-value" id="count-others-carregado">0</div>
+              </div>
+              <div class="metric-card glass metric-embarque">
+                <div class="metric-label">No Embarque</div>
+                <div class="metric-value" id="count-others-embarque">0</div>
+              </div>
+              <div class="metric-card glass metric-transito">
+                <div class="metric-label">Em Trânsito</div>
+                <div class="metric-value" id="count-others-transito">0</div>
+              </div>
+              <div class="metric-card glass metric-contratar">
+                <div class="metric-label">Contratar</div>
+                <div class="metric-value" id="count-others-contratar">0</div>
+              </div>
             </div>
           </div>
         </div>
@@ -427,41 +429,57 @@
         isValid: isValid
       };
     }
-    function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, destinoColIndex) {
-      let soja = 0, milho = 0, sorgo = 0;
+    function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, destinoColIndex, statusColIndex) {
+      let sojaProg = 0, milhoProg = 0, sorgoProg = 0;
+      let sojaCarr = 0, milhoCarr = 0, sorgoCarr = 0;
+
       rowsObjects.forEach(arr => {
         let destinoText = '';
-        if (destinoColIndex !== -1) {
-          if (Array.isArray(arr) && arr[destinoColIndex] !== undefined) {
-            destinoText = arr[destinoColIndex];
-          }
+        if (destinoColIndex !== -1 && Array.isArray(arr) && arr[destinoColIndex] !== undefined) {
+          destinoText = arr[destinoColIndex];
         }
         const { isValid } = extractContratoInfo(destinoText);
         if (!isValid) return;
+
         let produtoText = '';
-        if (produtoColIndex !== -1) {
-          if (Array.isArray(arr) && arr[produtoColIndex] !== undefined) {
-            produtoText = arr[produtoColIndex];
-          }
+        if (produtoColIndex !== -1 && Array.isArray(arr) && arr[produtoColIndex] !== undefined) {
+          produtoText = arr[produtoColIndex];
         }
         const produto = extractProduto(produtoText);
+
         let pesoText = '';
-        if (pesoColIndex !== -1) {
-          if (Array.isArray(arr) && arr[pesoColIndex] !== undefined) {
-            pesoText = arr[pesoColIndex];
-          }
+        if (pesoColIndex !== -1 && Array.isArray(arr) && arr[pesoColIndex] !== undefined) {
+          pesoText = arr[pesoColIndex];
         }
         const peso = parseNumber(pesoText);
-        if (isNaN(peso)) return;
+        if (isNaN(peso) || peso <= 0) return;
+
+        let statusText = '';
+        if (statusColIndex !== -1 && Array.isArray(arr) && arr[statusColIndex] !== undefined) {
+          statusText = arr[statusColIndex];
+        }
+        const isCarregado = normalizeText(statusText).includes('carregado');
+
         if (produto.includes('soja')) {
-          soja += peso;
+          sojaProg += peso;
+          if (isCarregado) sojaCarr += peso;
         } else if (produto.includes('milho')) {
-          milho += peso;
+          milhoProg += peso;
+          if (isCarregado) milhoCarr += peso;
         } else if (produto.includes('sorgo')) {
-          sorgo += peso;
+          sorgoProg += peso;
+          if (isCarregado) sorgoCarr += peso;
         }
       });
-      return { soja, milho, sorgo };
+
+      return {
+        soja: sojaCarr,
+        milho: milhoCarr,
+        sorgo: sorgoCarr,
+        sojaProg,
+        milhoProg,
+        sorgoProg
+      };
     }
     function updateLastUpdateTime() {
       const now = new Date();
@@ -547,12 +565,22 @@
     };
 
     function getWeatherIcon(code) {
-      if (code === 0) return '<i class="fas fa-sun" style="color: #fbbf24;"></i>';
-      if (code >= 1 && code <= 3) return '<i class="fas fa-cloud-sun" style="color: #f59e0b;"></i>';
-      if (code === 45 || code === 48) return '<i class="fas fa-smog" style="color: #94a3b8;"></i>';
-      if (code >= 51 && code <= 65) return '<i class="fas fa-cloud-showers-heavy" style="color: #3b82f6;"></i>';
-      if (code >= 95) return '<i class="fas fa-cloud-bolt" style="color: #6366f1;"></i>';
-      return '<i class="fas fa-cloud" style="color: #64748b;"></i>';
+      if (code === 0) {
+        return `<div class="weather-anim-box weather-anim-sun"><i class="fas fa-sun"></i></div>`;
+      }
+      if (code >= 1 && code <= 3) {
+        return `<div class="weather-anim-box weather-anim-cloud-sun"><i class="fas fa-sun anim-sun"></i><i class="fas fa-cloud anim-cloud"></i></div>`;
+      }
+      if (code === 45 || code === 48) {
+        return `<div class="weather-anim-box weather-anim-fog"><i class="fas fa-smog"></i></div>`;
+      }
+      if (code >= 51 && code <= 65) {
+        return `<div class="weather-anim-box weather-anim-rain"><i class="fas fa-cloud-showers-heavy"></i></div>`;
+      }
+      if (code >= 95) {
+        return `<div class="weather-anim-box weather-anim-storm"><i class="fas fa-cloud-bolt"></i></div>`;
+      }
+      return `<div class="weather-anim-box weather-anim-cloud"><i class="fas fa-cloud"></i></div>`;
     }
 
     function getWeatherDesc(code) {
@@ -1055,21 +1083,26 @@ Bom descanso a todos 🙌🏻🙏🏻`;
       showToast(`Modo TV: ${next === 'cockpit' ? 'Cockpit' : 'Clássico'} ativado`, 'info');
     }
 
-    function updateGrainProgressBars(soja, milho, sorgo, total) {
-      const totalSafe = (total && total > 0) ? total : 1;
-      const pctSoja = total > 0 ? Math.round((soja / totalSafe) * 100) : 0;
-      const pctMilho = total > 0 ? Math.round((milho / totalSafe) * 100) : 0;
-      const pctSorgo = total > 0 ? Math.round((sorgo / totalSafe) * 100) : 0;
+    function updateGrainProgressBars(sojaCarr, sojaProg, milhoCarr, milhoProg, sorgoCarr, sorgoProg, totalCarr, totalProg) {
+      const calcPct = (carr, prog) => {
+        if (!prog || prog <= 0) return carr > 0 ? 100 : 0;
+        return Math.min(Math.round((carr / prog) * 100), 100);
+      };
+
+      const pctSoja = calcPct(sojaCarr, sojaProg);
+      const pctMilho = calcPct(milhoCarr, milhoProg);
+      const pctSorgo = calcPct(sorgoCarr, sorgoProg);
+      const pctTotal = calcPct(totalCarr, totalProg);
 
       const barSoja = document.getElementById('bar-soja');
       const barMilho = document.getElementById('bar-milho');
       const barSorgo = document.getElementById('bar-sorgo');
       const barTotal = document.getElementById('bar-total');
 
-      if (barSoja) barSoja.style.width = `${Math.min(pctSoja, 100)}%`;
-      if (barMilho) barMilho.style.width = `${Math.min(pctMilho, 100)}%`;
-      if (barSorgo) barSorgo.style.width = `${Math.min(pctSorgo, 100)}%`;
-      if (barTotal) barTotal.style.width = total > 0 ? '100%' : '0%';
+      if (barSoja) barSoja.style.width = `${pctSoja}%`;
+      if (barMilho) barMilho.style.width = `${pctMilho}%`;
+      if (barSorgo) barSorgo.style.width = `${pctSorgo}%`;
+      if (barTotal) barTotal.style.width = `${pctTotal}%`;
 
       const pctSojaEl = document.getElementById('pct-soja');
       const pctMilhoEl = document.getElementById('pct-milho');
@@ -1079,7 +1112,7 @@ Bom descanso a todos 🙌🏻🙏🏻`;
       if (pctSojaEl) pctSojaEl.textContent = `${pctSoja}%`;
       if (pctMilhoEl) pctMilhoEl.textContent = `${pctMilho}%`;
       if (pctSorgoEl) pctSorgoEl.textContent = `${pctSorgo}%`;
-      if (pctTotalEl) pctTotalEl.textContent = total > 0 ? '100%' : '0%';
+      if (pctTotalEl) pctTotalEl.textContent = `${pctTotal}%`;
     }
 
     function toggleTvMode() {
@@ -1256,18 +1289,20 @@ Bom descanso a todos 🙌🏻🙏🏻`;
         animateValue('count-others-transito', othersStatusCounts.transito, 2000);
         animateValue('count-others-contratar', othersStatusCounts.contratar, 2000);
 
-        const produtosTotais = calculateProdutosTotais(rowsArrProgFiltered, 1, 9, 2);
+        const produtosTotais = calculateProdutosTotais(rowsArrProgFiltered, 1, 9, 2, statusIndex);
         globalProdutosTotais.soja = produtosTotais.soja;
         globalProdutosTotais.milho = produtosTotais.milho;
         globalProdutosTotais.sorgo = produtosTotais.sorgo;
         const totalEmbarcado = produtosTotais.soja + produtosTotais.milho + produtosTotais.sorgo;
+        const totalProgramado = produtosTotais.sojaProg + produtosTotais.milhoProg + produtosTotais.sorgoProg;
         globalProdutosTotais.total = totalEmbarcado;
+        globalProdutosTotais.totalProgramado = totalProgramado;
         
         animateValue('count-soja', produtosTotais.soja, 2000, 'KG');
         animateValue('count-milho', produtosTotais.milho, 2000, 'KG');
         animateValue('count-sorgo', produtosTotais.sorgo, 2000, 'KG');
         animateValue('count-total', totalEmbarcado, 2000, 'KG');
-        updateGrainProgressBars(produtosTotais.soja, produtosTotais.milho, produtosTotais.sorgo, totalEmbarcado);
+        updateGrainProgressBars(produtosTotais.soja, produtosTotais.sojaProg, produtosTotais.milho, produtosTotais.milhoProg, produtosTotais.sorgo, produtosTotais.sorgoProg, totalEmbarcado, totalProgramado);
 
         updateCityHighlights(rowsArrProgFiltered, 2, 9, 1);
 
