@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Controle de Lotes — Resumo de Retirada</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://accounts.google.com/gsi/client" onload="gisLoaded()" async defer></script>
+  <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()" async defer></script>
+  <script src="auth_config.js"></script>
+</head>
+
+<body>
+  <header>
+    <div class="wrap nav-container">
+      <div class="brand">
+        <img src="mvklogo.png" alt="MVK">
+        Retiradas
+      </div>
+      
+      <div class="nav-links">
+        <a href="index.html" class="nav-link"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a href="lotes-entrega.html" class="nav-link"><i class="fas fa-truck"></i> Entrega</a>
+        <a href="Retiradas.html" class="nav-link active"><i class="fas fa-box"></i> Retirada</a>
+        <a href="programacao.html" class="nav-link"><i class="fas fa-calendar-alt"></i> Programação</a>
+        
+        <button type="button" id="themeToggleBtn" class="nav-link btn-theme" onclick="toggleTheme()" title="Alternar Tema Claro / Escuro">
+          <i class="fas fa-moon"></i>
+        </button>
+
+        <div id="auth_container">
+          <button id="authorize_button" class="btn-auth" onclick="handleAuthClick()" style="display: none;">
+            <i class="fab fa-google"></i> Login
+          </button>
+          <button id="signout_button" class="btn-auth" onclick="handleSignoutClick()" style="display: none; background: rgba(255,255,255,0.1); color: white;">
+            <i class="fas fa-sign-out-alt"></i> Sair
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="wrap" style="margin-top: 0.5rem;">
+      <div class="last-update" id="lastUpdateTop">
+        <i class="fas fa-sync-alt fa-spin"></i> <span>Atualizando informações...</span>
+      </div>
+    </div>
+  </header>
+  <main class="wrap animate-in">
+    <div class="stats-grid">
+      <div class="metric-card glass metric-carregado">
+        <div class="metric-label">Contratos Abertos</div>
+        <div class="metric-value" id="count-aberto">0</div>
+      </div>
+      <div class="metric-card glass metric-embarque">
+        <div class="metric-label">Contratos Finalizados</div>
+        <div class="metric-value" id="count-finalizado">0</div>
+      </div>
+      <div class="metric-card glass metric-transito">
+        <div class="metric-label">Contratos Totais</div>
+        <div class="metric-value" id="count-contratos">0</div>
+      </div>
+      <div class="metric-card glass metric-contratar">
+        <div class="metric-label">Produtos Únicos</div>
+        <div class="metric-value" id="count-produtos">0</div>
+      </div>
+    </div>
+
+    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+      <div class="metric-card glass metric-soja">
+        <div class="metric-label">Soja a Retirar</div>
+        <div class="metric-value" id="count-soja">0 KG</div>
+      </div>
+      <div class="metric-card glass metric-milho">
+        <div class="metric-label">Milho a Retirar</div>
+        <div class="metric-value" id="count-milho">0 KG</div>
+      </div>
+      <div class="metric-card glass metric-sorgo">
+        <div class="metric-label">Sorgo a Retirar</div>
+        <div class="metric-value" id="count-sorgo">0 KG</div>
+      </div>
+      <div class="metric-card glass metric-total" id="card-total-retirada">
+        <div class="metric-label">Total a Retirar</div>
+        <div class="metric-value" id="count-total">0 KG</div>
+      </div>
+    </div>
+
+    <div class="card-section glass" style="padding: 1.5rem;">
+      <div class="section-title" style="margin-bottom: 1.5rem;">
+        <i class="fas fa-map-marker-alt"></i> <span id="resumoTitle">Resumo por Local de Embarque</span>
+      </div>
+      
+      <div class="filter-bar">
+        <input type="text" id="filterInput" class="search-input" placeholder="Filtrar por Local ou Cliente...">
+        <button class="btn-auth" id="toggleViewBtn" onclick="toggleView()" style="background: var(--primary); color: white;">
+          <i class="fas fa-exchange-alt"></i> Mudar para Clientes
+        </button>
+      </div>
+
+      <div class="client-grid" id="clientesContainer">
+      </div>
+    </div>
+  </main>
+  <div id="resumoModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <div id="modalContentBody">
+      </div>
+    </div>
+  </div>
+  <script>
+    const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
+    const GIDS = {
+      retirada: '1984691910'
+    };
+    const AUTO_UPDATE_INTERVAL = 300000;
+    let globalProdutosTotais = { soja: 0, milho: 0, sorgo: 0, total: 0 };
+    let globalResumoData = { local: [], cliente: [] };
+    let currentView = 'local';
+    function normalizeHeader(h) {
+      if (h === undefined || h === null) return '';
+      return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+    }
+    function normalizeText(text) {
+      if (text === undefined || text === null) return '';
+      return String(text).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+    function parseCSV(text) {
+      if (!text) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
+      const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+      if (lines.length === 0) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
+      const parsed = lines.map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim()));
+      const headersOrig = parsed.shift().map(h => h || '');
+      const headersNorm = headersOrig.map(h => normalizeHeader(h));
+      const objects = parsed.map(cells => {
+        const obj = {};
+        headersNorm.forEach((key, idx) => {
+          obj[key] = cells[idx] !== undefined ? cells[idx] : '';
+        });
+        return obj;
+      });
+      return { arrays: parsed, headersOrig, headersNorm, objects };
+    }
+    async function fetchSheetByGid(gid) {
+      // Use the V4 function from auth_config.js
+      return await fetchSheetByGidV4(SHEET_ID, gid);
+    }
+    function parseNumber(val) {
+      if (val === undefined || val === null) return NaN;
+      const s = String(val).replace(/\s/g, '').replace(/\./g, '').replace(/,/g, '.');
+      const n = parseFloat(s.replace(/[^\d\.\-]/g, ''));
+      return isNaN(n) ? NaN : n;
+    }
+    function formatNumber(value) {
+      if (isNaN(value)) return '0';
+      return new Intl.NumberFormat('pt-BR').format(Math.round(value));
+    }
+    function escapeHtml(s) {
+      if (s === undefined || s === null) return '';
+      return String(s).replace(/[&<>"'\/]/g, c => ({ '&': '&amp;', '<': '<', '>': '>', '"': '&quot;', "'": '&#x2F;' }[c]));
+    }
+    function generateProductTagsHtml(produtosString) {
+      const produtosArray = produtosString.split(' / ').filter(p => p.trim() !== '');
+      if (produtosArray.length === 0) {
+        return '<span class="badge badge-info"><i class="fas fa-question-circle"></i> N/A</span>';
+      }
+      let tagsHtml = '';
+      produtosArray.forEach(p => {
+        const pUp = p.toUpperCase();
+        let tagIcon = 'fas fa-cubes';
+        let badgeClass = 'badge-info';
+        if (pUp.includes('SOJA')) {
+          tagIcon = 'fas fa-seedling';
+          badgeClass = 'badge-success';
+        } else if (pUp.includes('MILHO')) {
+          tagIcon = 'fas fa-sun';
+          badgeClass = 'badge-warning';
+        }
+        tagsHtml += `<span class="badge ${badgeClass}" style="margin-right: 5px;">
+            <i class="${tagIcon}"></i> ${escapeHtml(p)}
+        </span>`;
+      });
+      return tagsHtml;
+    }
+    function groupRetiradaData(rowsArrRet, headersNormRet, groupBy) {
+      const grupos = {};
+      const localIndex = 2;
+      const clienteIndex = 3;
+      const produtoIndex = 4;
+      const aRetirarIndex = 9;
+      const embarcadaIndex = 8;
+      const contratoIndex = 1;
+      const contratosGlobais = new Set();
+      const produtosGlobais = new Set();
+      rowsArrRet.forEach(arr => {
+        const local = arr[localIndex] ? arr[localIndex].trim() : 'Local Desconhecido';
+        const cliente = arr[clienteIndex] ? arr[clienteIndex].trim() : 'Cliente Desconhecido';
+        const saldoARetirar = parseNumber(arr[aRetirarIndex] || '0');
+        const embarcada = parseNumber(arr[embarcadaIndex] || '0');
+        const contrato = arr[contratoIndex] ? arr[contratoIndex].trim() : '';
+        const produtoText = arr[produtoIndex] ? arr[produtoIndex].trim() : '';
+        const produtoNorm = normalizeText(produtoText);
+        if (!contrato) return;
+        const key = groupBy === 'local' ? local : cliente;
+        contratosGlobais.add(contrato);
+        if (produtoText) produtosGlobais.add(produtoText);
+        if (!grupos[key]) {
+          grupos[key] = {
+            key: key,
+            totalARetirar: 0,
+            totalEmbarcada: 0,
+            clientes: new Set(),
+            locais: new Set(),
+            produtos: new Set(),
+            contratos: new Map(),
+            productBreakdown: {
+              sojaARetirar: 0, milhoARetirar: 0, sorgoARetirar: 0,
+              sojaEmbarcada: 0, milhoEmbarcada: 0, sorgoEmbarcada: 0
+            }
+          };
+        }
+        grupos[key].totalARetirar += saldoARetirar;
+        grupos[key].totalEmbarcada += embarcada;
+        if (cliente) grupos[key].clientes.add(cliente);
+        if (local) grupos[key].locais.add(local);
+        if (produtoText) grupos[key].produtos.add(produtoText);
+        const currentSaldo = grupos[key].contratos.get(contrato) || 0;
+        grupos[key].contratos.set(contrato, currentSaldo + saldoARetirar);
+        if (produtoNorm.includes('soja')) {
+          grupos[key].productBreakdown.sojaARetirar += saldoARetirar;
+          grupos[key].productBreakdown.sojaEmbarcada += embarcada;
+        } else if (produtoNorm.includes('milho')) {
+          grupos[key].productBreakdown.milhoARetirar += saldoARetirar;
+          grupos[key].productBreakdown.milhoEmbarcada += embarcada;
+        } else if (produtoNorm.includes('sorgo')) {
+          grupos[key].productBreakdown.sorgoARetirar += saldoARetirar;
+          grupos[key].productBreakdown.sorgoEmbarcada += embarcada;
+        }
+      });
+      const resumo = Object.values(grupos).map(grupo => {
+        let totalAbertos = 0;
+        let totalFinalizados = 0;
+        grupo.contratos.forEach(saldoContrato => {
+          if (saldoContrato <= 0) {
+            totalFinalizados++;
+          } else {
+            totalAbertos++;
+          }
+        });
+        const clientesValidos = Array.from(grupo.clientes)
+          .filter(c => c.trim() !== '' && c.trim().toLowerCase() !== 'cliente desconhecido');
+        const locaisValidos = Array.from(grupo.locais)
+          .filter(l => l.trim() !== '' && l.trim().toLowerCase() !== 'local desconhecido');
+        const produtosValidos = Array.from(grupo.produtos)
+          .filter(p => p.trim() !== '');
+        return {
+          ...grupo,
+          totalARetirar: Math.round(grupo.totalARetirar),
+          totalEmbarcada: Math.round(grupo.totalEmbarcada),
+          clientes: clientesValidos.sort().join(', ') || '/',
+          locais: locaisValidos.sort().join(' / ') || '/',
+          produtos: produtosValidos.sort().join(' / ') || '/',
+          totalContratos: grupo.contratos.size,
+          totalAbertos: totalAbertos,
+          totalFinalizados: totalFinalizados,
+          groupBy: groupBy,
+          productBreakdown: {
+            sojaARetirar: Math.round(grupo.productBreakdown.sojaARetirar),
+            milhoARetirar: Math.round(grupo.productBreakdown.milhoARetirar),
+            sorgoARetirar: Math.round(grupo.productBreakdown.sorgoARetirar),
+            sojaEmbarcada: Math.round(grupo.productBreakdown.sojaEmbarcada),
+            milhoEmbarcada: Math.round(grupo.productBreakdown.milhoEmbarcada),
+            sorgoEmbarcada: Math.round(grupo.productBreakdown.sorgoEmbarcada)
+          }
+        };
+      }).filter(r => r.totalARetirar > 0 || r.totalFinalizados > 0)
+        .sort((a, b) => b.totalARetirar - a.totalARetirar);
+      return { resumo, totalContratos: contratosGlobais.size, totalProdutos: produtosGlobais.size };
+    }
+    function calculateProdutosTotaisRetirada(rowsArrRet) {
+      let soja = 0, milho = 0, sorgo = 0;
+      const produtoIndex = 4;
+      const aRetirarIndex = 9;
+      rowsArrRet.forEach(arr => {
+        const produtoText = arr[produtoIndex] ? arr[produtoIndex].trim() : '';
+        const produtoNorm = normalizeText(produtoText);
+        const aRetirar = parseNumber(arr[aRetirarIndex] || '0');
+        if (isNaN(aRetirar)) return;
+        if (produtoNorm.includes('soja')) {
+          soja += aRetirar;
+        } else if (produtoNorm.includes('milho')) {
+          milho += aRetirar;
+        } else if (produtoNorm.includes('sorgo')) {
+          sorgo += aRetirar;
+        }
+      });
+      return { soja: Math.round(soja), milho: Math.round(milho), sorgo: Math.round(sorgo) };
+    }
+    function buildResumoCardsHTML(resumos) {
+      if (resumos.length === 0) {
+        return '<div class="empty">Nenhum lote de retirada encontrado para o filtro.</div>';
+      }
+      let html = '';
+      resumos.forEach((resumo, index) => {
+        const globalIndex = globalResumoData[resumo.groupBy].findIndex(r => r.key === resumo.key);
+        const title = resumo.key;
+        const productTagsHtml = generateProductTagsHtml(resumo.produtos);
+        
+        const secondaryLabel = resumo.groupBy === 'local' ? 'Clientes' : 'Locais';
+        const secondaryValue = resumo.groupBy === 'local' ? resumo.clientes : resumo.locais;
+
+        html += `
+          <div class="client-card glass animate-in" onclick="openResumoModal(${globalIndex}, '${resumo.groupBy}')">
+            <div class="client-header">
+              <div class="client-name">${escapeHtml(title)}</div>
+              <div class="client-destination" style="color: var(--text-muted); font-size: 0.75rem;">${secondaryLabel}: ${escapeHtml(secondaryValue)}</div>
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                ${productTagsHtml}
+            </div>
+
+            <div class="caminhoes-info" style="border: none; padding: 0; margin-bottom: 1rem;">
+              <span class="badge badge-warning">Abertos: ${resumo.totalAbertos}</span>
+              <span class="badge badge-success">Finalizados: ${resumo.totalFinalizados}</span>
+            </div>
+
+            <div class="client-details">
+              <div class="detail-item">
+                <span class="detail-label">Total a Retirar</span>
+                <span class="detail-value">${formatNumber(resumo.totalARetirar)} KG</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Total Embarcado</span>
+                <span class="detail-value">${formatNumber(resumo.totalEmbarcada)} KG</span>
+              </div>
+            </div>
+            
+            <div style="margin-top: 1rem; text-align: right;">
+              <span style="font-size: 0.7rem; color: var(--primary); font-weight: 600;">Ver Detalhes <i class="fas fa-search-plus"></i></span>
+            </div>
+          </div>
+        `;
+      });
+      return html;
+    }
+    function renderCards() {
+      const titleSpan = document.getElementById('resumoTitle');
+      const toggleBtn = document.getElementById('toggleViewBtn');
+      const filterInput = document.getElementById('filterInput');
+      if (currentView === 'local') {
+        titleSpan.textContent = '📍 Resumo por Local de Embarque';
+        toggleBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Mudar para Clientes';
+        filterInput.placeholder = 'Filtrar por Local ou Cliente...';
+      } else {
+        titleSpan.textContent = '👤 Resumo por Cliente';
+        toggleBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Mudar para Local';
+        filterInput.placeholder = 'Filtrar por Cliente ou Local...';
+      }
+      filterCards();
+    }
+    function filterCards() {
+      const data = globalResumoData[currentView];
+      const filterText = normalizeText(document.getElementById('filterInput').value).trim();
+      const container = document.getElementById('clientesContainer');
+      if (filterText.length < 2 && filterText.length > 0) {
+        container.innerHTML = buildResumoCardsHTML(data);
+        return;
+      } else if (filterText.length === 0) {
+        container.innerHTML = buildResumoCardsHTML(data);
+        return;
+      }
+      const filteredResumos = data.filter(resumo => {
+        const keyNorm = normalizeText(resumo.key);
+        const secondaryNorm = normalizeText(currentView === 'local' ? resumo.clientes : resumo.locais);
+        return keyNorm.includes(filterText) || secondaryNorm.includes(filterText);
+      });
+      container.innerHTML = buildResumoCardsHTML(filteredResumos);
+    }
+    function toggleView() {
+      currentView = currentView === 'local' ? 'cliente' : 'local';
+      renderCards();
+    }
+    function openResumoModal(index, groupBy) {
+      const resumo = globalResumoData[groupBy][index];
+      if (!resumo) return;
+      const modal = document.getElementById('resumoModal');
+      const modalContent = document.getElementById('modalContentBody');
+      const secondaryListKey = groupBy === 'local' ? 'clientes' : 'locais';
+      const secondaryListTitle = groupBy === 'local' ? 'Clientes Envolvidos' : 'Locais de Embarque Envolvidos';
+      const secondaryListArray = resumo[secondaryListKey].split(/, | \/ /).filter(c => c.trim() !== '');
+      const secondaryList = secondaryListArray.map(c => `<span>${escapeHtml(c)}</span>`).join('');
+      const mainTitle = resumo.key;
+      const produtosList = generateProductTagsHtml(resumo.produtos);
+      const productBreakdown = resumo.productBreakdown;
+      const aRetirarHtml = `
+        <div style="margin-top: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: var(--bg);">
+            <h4 style="margin-top: 0; font-size: 14px; color: var(--primary);"><i class="fas fa-balance-scale-right"></i> Saldo a Retirar (KG)</h4>
+            <p><span class="info-label"><i class="fas fa-seedling" style="color: var(--produto-soja);"></i> Soja:</span> <span class="info-value">${formatNumber(productBreakdown.sojaARetirar)} KG</span></p>
+            <p><span class="info-label"><i class="fas fa-sun" style="color: var(--produto-milho);"></i> Milho:</span> <span class="info-value">${formatNumber(productBreakdown.milhoARetirar)} KG</span></p>
+            <p><span class="info-label"><i class="fas fa-cubes" style="color: var(--produto-sorgo);"></i> Sorgo:</span> <span class="info-value">${formatNumber(productBreakdown.sorgoARetirar)} KG</span></p>
+            <p style="border-top: 1px dashed #ccc; padding-top: 5px; margin-top: 5px;"><span class="info-label" style="font-weight: 700; color: var(--text);">TOTAL:</span> <span class="info-value" style="font-weight: 700;">${formatNumber(resumo.totalARetirar)} KG</span></p>
+        </div>
+    `;
+      const embarcadaHtml = `
+        <div style="margin-top: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: var(--bg);">
+            <h4 style="margin-top: 0; font-size: 14px; color: var(--primary);"><i class="fas fa-truck-loading"></i> Quantidade Embarcada (KG)</h4>
+            <p><span class="info-label"><i class="fas fa-seedling" style="color: var(--produto-soja);"></i> Soja:</span> <span class="info-value">${formatNumber(productBreakdown.sojaEmbarcada)} KG</span></p>
+            <p><span class="info-label"><i class="fas fa-sun" style="color: var(--produto-milho);"></i> Milho:</span> <span class="info-value">${formatNumber(productBreakdown.milhoEmbarcada)} KG</span></p>
+            <p><span class="info-label"><i class="fas fa-cubes" style="color: var(--produto-sorgo);"></i> Sorgo:</span> <span class="info-value">${formatNumber(productBreakdown.sorgoEmbarcada)} KG</span></p>
+            <p style="border-top: 1px dashed #ccc; padding-top: 5px; margin-top: 5px;"><span class="info-label" style="font-weight: 700; color: var(--text);">TOTAL:</span> <span class="info-value" style="font-weight: 700;">${formatNumber(resumo.totalEmbarcada)} KG</span></p>
+        </div>
+    `;
+      modalContent.innerHTML = `
+        <div class="modal-header">
+            <h3>${escapeHtml(mainTitle)}</h3>
+        </div>
+        <div class="modal-body">
+            <p><span class="info-label">Produtos Envolvidos:</span> ${produtosList}</p>
+            <p><span class="info-label">Contratos (Total no local/cliente):</span> <span class="info-value">${resumo.totalContratos}</span></p>
+            <p><span class="info-label">Contratos Abertos:</span> <span class="info-value status-pendente-tag">${resumo.totalAbertos}</span></p>
+            <p><span class="info-label">Contratos Finalizados:</span> <span class="info-value status-carregado-tag">${resumo.totalFinalizados}</span></p>
+            ${aRetirarHtml} 
+            ${embarcadaHtml}
+            <div class="modal-clientes-list">
+                <h4>${secondaryListTitle} (${secondaryListArray.length}):</h4>
+                ${secondaryList || '<span>Nenhum encontrado.</span>'}
+            </div>
+        </div>
+    `;
+      modal.style.display = 'flex';
+    }
+    function closeModal() {
+      document.getElementById('resumoModal').style.display = 'none';
+    }
+    function setupModalCloseHandlers() {
+      const modal = document.getElementById('resumoModal');
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          closeModal();
+        }
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.style.display === 'flex') {
+          closeModal();
+        }
+      });
+    }
+    function showToast(message, type = 'info', actionBtn = null) {
+      let container = document.getElementById('toastContainer');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+      }
+      const toast = document.createElement('div');
+      toast.className = `toast ${type === 'whatsapp' ? 'toast-whatsapp' : ''}`;
+      
+      let icon = '<i class="fas fa-info-circle" style="color: var(--primary);"></i>';
+      if (type === 'whatsapp') icon = '<i class="fab fa-whatsapp"></i>';
+      else if (type === 'success') icon = '<i class="fas fa-check-circle" style="color: #10b981;"></i>';
+      else if (type === 'error') icon = '<i class="fas fa-exclamation-circle" style="color: #ef4444;"></i>';
+      
+      let actionHtml = '';
+      if (actionBtn) {
+        actionHtml = `<a href="${actionBtn.url}" target="_blank" rel="noopener noreferrer" class="toast-btn">${actionBtn.text}</a>`;
+      }
+      
+      toast.innerHTML = `${icon} <span>${escapeHtml(message)}</span> ${actionHtml}`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        if (toast.parentElement) toast.remove();
+      }, 5000);
+    }
+
+    function handleTotalCardClick() {
+      const soja = formatNumber(globalProdutosTotais.soja);
+      const milho = formatNumber(globalProdutosTotais.milho);
+      const sorgo = formatNumber(globalProdutosTotais.sorgo);
+      const total = formatNumber(globalProdutosTotais.total);
+      
+      const message = `📦 Resumo - Lotes a Retirar:
+🌱 Soja: ${soja} KG
+🌽 Milho: ${milho} KG
+🌾 Sorgo: ${sorgo} KG
+Total a Retirar: ${total} KG`;
+
+      const encodedMsg = encodeURIComponent(message);
+      const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMsg}`;
+      
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(message).then(() => {
+          showToast('Resumo de retiradas copiado!', 'whatsapp', {
+            text: 'Abrir WhatsApp',
+            url: whatsappUrl
+          });
+        }).catch(() => {
+          showToast('Resumo de retiradas gerado!', 'whatsapp', {
+            text: 'Abrir WhatsApp',
+            url: whatsappUrl
+          });
+        });
+      } else {
+        showToast('Resumo de retiradas gerado!', 'whatsapp', {
+          text: 'Abrir WhatsApp',
+          url: whatsappUrl
+        });
+      }
+    }
+    function updateLastUpdateTime() {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('pt-BR');
+      const dateString = now.toLocaleDateString('pt-BR');
+      document.getElementById('lastUpdateTop').innerHTML = `
+        <i class="fas fa-check-circle" style="color: rgba(255,255,255,0.9);"></i>
+        <span>Última atualização: ${timeString} - ${dateString}</span>
+      `;
+    }
+    async function loadAll(isAutoUpdate = false) {
+      try {
+        if (isAutoUpdate) {
+          document.getElementById('lastUpdateTop').innerHTML = `
+        <i class="fas fa-hourglass-half" style="color: rgba(255,255,255,0.9);"></i>
+        <span>Atualizando...</span>
+      `;
+          document.body.classList.add('updating');
+        }
+
+        // Wait for auth if not ready
+        const hasAuth = localStorage.getItem('google_has_auth') === 'true';
+        if (!accessToken && !hasAuth) {
+          console.log('Waiting for authentication...');
+          document.getElementById('lastUpdateTop').innerHTML = '<span>Aguardando Login...</span>';
+          document.body.classList.remove('updating');
+          return;
+        }
+        const ret = await fetchSheetByGid(GIDS.retirada);
+        const rowsArrRet = ret.arrays;
+        const headersNormRet = ret.headersNorm;
+        const { resumo: resumoLocal, totalContratos, totalProdutos } = groupRetiradaData(rowsArrRet, headersNormRet, 'local');
+        const { resumo: resumoCliente } = groupRetiradaData(rowsArrRet, headersNormRet, 'cliente');
+        globalResumoData.local = resumoLocal;
+        globalResumoData.cliente = resumoCliente;
+        renderCards();
+        const totalAbertoGlobal = resumoLocal.reduce((acc, curr) => acc + curr.totalAbertos, 0);
+        const totalFinalizadoGlobal = resumoLocal.reduce((acc, curr) => acc + curr.totalFinalizados, 0);
+        document.getElementById('count-aberto').textContent = totalAbertoGlobal;
+        document.getElementById('count-finalizado').textContent = totalFinalizadoGlobal;
+        document.getElementById('count-contratos').textContent = totalContratos;
+        document.getElementById('count-produtos').textContent = totalProdutos;
+        const produtosTotais = calculateProdutosTotaisRetirada(rowsArrRet);
+        globalProdutosTotais.soja = produtosTotais.soja;
+        globalProdutosTotais.milho = produtosTotais.milho;
+        globalProdutosTotais.sorgo = produtosTotais.sorgo;
+        const totalARetirar = produtosTotais.soja + produtosTotais.milho + produtosTotais.sorgo;
+        globalProdutosTotais.total = totalARetirar;
+        document.getElementById('count-soja').textContent = `${formatNumber(produtosTotais.soja)} KG`;
+        document.getElementById('count-milho').textContent = `${formatNumber(produtosTotais.milho)} KG`;
+        document.getElementById('count-sorgo').textContent = `${formatNumber(produtosTotais.sorgo)} KG`;
+        document.getElementById('count-total').textContent = `${formatNumber(totalARetirar)} KG`;
+        updateLastUpdateTime();
+        document.body.classList.remove('updating');
+      }
+      catch (err) {
+        console.error('Erro loadAll (Página Retirada):', err);
+        const isOffline = !navigator.onLine;
+        const msg = isOffline ? 'Sem internet - Tentando reconectar...' : 'Erro ao carregar dados. Verifique a conexão ou as configurações da planilha.';
+        
+        document.getElementById('clientesContainer').innerHTML = `<div class="empty">${msg}</div>`;
+        document.getElementById('lastUpdateTop').innerHTML = `
+          <i class="fas fa-${isOffline ? 'wifi' : 'exclamation-triangle'}" style="color: rgba(255,255,255,0.9);"></i>
+          <span>${isOffline ? 'Offline' : 'Erro na atualização'}</span>
+        `;
+        document.body.classList.remove('updating');
+      }
+    }
+    // Set the callback for when auth is ready
+    onAuthSuccess = () => {
+      loadAll(true);
+    };
+
+    let autoUpdateInterval;
+    function startAutoUpdate() {
+      // loadAll(true); // Removed initial call
+      autoUpdateInterval = setInterval(() => {
+        loadAll(true);
+      }, AUTO_UPDATE_INTERVAL);
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      document.getElementById('filterInput').addEventListener('keyup', filterCards);
+      document.getElementById('card-total-retirada').addEventListener('click', handleTotalCardClick);
+      setupModalCloseHandlers();
+      
+      // Registro de reconexão automática
+      registerOnlineRefresh(() => loadAll(true));
+      
+      startAutoUpdate();
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) {
+          loadAll(true);
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

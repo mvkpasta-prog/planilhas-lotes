@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Controle de Lotes — Lotes de Entrega</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://accounts.google.com/gsi/client" onload="gisLoaded()" async defer></script>
+  <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()" async defer></script>
+  <script src="auth_config.js"></script>
+</head>
+<body>
+  <header>
+    <div class="wrap nav-container">
+      <div class="brand">
+        <img src="mvklogo.png" alt="MVK">
+        Entregas
+      </div>
+      
+      <div class="nav-links">
+        <a href="index.html" class="nav-link"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a href="lotes-entrega.html" class="nav-link active"><i class="fas fa-truck"></i> Entrega</a>
+        <a href="Retiradas.html" class="nav-link"><i class="fas fa-box"></i> Retirada</a>
+        <a href="programacao.html" class="nav-link"><i class="fas fa-calendar-alt"></i> Programação</a>
+        
+        <button type="button" id="themeToggleBtn" class="nav-link btn-theme" onclick="toggleTheme()" title="Alternar Tema Claro / Escuro">
+          <i class="fas fa-moon"></i>
+        </button>
+
+        <div id="auth_container">
+          <button id="authorize_button" class="btn-auth" onclick="handleAuthClick()" style="display: none;">
+            <i class="fab fa-google"></i> Login
+          </button>
+          <button id="signout_button" class="btn-auth" onclick="handleSignoutClick()" style="display: none; background: rgba(255,255,255,0.1); color: white;">
+            <i class="fas fa-sign-out-alt"></i> Sair
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="wrap" style="margin-top: 0.5rem;">
+      <div class="last-update" id="lastUpdateTop">
+        <i class="fas fa-sync-alt fa-spin"></i> <span>Atualizando informações...</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap animate-in">
+    <div class="stats-grid">
+      <div class="metric-card glass">
+        <div class="metric-label">Clientes</div>
+        <div class="metric-value" id="count-clientes">0</div>
+      </div>
+      <div class="metric-card glass">
+        <div class="metric-label">Contratos</div>
+        <div class="metric-value" id="count-contratos">0</div>
+      </div>
+    </div>
+
+    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+      <div class="metric-card glass metric-soja">
+        <div class="metric-label">Soja (KG)</div>
+        <div class="metric-value" id="count-soja">0</div>
+      </div>
+      <div class="metric-card glass metric-milho">
+        <div class="metric-label">Milho (KG)</div>
+        <div class="metric-value" id="count-milho">0</div>
+      </div>
+      <div class="metric-card glass metric-sorgo">
+        <div class="metric-label">Sorgo (KG)</div>
+        <div class="metric-value" id="count-sorgo">0</div>
+      </div>
+      <div class="metric-card glass metric-total">
+        <div class="metric-label">Total (KG)</div>
+        <div class="metric-value" id="count-total">0</div>
+      </div>
+    </div>
+
+    <div class="card-section glass" style="padding: 1.5rem;">
+      <div class="section-title" style="margin-bottom: 1.5rem;">
+        <i class="fas fa-map-marker-alt"></i> 📍 Lotes com Saldo a Entregar
+      </div>
+      
+      <div class="filter-bar">
+        <input type="text" id="filterInput" class="search-input" placeholder="Filtrar por Cliente, Contrato ou Cidade...">
+        <button class="btn-auth" id="toggleViewBtn" onclick="toggleView()" style="background: var(--primary); color: white;">
+          <i class="fas fa-exchange-alt"></i> Mudar para Locais
+        </button>
+      </div>
+
+      <div class="client-grid" id="clientesContainer">
+        <div class="empty">Carregando informações...</div>
+      </div>
+    </div>
+  </main>
+
+  <div id="resumoModal" class="modal-overlay">
+    <div class="modal-content" role="dialog" aria-modal="true">
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <div id="modalContentBody"></div>
+    </div>
+  </div>
+
+  <script>
+  const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
+  const GID_ENTREGA = '1186247985';
+  const AUTO_UPDATE_INTERVAL = 300000;
+  let globalData = [];
+  let currentView = localStorage.getItem('lotes_entregas_view') || 'cliente';
+
+  function normalizeHeader(h) { 
+    if (h==null) return ''; 
+    return String(h).trim().toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-z0-9]/g,''); 
+  }
+  function normalizeText(t) { 
+    if (t==null) return ''; 
+    return String(t).trim().toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,''); 
+  }
+  function parseCSV(text) {
+    if (!text) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
+    const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+    if (lines.length === 0) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
+    const parsed = lines.map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
+      .map(c => c.replace(/^"|"$/g,'').trim()));
+    const headersOrig = parsed.shift().map(h => h || '');
+    const headersNorm = headersOrig.map(h => normalizeHeader(h));
+    const objects = parsed.map(cells => {
+      const obj = {};
+      headersNorm.forEach((key, idx) => { 
+        obj[key] = cells[idx] !== undefined ? cells[idx] : ''; 
+      });
+      return obj;
+    });
+    return { arrays: parsed, headersOrig, headersNorm, objects };
+  }
+
+  // *** Novo: usa Sheets API v4 via auth_config.js ***
+  async function fetchSheetByGid(gid) {
+    return await fetchSheetByGidV4(SHEET_ID, gid);
+  }
+
+  function parseNumber(val) {
+    if (val===undefined || val===null) return NaN;
+    const s = String(val).replace(/\s/g,'').replace(/\./g,'').replace(/,/g,'.');
+    return parseFloat(s.replace(/[^\d\.\-]/g,''));
+  }
+  function formatNumber(value) {
+    if (isNaN(value)) return '0';
+    return new Intl.NumberFormat('pt-BR').format(Math.round(value));
+  }
+  function escapeHtml(s) {
+    if (s===undefined || s===null) return '';
+    return String(s).replace(/[&<>"'\/]/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x2F;'
+    }[c]));
+  }
+  function getProdutoCorClasse(produto) {
+    const p = (produto || '').toLowerCase();
+    if (p.includes('soja')) return 'var(--produto-soja)';
+    if (p.includes('milho')) return 'var(--produto-milho)';
+    if (p.includes('sorgo')) return 'var(--produto-sorgo)';
+    return 'var(--produto-sorgo)';
+  }
+  function extractContractNumber(raw) {
+    if (!raw) return '';
+    const s = String(raw).trim();
+    if (s.includes('-')) return s.split('-')[0].trim();
+    return s;
+  }
+  function extractCidadeFromDestino(texto, cliente) {
+    if (!texto) return '';
+    const s = String(texto);
+    if (s.includes('-')) {
+      const parts = s.split(' - ').map(p => p.trim());
+      // Exceção para o cliente CHS AGRONEGOCIO (A cidade fica entre o 4º e 5º traço)
+      if (cliente && normalizeText(cliente).includes('chs agronegocio')) {
+        return parts[4] || parts[parts.length - 1];
+      }
+      return parts[parts.length - 1];
+    }
+    return s.trim();
+  }
+
+  function processData(rowsArr) {
+    // índices baseados na estrutura da planilha de entrega
+    const contratoIndex = 1;
+    const clienteIndex = 2;
+    const produtoIndex = 3;
+    const destinoIndex = 4;
+    const safraIndex = 5;
+    const volumeIndex = 6;
+    const faltaIndex = 8;
+
+    const clientesMap = {};
+    const contratosSet = new Set();
+    let totalSoja = 0, totalMilho = 0, totalSorgo = 0, totalGeral = 0;
+
+    rowsArr.forEach(arr => {
+      const contratoRaw = arr[contratoIndex] || '';
+      const contrato = extractContractNumber(contratoRaw);
+      const cliente = (arr[clienteIndex] || 'Cliente Desconhecido').toString().trim();
+      const produto = (arr[produtoIndex] || 'Produto Desconhecido').toString().trim();
+      const destino = arr[destinoIndex] || '';
+      const cidade = extractCidadeFromDestino(destino, cliente);
+      const safra = arr[safraIndex] || '';
+      const volume = parseNumber(arr[volumeIndex] || '0');
+      const falta = parseNumber(arr[faltaIndex] || '0');
+
+      if (!contrato || isNaN(falta) || falta <= 0) return;
+
+      const keyCliente = cliente;
+      if (!clientesMap[keyCliente]) {
+        clientesMap[keyCliente] = {
+          cliente,
+          contratos: [],
+          totalFalta: 0,
+          totalVolume: 0,
+          cidades: new Set(),
+          produtos: new Set()
+        };
+      }
+      const cli = clientesMap[keyCliente];
+      cli.contratos.push({
+        contrato,
+        produto,
+        cidade,
+        safra,
+        volume,
+        falta
+      });
+      cli.totalFalta += falta;
+      cli.totalVolume += volume;
+      cli.cidades.add(cidade || 'Cidade Desconhecida');
+      cli.produtos.add(produto);
+
+      contratosSet.add(contrato);
+
+      const produtoLower = produto.toLowerCase();
+      if (produtoLower.includes('soja')) totalSoja += falta;
+      else if (produtoLower.includes('milho')) totalMilho += falta;
+      else if (produtoLower.includes('sorgo')) totalSorgo += falta;
+      totalGeral += falta;
+    });
+
+    document.getElementById('count-clientes').textContent = Object.keys(clientesMap).length;
+    document.getElementById('count-contratos').textContent = contratosSet.size;
+    document.getElementById('count-soja').textContent = formatNumber(totalSoja);
+    document.getElementById('count-milho').textContent = formatNumber(totalMilho);
+    document.getElementById('count-sorgo').textContent = formatNumber(totalSorgo);
+    document.getElementById('count-total').textContent = formatNumber(totalGeral);
+
+    return Object.values(clientesMap).sort((a,b)=>b.totalFalta-a.totalFalta);
+  }
+
+  function processDataByCity(rowsArr) {
+    const contratoIndex = 1;
+    const clienteIndex = 2;
+    const produtoIndex = 3;
+    const destinoIndex = 4;
+    const safraIndex = 5;
+    const volumeIndex = 6;
+    const faltaIndex = 8;
+
+    const cidadesMap = {};
+    const contratosSet = new Set();
+    let totalSoja = 0, totalMilho = 0, totalSorgo = 0, totalGeral = 0;
+
+    rowsArr.forEach(arr => {
+      const contratoRaw = arr[contratoIndex] || '';
+      const contrato = extractContractNumber(contratoRaw);
+      const cliente = (arr[clienteIndex] || 'Cliente Desconhecido').toString().trim();
+      const produto = (arr[produtoIndex] || 'Produto Desconhecido').toString().trim();
+      const destino = arr[destinoIndex] || '';
+      const cidade = extractCidadeFromDestino(destino) || 'Cidade Desconhecida';
+      const safra = arr[safraIndex] || '';
+      const volume = parseNumber(arr[volumeIndex] || '0');
+      const falta = parseNumber(arr[faltaIndex] || '0');
+
+      if (!contrato || isNaN(falta) || falta <= 0) return;
+
+      if (!cidadesMap[cidade]) {
+        cidadesMap[cidade] = {
+          cidade,
+          contratos: [],
+          totalFalta: 0,
+          totalVolume: 0,
+          clientes: new Set(),
+          produtos: new Set(),
+          safraSet: new Set()
+        };
+      }
+      const city = cidadesMap[cidade];
+      city.contratos.push({
+        contrato,
+        cliente,
+        produto,
+        cidade,
+        safra,
+        volume,
+        falta
+      });
+      city.totalFalta += falta;
+      city.totalVolume += volume;
+      city.clientes.add(cliente);
+      city.produtos.add(produto);
+      if (safra) city.safraSet.add(safra);
+
+      contratosSet.add(contrato);
+
+      const produtoLower = produto.toLowerCase();
+      if (produtoLower.includes('soja')) totalSoja += falta;
+      else if (produtoLower.includes('milho')) totalMilho += falta;
+      else if (produtoLower.includes('sorgo')) totalSorgo += falta;
+      totalGeral += falta;
+    });
+
+    document.getElementById('count-clientes').textContent = Object.keys(cidadesMap).length;
+    document.getElementById('count-contratos').textContent = contratosSet.size;
+    document.getElementById('count-soja').textContent = formatNumber(totalSoja);
+    document.getElementById('count-milho').textContent = formatNumber(totalMilho);
+    document.getElementById('count-sorgo').textContent = formatNumber(totalSorgo);
+    document.getElementById('count-total').textContent = formatNumber(totalGeral);
+
+    return Object.values(cidadesMap).sort((a,b)=>b.totalFalta-a.totalFalta);
+  }
+
+  function renderClientCards(clients, filterText) {
+    const container = document.getElementById('clientesContainer');
+    container.innerHTML = '';
+    const normFilter = normalizeText(filterText || '');
+    if (!clients || clients.length === 0) {
+      container.innerHTML = '<div class="empty">Nenhum registro encontrado.</div>';
+      return;
+    }
+    const filtered = clients.filter(c => {
+      if (!normFilter) return true;
+      const fullText = normalizeText(
+        c.cliente + ' ' +
+        Array.from(c.cidades).join(' ') + ' ' +
+        Array.from(c.produtos).join(' ')
+      );
+      return fullText.includes(normFilter);
+    });
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="empty">Nenhum cliente encontrado com esse filtro.</div>';
+      return;
+    }
+    filtered.forEach(cli => {
+      const card = document.createElement('div');
+      card.className = 'client-card glass animate-in';
+      const produtosList = Array.from(cli.produtos).join(' / ') || 'N/A';
+      const cidadesList = Array.from(cli.cidades).join(' / ') || 'N/A';
+
+      let produtosTags = '';
+      cli.produtos.forEach(p => {
+        const pUp = p.toUpperCase();
+        let badgeClass = 'badge-info';
+        if (pUp.includes('SOJA')) badgeClass = 'badge-success';
+        else if (pUp.includes('MILHO')) badgeClass = 'badge-warning';
+        produtosTags += `<span class="badge ${badgeClass}" style="margin-right: 4px;">${escapeHtml(p)}</span>`;
+      });
+
+      card.innerHTML = `
+        <div class="client-header">
+          <div class="client-name">${escapeHtml(cli.cliente)}</div>
+          <div class="client-destination">${escapeHtml(cidadesList)}</div>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+          ${produtosTags}
+        </div>
+
+        <div class="client-details">
+          <div class="detail-item">
+            <span class="detail-label">Saldo Total</span>
+            <span class="detail-value">${formatNumber(cli.totalFalta)} KG</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Volume Total</span>
+            <span class="detail-value">${formatNumber(cli.totalVolume)} KG</span>
+          </div>
+          <div class="detail-item" style="grid-column: span 2; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--border);">
+            <span class="detail-label">Contratos</span>
+            <span class="detail-value">${cli.contratos.length}</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 1rem; text-align: right;">
+          <span style="font-size: 0.7rem; color: var(--primary); font-weight: 600;">Ver Detalhes <i class="fas fa-search-plus"></i></span>
+        </div>
+      `;
+      card.addEventListener('click', () => openResumoModalCliente(cli));
+      container.appendChild(card);
+    });
+  }
+
+  function renderCityCards(cities, filterText) {
+    const container = document.getElementById('clientesContainer');
+    container.innerHTML = '';
+    const normFilter = normalizeText(filterText || '');
+    if (!cities || cities.length === 0) {
+      container.innerHTML = '<div class="empty">Nenhum registro encontrado.</div>';
+      return;
+    }
+    const filtered = cities.filter(c => {
+      if (!normFilter) return true;
+      const fullText = normalizeText(
+        c.cidade + ' ' +
+        Array.from(c.clientes).join(' ') + ' ' +
+        Array.from(c.produtos).join(' ')
+      );
+      return fullText.includes(normFilter);
+    });
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="empty">Nenhuma cidade encontrada com esse filtro.</div>';
+      return;
+    }
+    filtered.forEach(city => {
+      const card = document.createElement('div');
+      card.className = 'client-card glass animate-in';
+      const produtosList = Array.from(city.produtos).join(' / ') || 'N/A';
+      const clientesList = Array.from(city.clientes).join(' / ') || 'N/A';
+      const safraList = Array.from(city.safraSet).join(' / ');
+
+      let produtosTags = '';
+      city.produtos.forEach(p => {
+        const pUp = p.toUpperCase();
+        let badgeClass = 'badge-info';
+        if (pUp.includes('SOJA')) badgeClass = 'badge-success';
+        else if (pUp.includes('MILHO')) badgeClass = 'badge-warning';
+        produtosTags += `<span class="badge ${badgeClass}" style="margin-right: 4px;">${escapeHtml(p)}</span>`;
+      });
+
+      card.innerHTML = `
+        <div class="client-header">
+          <div class="client-name">${escapeHtml(city.cidade)}</div>
+          <div class="client-destination">${escapeHtml(clientesList)}</div>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+          ${produtosTags}
+          ${safraList ? `<span class="badge badge-info"><i class="fas fa-calendar-alt"></i> ${escapeHtml(safraList)}</span>` : ''}
+        </div>
+
+        <div class="client-details">
+          <div class="detail-item">
+            <span class="detail-label">Saldo Total</span>
+            <span class="detail-value">${formatNumber(city.totalFalta)} KG</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Volume Total</span>
+            <span class="detail-value">${formatNumber(city.totalVolume)} KG</span>
+          </div>
+          <div class="detail-item" style="grid-column: span 2; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--border);">
+            <span class="detail-label">Contratos</span>
+            <span class="detail-value">${city.contratos.length}</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 1rem; text-align: right;">
+          <span style="font-size: 0.7rem; color: var(--primary); font-weight: 600;">Ver Detalhes <i class="fas fa-search-plus"></i></span>
+        </div>
+      `;
+      card.addEventListener('click', () => openResumoModalCidade(city));
+      container.appendChild(card);
+    });
+  }
+
+  function openResumoModalCliente(group) {
+    const body = document.getElementById('modalContentBody');
+    let html = '';
+    html += `<div class="modal-header"><h3>Cliente: ${escapeHtml(group.cliente)}</h3></div>`;
+    html += `<div class="modal-body">`;
+    html += `<p><span class="info-label">Saldo total (kg):</span> <span class="info-value">${formatNumber(group.totalFalta)} KG</span></p>`;
+    html += `<p><span class="info-label">Volume total (kg):</span> <span class="info-value">${formatNumber(group.totalVolume)} KG</span></p>`;
+    html += `<p><span class="info-label">Cidades:</span> <span class="info-value">${escapeHtml(Array.from(group.cidades).join(' / ') || 'N/A')}</span></p>`;
+    html += `<p><span class="info-label">Produtos:</span> <span class="info-value">${escapeHtml(Array.from(group.produtos).join(' / ') || 'N/A')}</span></p>`;
+    html += `<div class="modal-clientes-list">`;
+    html += `<h4>Contratos (${group.contratos.length}):</h4>`;
+    group.contratos.forEach(c => {
+      const pUp = (c.produto || '').toUpperCase();
+      let badgeClass = 'badge-info';
+      if (pUp.includes('SOJA')) badgeClass = 'badge-success';
+      else if (pUp.includes('MILHO')) badgeClass = 'badge-warning';
+
+      html += `
+        <div class="contrato-item">
+          <div class="contrato-linha">
+            <strong>Contrato:</strong>
+            <span>${escapeHtml(c.contrato)}</span>
+          </div>
+          <div class="contrato-linha">
+            <strong>Cidade:</strong>
+            <span>${escapeHtml(c.cidade)}</span>
+          </div>
+          <div class="contrato-linha">
+            <strong>Produto:</strong>
+            <span class="badge ${badgeClass}" style="font-size: 0.7rem;">${escapeHtml(c.produto)}</span>
+          </div>
+          <div class="contrato-linha">
+            <strong>Volume:</strong>
+            <span>${formatNumber(c.volume)} KG</span>
+          </div>
+          ${c.safra ? `<div class="contrato-linha"><strong>Safra:</strong> <span>${escapeHtml(c.safra)}</span></div>` : ''}
+          <div class="contrato-linha">
+            <strong>Saldo:</strong>
+            <span>${formatNumber(c.falta)} KG</span>
+          </div>
+        </div>
+      `;
+    });
+    html += `</div></div>`;
+    body.innerHTML = html;
+    document.getElementById('resumoModal').style.display = 'flex';
+  }
+
+  function openResumoModalCidade(group) {
+    const body = document.getElementById('modalContentBody');
+    let html = '';
+    html += `<div class="modal-header"><h3>Cidade: ${escapeHtml(group.cidade)}</h3></div>`;
+    html += `<div class="modal-body">`;
+    html += `<p><span class="info-label">Saldo total (kg):</span> <span class="info-value">${formatNumber(group.totalFalta)} KG</span></p>`;
+    html += `<p><span class="info-label">Volume total (kg):</span> <span class="info-value">${formatNumber(group.totalVolume)} KG</span></p>`;
+    html += `<p><span class="info-label">Clientes:</span> <span class="info-value">${escapeHtml(Array.from(group.clientes).join(' / ') || 'N/A')}</span></p>`;
+    html += `<p><span class="info-label">Produtos:</span> <span class="info-value">${escapeHtml(Array.from(group.produtos).join(' / ') || 'N/A')}</span></p>`;
+    const safraList = Array.from(group.safraSet).join(' / ');
+    if (safraList) {
+      html += `<p><span class="info-label">Safra(s):</span> <span class="info-value">${escapeHtml(safraList)}</span></p>`;
+    }
+    html += `<div class="modal-clientes-list">`;
+    html += `<h4>Contratos (${group.contratos.length}):</h4>`;
+    group.contratos.forEach(c => {
+      const pUp = (c.produto || '').toUpperCase();
+      let badgeClass = 'badge-info';
+      if (pUp.includes('SOJA')) badgeClass = 'badge-success';
+      else if (pUp.includes('MILHO')) badgeClass = 'badge-warning';
+
+      html += `
+        <div class="contrato-item">
+          <div class="contrato-linha">
+            <strong>Contrato:</strong>
+            <span>${escapeHtml(c.contrato)}</span>
+          </div>
+          <div class="contrato-linha">
+            <strong>Cliente:</strong>
+            <span>${escapeHtml(c.cliente)}</span>
+          </div>
+          <div class="contrato-linha">
+            <strong>Produto:</strong>
+            <span class="badge ${badgeClass}" style="font-size: 0.7rem;">${escapeHtml(c.produto)}</span>
+          </div>
+          <div class="contrato-linha">
+            <strong>Cidade:</strong>
+            <span>${escapeHtml(c.cidade)}</span>
+          </div>
+          <div class="contrato-linha">
+            <strong>Volume:</strong>
+            <span>${formatNumber(c.volume)} KG</span>
+          </div>
+          ${c.safra ? `<div class="contrato-linha"><strong>Safra:</strong> <span>${escapeHtml(c.safra)}</span></div>` : ''}
+          <div class="contrato-linha">
+            <strong>Saldo:</strong>
+            <span>${formatNumber(c.falta)} KG</span>
+          </div>
+        </div>
+      `;
+    });
+    html += `</div></div>`;
+    body.innerHTML = html;
+    document.getElementById('resumoModal').style.display = 'flex';
+  }
+
+  function closeModal() {
+    document.getElementById('resumoModal').style.display = 'none';
+  }
+
+  function updateToggleButton() {
+    const btn = document.getElementById('toggleViewBtn');
+    if (!btn) return;
+    if (currentView === 'cliente') {
+      btn.innerHTML = '<i class="fas fa-sync-alt"></i> Mudar para Locais';
+    } else {
+      btn.innerHTML = '<i class="fas fa-sync-alt"></i> Mudar para Clientes';
+    }
+  }
+
+  function toggleView() {
+    currentView = (currentView === 'cliente') ? 'local' : 'cliente';
+    localStorage.setItem('lotes_entregas_view', currentView);
+    updateToggleButton();
+    renderCurrentView();
+  }
+
+  function renderCurrentView() {
+    const filter = document.getElementById('filterInput').value || '';
+    if (currentView === 'cliente') {
+      const clients = processData(globalData);
+      renderClientCards(clients, filter);
+    } else {
+      const cities = processDataByCity(globalData);
+      renderCityCards(cities, filter);
+    }
+  }
+
+  async function loadDataAndRender(isAutoUpdate = false) {
+    try {
+      const hasAuth = localStorage.getItem('google_has_auth') === 'true';
+      if (!accessToken && !hasAuth) {
+        console.log('Waiting for authentication.');
+        document.getElementById('lastUpdateTop').innerHTML = `
+          <i class="fas fa-user-lock"></i> <span>Aguardando Login.</span>
+        `;
+        return;
+      }
+
+      document.getElementById('lastUpdateTop').innerHTML = `
+        <i class="fas fa-sync-alt fa-spin"></i> <span>Atualizando informações...</span>
+      `;
+
+      const parsed = await fetchSheetByGid(GID_ENTREGA);
+      globalData = parsed.arrays || [];
+      renderCurrentView();
+      
+      const now = new Date();
+      document.getElementById('lastUpdateTop').innerHTML = `
+        <i class="fas fa-check-circle"></i>
+        <span>Última atualização: ${now.toLocaleTimeString('pt-BR')} - ${now.toLocaleDateString('pt-BR')}</span>
+      `;
+    } catch (err) {
+      console.error(err);
+      const isOffline = !navigator.onLine;
+      const msg = isOffline ? 'Sem internet - Tentando reconectar...' : `Erro ao carregar dados: ${escapeHtml(err.message)}`;
+      
+      document.getElementById('clientesContainer').innerHTML = `<div class="empty">${msg}</div>`;
+      document.getElementById('lastUpdateTop').innerHTML = `
+        <i class="fas fa-${isOffline ? 'wifi' : 'exclamation-triangle'}" style="color: #ef4444;"></i>
+        <span>${isOffline ? 'Offline' : 'Erro na atualização'}</span>
+      `;
+    }
+  }
+
+  document.getElementById('filterInput').addEventListener('input', () => {
+    renderCurrentView();
+  });
+  document.getElementById('resumoModal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('resumoModal')) closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('resumoModal').style.display === 'flex') {
+      closeModal();
+    }
+  });
+
+  updateToggleButton();
+
+  // Quando o login estiver ok, carrega a planilha de entrega
+  onAuthSuccess = () => {
+    loadDataAndRender();
+  };
+
+  // Atualização automática respeitando o login
+  setInterval(() => {
+    loadDataAndRender(true);
+  }, AUTO_UPDATE_INTERVAL);
+
+  // Registro de reconexão automática
+  registerOnlineRefresh(() => loadDataAndRender(true));
+
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) {
+      loadDataAndRender(true);
+    }
+  });
+  </script>
+</body>
+</html>

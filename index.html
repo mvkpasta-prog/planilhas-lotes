@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Controle de Lotes</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://accounts.google.com/gsi/client" onload="gisLoaded()" async defer></script>
+  <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()" async defer></script>
+  <script src="auth_config.js"></script>
+</head>
+
+<body>
+  <button id="btnExitTv" class="btn-tv-exit" onclick="exitTvMode()"><i class="fas fa-compress"></i> Sair do Modo TV (Esc)</button>
+  <header>
+    <div class="wrap nav-container">
+      <div class="brand">
+        <img src="mvklogo.png" alt="MVK">
+        Controle de Lotes
+      </div>
+      
+      <div class="nav-links">
+        <a href="index.html" class="nav-link active"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a href="lotes-entrega.html" class="nav-link"><i class="fas fa-truck"></i> Entrega</a>
+        <a href="Retiradas.html" class="nav-link"><i class="fas fa-box"></i> Retirada</a>
+        <a href="programacao.html" class="nav-link"><i class="fas fa-calendar-alt"></i> Programação</a>
+        
+        <button type="button" class="nav-link btn-tv-mode" onclick="toggleTvMode()" title="Exibir apenas o painel principal em Tela Cheia">
+          <i class="fas fa-tv"></i> Modo TV
+        </button>
+
+        <button type="button" id="themeToggleBtn" class="nav-link btn-theme" onclick="toggleTheme()" title="Alternar Tema Claro / Escuro">
+          <i class="fas fa-moon"></i>
+        </button>
+
+        <div id="auth_container">
+          <button id="authorize_button" class="btn-auth" onclick="handleAuthClick()" style="display: none;">
+            <i class="fab fa-google"></i> Login
+          </button>
+          <button id="signout_button" class="btn-auth" onclick="handleSignoutClick()" style="display: none; background: rgba(255,255,255,0.1); color: white;">
+            <i class="fas fa-sign-out-alt"></i> Sair
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="wrap" style="margin-top: 0.5rem;">
+      <div class="last-update" id="lastUpdateTop">
+        <i class="fas fa-sync-alt fa-spin"></i> <span>Atualizando informações...</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap animate-in">
+    <div class="dashboard-composite">
+      <div class="metrics-column">
+        <div class="section-title" style="margin-bottom: 1rem; color: var(--prod-total); display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-boxes"></i> Volumes Totais
+        </div>
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 2rem;">
+          <div class="metric-card glass metric-soja">
+            <div class="metric-label">Soja</div>
+            <div class="metric-value" id="count-soja">0 KG</div>
+          </div>
+          <div class="metric-card glass metric-milho">
+            <div class="metric-label">Milho</div>
+            <div class="metric-value" id="count-milho">0 KG</div>
+          </div>
+          <div class="metric-card glass metric-sorgo">
+            <div class="metric-label">Sorgo</div>
+            <div class="metric-value" id="count-sorgo">0 KG</div>
+          </div>
+          <div class="metric-card glass metric-total" id="card-total-embarcado">
+            <div class="metric-label">Total Embarcado</div>
+            <div class="metric-value" id="count-total">0 KG</div>
+          </div>
+        </div>
+
+        <div class="section-title" style="margin-bottom: 1rem; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-warehouse"></i> Armazém MVK
+        </div>
+        <div class="stats-grid" style="margin-bottom: 2rem;">
+          <div class="metric-card glass metric-carregado">
+            <div class="metric-label">Carregado</div>
+            <div class="metric-value" id="count-mvk-carregado">0</div>
+          </div>
+          <div class="metric-card glass metric-embarque">
+            <div class="metric-label">No Embarque</div>
+            <div class="metric-value" id="count-mvk-embarque">0</div>
+          </div>
+          <div class="metric-card glass metric-transito">
+            <div class="metric-label">Em Trânsito</div>
+            <div class="metric-value" id="count-mvk-transito">0</div>
+          </div>
+          <div class="metric-card glass metric-contratar">
+            <div class="metric-label">Contratar</div>
+            <div class="metric-value" id="count-mvk-contratar">0</div>
+          </div>
+        </div>
+
+        <div class="section-title" style="margin-bottom: 1rem; color: var(--muted); display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-map-marked-alt"></i> Demais Locais
+        </div>
+        <div class="stats-grid" style="margin-bottom: 0;">
+          <div class="metric-card glass metric-carregado">
+            <div class="metric-label">Carregado</div>
+            <div class="metric-value" id="count-others-carregado">0</div>
+          </div>
+          <div class="metric-card glass metric-embarque">
+            <div class="metric-label">No Embarque</div>
+            <div class="metric-value" id="count-others-embarque">0</div>
+          </div>
+          <div class="metric-card glass metric-transito">
+            <div class="metric-label">Em Trânsito</div>
+            <div class="metric-value" id="count-others-transito">0</div>
+          </div>
+          <div class="metric-card glass metric-contratar">
+            <div class="metric-label">Contratar</div>
+            <div class="metric-value" id="count-others-contratar">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-column">
+        <div class="section-title" style="margin-bottom: 1rem; opacity: 0; pointer-events: none;">
+          <i class="fas fa-city"></i> Sidebar
+        </div>
+        <div class="metric-card glass city-highlights-card">
+          <div class="metric-label">Destaques por Cidade</div>
+          <div class="carousel-container" id="city-carousel">
+            <div class="carousel-item active">
+              <div class="carousel-loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Sincronizando dados...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+
+    <div class="client-grid" id="clientesContainer" style="margin-bottom: 2rem;">
+    </div>
+
+
+  </main>
+  <script>
+    const SHEET_ID = '1o0wF2ScSkyxqY8FHFI-rA6k_3uMI2wsZr2wQG8JD4B4';
+    const GIDS = {
+      entrega: '1186247985',
+      retirada: '1984691910',
+      programacao: '1183141602'
+    };
+    const AUTO_UPDATE_INTERVAL = 300000;
+    const HIDDEN_COLS = ['nfp', 'royalties', 'safra'];
+    const REMOVED_COMMON = ['localizacao', 'idorigemymvk1'];
+    const REMOVED_PROGRAMACAO = [
+      'observacoes', 'ordem', 'notafiscal', 'dacte', 'mdfe', 'conftipocam', 'agendamento',
+      'descarga', 'comprovantededescarga', 'horarioprev', 'classificacaodestino', 'chaveid',
+      'frete', 'statusagendamento', 'datadedescarga', 'notafiscal'
+    ];
+    let globalProdutosTotais = { soja: 0, milho: 0, sorgo: 0, total: 0 };
+    function normalizeHeader(h) {
+      if (h === undefined || h === null) return '';
+      return String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+    }
+    function normalizeText(text) {
+      if (text === undefined || text === null) return '';
+      return String(text).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+    function parseCSV(text) {
+      if (!text) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
+      const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+      if (lines.length === 0) return { arrays: [], headersOrig: [], headersNorm: [], objects: [] };
+      const parsed = lines.map(line => line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim()));
+      const headersOrig = parsed.shift().map(h => h || '');
+      const headersNorm = headersOrig.map(h => normalizeHeader(h));
+      const objects = parsed.map(cells => {
+        const obj = {};
+        headersNorm.forEach((key, idx) => {
+          obj[key] = cells[idx] !== undefined ? cells[idx] : '';
+        });
+        return obj;
+      });
+      return { arrays: parsed, headersOrig, headersNorm, objects };
+    }
+    async function fetchSheetByGid(gid) {
+      // Use the V4 function from auth_config.js
+      return await fetchSheetByGidV4(SHEET_ID, gid);
+    }
+    function parseNumber(val) {
+      if (val === undefined || val === null) return NaN;
+      const s = String(val).replace(/\s/g, '').replace(/\./g, '').replace(/,/g, '.');
+      const n = parseFloat(s.replace(/[^\d\.\-]/g, ''));
+      return isNaN(n) ? NaN : n;
+    }
+    function parseDateOnly(s) {
+      if (!s) return null;
+      const str = String(s).trim();
+      if (str.includes('/')) {
+        const parts = str.split('/');
+        if (parts.length >= 3) {
+          const d = parseInt(parts[0], 10), m = parseInt(parts[1], 10), y = parseInt(parts[2], 10);
+          if (!isNaN(d) && !isNaN(m) && !isNaN(y)) return new Date(y, m - 1, d);
+        }
+      }
+      if (str.includes('-') || (str.includes('/') && str.indexOf('/') === 4)) {
+        const sep = str.includes('-') ? '-' : '/';
+        const parts = str.split(sep);
+        if (parts.length >= 3) {
+          const y = parseInt(parts[0], 10), m = parseInt(parts[1], 10), d = parseInt(parts[2], 10);
+          if (!isNaN(d) && !isNaN(m) && !isNaN(y)) return new Date(y, m - 1, d);
+        }
+      }
+      const dt = new Date(str);
+      if (!isNaN(dt.getTime())) return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+      return null;
+    }
+    function findHeaderKey(headersNorm, patterns) {
+      for (const p of patterns) {
+        const f = headersNorm.find(h => h.includes(p));
+        if (f) return f;
+      }
+      if (patterns.includes('saldoent')) {
+        const f = headersNorm.find(h => h.includes('saldo') && (h.includes('ent') || h.includes('entrega') || h.includes('entkg')));
+        if (f) return f;
+      }
+      if (patterns.includes('saldoret')) {
+        const f = headersNorm.find(h => h.includes('saldo') && (h.includes('ret') || h.includes('retirada') || h.includes('retkg')));
+        if (f) return f;
+      }
+      if (patterns.some(x => x.includes('contrato'))) {
+        const f = headersNorm.find(h => h.includes('contrato'));
+        if (f) return f;
+      }
+      const f = headersNorm.find(h => h.includes('saldo'));
+      if (f) return f;
+      return null;
+    }
+    function formatCurrencyBRL(value) {
+      if (isNaN(value)) return value;
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(value);
+    }
+    function formatStatusProgramacao(status) {
+      let className = 'badge';
+      let text = status;
+      const statusNorm = normalizeText(status);
+      if (statusNorm.includes('carregado')) {
+        className += ' badge-success';
+      } else if (statusNorm.includes('embarque') || statusNorm.includes('no embarque')) {
+        className += ' badge-info';
+      } else if (statusNorm.includes('transito') || statusNorm.includes('em transito')) {
+        className += ' badge-danger';
+      } else if (statusNorm.includes('contratar')) {
+        className += ' badge-warning';
+      } else {
+        className += ' badge-info';
+      }
+      return `<span class="${className}">${escapeHtml(text)}</span>`;
+    }
+    function buildTableHTML(rowsArrays, rowsObjects, headersOrig, headersNorm, opts) {
+      const hiddenNorm = opts.hiddenNorm || [];
+      const removedNorm = opts.removedNorm || [];
+      const numericKey = opts.numericKey || '';
+      const forceInclude = opts.forceInclude || [];
+      const currencyCols = opts.currencyCols || [];
+      const statusCol = opts.statusCol || '';
+      const visible = headersNorm.filter(h => !removedNorm.includes(h));
+      let displayCols = visible.filter(h => !hiddenNorm.includes(h));
+      forceInclude.forEach(fc => {
+        if (visible.includes(fc) && !displayCols.includes(fc)) displayCols.unshift(fc);
+        else if (visible.includes(fc)) displayCols = [fc, ...displayCols.filter(x => x !== fc)];
+      });
+      if (displayCols.length === 0) {
+        return '<div class="empty">Sem colunas para exibir.</div>';
+      }
+      let html = '<table><thead><tr>';
+      displayCols.forEach(h => {
+        const idx = headersNorm.indexOf(h);
+        const title = (idx >= 0 ? headersOrig[idx] : h) || h;
+        html += `<th>${escapeHtml(title)}</th>`;
+      });
+      if (numericKey) html += '<th>Status</th>';
+      html += '</tr></thead><tbody>';
+      rowsObjects.forEach((obj, i) => {
+        const arr = rowsArrays[i] || [];
+        const n = numericKey ? parseNumber(obj[numericKey] || arr[numericKeyIndex(headersNorm, numericKey)] || '0') : NaN;
+        html += '<tr>';
+        displayCols.forEach(h => {
+          const idx = headersNorm.indexOf(h);
+          let value = (obj[h] !== undefined && obj[h] !== '') ? obj[h] : (arr[idx] !== undefined ? arr[idx] : '');
+          if (currencyCols.includes(h)) {
+            const numValue = parseNumber(value);
+            if (!isNaN(numValue)) {
+              value = formatCurrencyBRL(numValue);
+            }
+          }
+          if (h === statusCol) {
+            value = formatStatusProgramacao(value);
+            html += `<td>${value}</td>`;
+          } else {
+            html += `<td>${escapeHtml(value)}</td>`;
+          }
+        });
+        if (numericKey) html += `<td>${n > 0 ? '<span class="badge badge-warning">ABERTO</span>' : '<span class="badge badge-success">FECHADO</span>'}</td>`;
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      return html;
+    }
+    function numericKeyIndex(headersNorm, key) { return headersNorm.indexOf(key); }
+    function escapeHtml(s) {
+      if (s === undefined || s === null) return '';
+      return String(s).replace(/[&<>"'\/]/g, c => ({
+        '&': '&amp;',
+        '<': '<',
+        '>': '>',
+        '"': '&quot;',
+        "'": '&#39;',
+        '/': '&#x2F;'
+      }[c]));
+    }
+    function countStatusProgramacao(rowsObjects, statusCol) {
+      let carregado = 0, embarque = 0, transito = 0, contratar = 0;
+      if (!statusCol) return { carregado, embarque, transito, contratar };
+      rowsObjects.forEach(obj => {
+        const status = obj[statusCol] || '';
+        const statusNorm = normalizeText(status);
+        if (statusNorm.includes('carregado')) {
+          carregado++;
+        } else if (statusNorm.includes('embarque') || statusNorm.includes('no embarque')) {
+          embarque++;
+        } else if (statusNorm.includes('transito') || statusNorm.includes('em transito')) {
+          transito++;
+        } else if (statusNorm.includes('contratar')) {
+          contratar++;
+        }
+      });
+      return { carregado, embarque, transito, contratar };
+    }
+    function extractProduto(text) {
+      if (!text) return '';
+      const parts = text.split('-');
+      if (parts.length === 0) return '';
+      let produto = parts[parts.length - 1].trim().toLowerCase();
+      produto = produto.replace(/[0-9\.\,\(\)\[\]]/g, '').trim();
+      return produto;
+    }
+    function extractContratoInfo(text) {
+      if (!text || text.trim() === '') return { contrato: '', cliente: '', destino: '', produto: '', isValid: false };
+      const parts = text.split(' - ').map(part => part.trim());
+      
+      const cliente = parts[1] || '';
+      let destino = parts[3] || '';
+      
+      // Exceção para o cliente CHS AGRONEGOCIO (A cidade fica entre o 4º e 5º traço)
+      if (normalizeText(cliente).includes('chs agronegocio')) {
+        destino = parts[4] || destino;
+      }
+
+      if (parts.length < 6) {
+        const first = text.split('-')[0] ? text.split('-')[0].trim() : '';
+        const contratoFallback = first.replace(/\D/g, '');
+        const produto = parts.slice(5).join(' - ').trim().toUpperCase() || (parts[parts.length - 1] || '').toUpperCase();
+        const isValidFallback = contratoFallback !== '' && cliente !== '' && destino !== '';
+        return {
+          contrato: contratoFallback,
+          cliente: cliente,
+          destino: destino,
+          produto: produto,
+          isValid: isValidFallback
+        };
+      }
+      const contrato = parts[0].replace(/\D/g, '');
+      const produtoParts = parts.slice(5);
+      let produto = produtoParts.join(' - ').trim().toUpperCase();
+      if (!produto) {
+        produto = parts[parts.length - 1].trim().toUpperCase();
+      }
+      const isValid = contrato !== '' && cliente !== '' && destino !== '' && produto !== '';
+      return {
+        contrato: contrato,
+        cliente: cliente,
+        destino: destino,
+        produto: produto,
+        isValid: isValid
+      };
+    }
+    function calculateProdutosTotais(rowsObjects, produtoColIndex, pesoColIndex, destinoColIndex) {
+      let soja = 0, milho = 0, sorgo = 0;
+      rowsObjects.forEach(arr => {
+        let destinoText = '';
+        if (destinoColIndex !== -1) {
+          if (Array.isArray(arr) && arr[destinoColIndex] !== undefined) {
+            destinoText = arr[destinoColIndex];
+          }
+        }
+        const { isValid } = extractContratoInfo(destinoText);
+        if (!isValid) return;
+        let produtoText = '';
+        if (produtoColIndex !== -1) {
+          if (Array.isArray(arr) && arr[produtoColIndex] !== undefined) {
+            produtoText = arr[produtoColIndex];
+          }
+        }
+        const produto = extractProduto(produtoText);
+        let pesoText = '';
+        if (pesoColIndex !== -1) {
+          if (Array.isArray(arr) && arr[pesoColIndex] !== undefined) {
+            pesoText = arr[pesoColIndex];
+          }
+        }
+        const peso = parseNumber(pesoText);
+        if (isNaN(peso)) return;
+        if (produto.includes('soja')) {
+          soja += peso;
+        } else if (produto.includes('milho')) {
+          milho += peso;
+        } else if (produto.includes('sorgo')) {
+          sorgo += peso;
+        }
+      });
+      return { soja, milho, sorgo };
+    }
+    function updateLastUpdateTime() {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('pt-BR');
+      const dateString = now.toLocaleDateString('pt-BR');
+      document.getElementById('lastUpdateTop').innerHTML = `
+    <i class="fas fa-check-circle" style="color: rgba(255,255,255,0.9);"></i>
+    <span>Última atualização: ${timeString} - ${dateString}</span>
+  `;
+    }
+    function formatNumber(value) {
+      if (isNaN(value)) return '0';
+      return new Intl.NumberFormat('pt-BR').format(Math.round(value));
+    }
+    function extractWeightFromColumnI(text) {
+      if (!text || text.trim() === '') return 0;
+      const parts = text.split('-');
+      if (parts.length === 0) return 0;
+      let lastPart = parts[parts.length - 1].trim();
+      const match = lastPart.match(/(\d+)/);
+      if (match && match[1]) {
+        const tons = parseInt(match[1], 10);
+        return tons * 1000;
+      }
+      return 0;
+    }
+    function isArmazemMVK(arr) {
+      if (!arr || !arr[1]) return false;
+      const colB = normalizeText(String(arr[1]));
+      return colB.includes('mvk agro cereais');
+    }
+
+    function animateValue(id, end, duration, suffix = '') {
+      const obj = document.getElementById(id);
+      if (!obj) return;
+      
+      const start = parseInt(obj.getAttribute('data-value') || '0', 10);
+      if (start === end && obj.textContent !== '0') return;
+
+      obj.setAttribute('data-value', end);
+      obj.classList.add('updating-value');
+      
+      let startTimestamp = null;
+      const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const currentVal = Math.floor(progress * (end - start) + start);
+        obj.textContent = formatNumber(currentVal) + (suffix ? ' ' + suffix : '');
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        } else {
+          setTimeout(() => obj.classList.remove('updating-value'), 400);
+        }
+      };
+      window.requestAnimationFrame(step);
+    }
+
+    const CITY_COORDS = {
+      'MARINGA': { lat: -23.4209, lon: -51.9331 },
+      'LONDRINA': { lat: -23.3103, lon: -51.1628 },
+      'CURITIBA': { lat: -25.4290, lon: -49.2671 },
+      'CASCAVEL': { lat: -24.9555, lon: -53.4552 },
+      'BATAGUASSU': { lat: -21.7142, lon: -52.4222 },
+      'FRANCISCO BELTRAO': { lat: -26.0779, lon: -53.0553 },
+      'PATO BRANCO': { lat: -26.2295, lon: -52.6716 },
+      'TOLEDO': { lat: -24.7245, lon: -53.7431 },
+      'PONTA GROSSA': { lat: -25.0994, lon: -50.1583 },
+      'PARANAGUA': { lat: -25.5205, lon: -48.5093 },
+      'CAMPO MOURAO': { lat: -24.0457, lon: -52.3789 },
+      'UMUARAMA': { lat: -23.7661, lon: -53.3250 },
+      'PARANAVAI': { lat: -23.0817, lon: -52.4646 },
+      'GUARAPUAVA': { lat: -25.3907, lon: -51.4628 },
+      'FOZ DO IGUACU': { lat: -25.5163, lon: -54.5854 },
+      'DOURADOS': { lat: -22.2231, lon: -54.8118 },
+      'CAMPO GRANDE': { lat: -20.4697, lon: -54.6201 },
+      'RONDONOPOLIS': { lat: -16.4674, lon: -54.6372 },
+      'CUIABA': { lat: -15.6014, lon: -56.0979 },
+      'CHAPECO': { lat: -27.1004, lon: -52.6152 },
+      'PASSO FUNDO': { lat: -28.2612, lon: -52.4083 },
+      'ASSIS': { lat: -22.6617, lon: -50.4178 },
+      'OURINHOS': { lat: -22.9789, lon: -49.8706 },
+      'PRESIDENTE PRUDENTE': { lat: -22.1256, lon: -51.3889 }
+    };
+
+    function getWeatherIcon(code) {
+      if (code === 0) return '<i class="fas fa-sun" style="color: #fbbf24;"></i>';
+      if (code >= 1 && code <= 3) return '<i class="fas fa-cloud-sun" style="color: #f59e0b;"></i>';
+      if (code === 45 || code === 48) return '<i class="fas fa-smog" style="color: #94a3b8;"></i>';
+      if (code >= 51 && code <= 65) return '<i class="fas fa-cloud-showers-heavy" style="color: #3b82f6;"></i>';
+      if (code >= 95) return '<i class="fas fa-cloud-bolt" style="color: #6366f1;"></i>';
+      return '<i class="fas fa-cloud" style="color: #64748b;"></i>';
+    }
+
+    function getWeatherDesc(code) {
+      if (code === 0) return 'Céu Limpo';
+      if (code >= 1 && code <= 3) return 'Parcialmente Nublado';
+      if (code === 45 || code === 48) return 'Nevoeiro';
+      if (code >= 51 && code <= 55) return 'Garoa';
+      if (code >= 61 && code <= 65) return 'Chuva';
+      if (code >= 95) return 'Tempestade';
+      return 'Nublado';
+    }
+
+    async function getCityCoords(city) {
+      const cityNorm = city.toUpperCase().trim();
+      if (CITY_COORDS[cityNorm]) return CITY_COORDS[cityNorm];
+
+      const cacheKey = `coords_cache_${cityNorm}`;
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) return JSON.parse(cached);
+
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city + ', Brazil')}&format=json&limit=1`;
+        const resp = await fetch(url, { headers: { 'Accept-Language': 'pt-BR' } });
+        const data = await resp.json();
+        if (data && data.length > 0) {
+          const coords = { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+          localStorage.setItem(cacheKey, JSON.stringify(coords));
+          return coords;
+        }
+      } catch (e) {
+        console.error('Geocoding Error:', e);
+      }
+      return CITY_COORDS['MARINGA'];
+    }
+
+    async function fetchCityWeather(city) {
+      const cityNorm = city.toUpperCase().trim();
+      const coords = await getCityCoords(city);
+      
+      const cacheKey = `weather_cache_${cityNorm}`;
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const decoded = JSON.parse(cached);
+        const age = (Date.now() - decoded.timestamp) / (1000 * 60 * 60);
+        if (age < 1) return decoded.weather;
+      }
+
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true`;
+        const resp = await fetch(url);
+        const data = await resp.json();
+        const weather = {
+          temp: Math.round(data.current_weather.temperature),
+          code: data.current_weather.weathercode
+        };
+        localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), weather }));
+        return weather;
+      } catch (e) {
+        console.error('Weather Error:', e);
+        return { temp: '--', code: -1 };
+      }
+    }
+
+    async function updateCityHighlights(rowsArr, destinoIndex, pesoIndex, produtoIndex) {
+      const summary = {};
+      rowsArr.forEach(arr => {
+        const destinoText = arr[destinoIndex] || '';
+        const { destino, isValid } = extractContratoInfo(destinoText);
+        if (!isValid) return;
+
+        const city = destino.split('/')[0].split('-')[0].trim().toUpperCase();
+        const peso = parseNumber(arr[pesoIndex]);
+        const produtoRaw = extractProduto(arr[produtoIndex] || '');
+        const produto = produtoRaw.includes('soja') ? 'SOJA' : (produtoRaw.includes('milho') ? 'MILHO' : 'OUTROS');
+
+        if (!summary[city]) summary[city] = { total: 0, produtos: {} };
+        const validPeso = isNaN(peso) ? 0 : peso;
+        summary[city].total += validPeso;
+        summary[city].produtos[produto] = (summary[city].produtos[produto] || 0) + validPeso;
+      });
+
+      const sortedCities = Object.entries(summary)
+        .sort((a, b) => b[1].total - a[1].total)
+        .slice(0, 10);
+
+      const container = document.getElementById('city-carousel');
+      if (sortedCities.length === 0) {
+        container.innerHTML = `
+          <div class="carousel-item active">
+            <div class="carousel-loading">
+              <i class="fas fa-info-circle"></i>
+              <span>Sem embarques hoje</span>
+            </div>
+          </div>`;
+        return;
+      }
+
+      let html = '';
+      for (const [city, data] of sortedCities) {
+        const idx = sortedCities.indexOf(sortedCities.find(x => x[0] === city));
+        const weather = await fetchCityWeather(city);
+        
+        const prodKeys = Object.keys(data.produtos);
+        let prodContent = '';
+        
+        if (prodKeys.length === 1) {
+          // Single product: Show only a special "Total" row to save space
+          const p = prodKeys[0];
+          prodContent = `
+            <div class="shipment-row shipment-total-row">
+              <span class="shipment-label">${p} (TOTAL)</span>
+              <span class="shipment-value">${formatNumber(data.total)} KG</span>
+            </div>`;
+        } else {
+          // Multiple products: Show breakdown + total
+          const prodRows = prodKeys.map(p => `
+            <div class="shipment-row">
+              <span class="shipment-label">${p}</span>
+              <span class="shipment-value">${formatNumber(data.produtos[p])} KG</span>
+            </div>
+          `).join('');
+          
+          prodContent = `
+            ${prodRows}
+            <div class="shipment-row shipment-total-row">
+              <span class="shipment-label">TOTAL</span>
+              <span class="shipment-value">${formatNumber(data.total)} KG</span>
+            </div>`;
+        }
+
+        html += `
+          <div class="carousel-item ${idx === 0 ? 'active' : ''}">
+            <div class="city-name-large" style="margin-top: 0;">${city}</div>
+            
+            <div class="shipment-details-large">
+              <div class="weather-header" style="margin-bottom: 0.25rem;">Volumes do Dia</div>
+              ${prodContent}
+            </div>
+
+            <div class="weather-card" style="margin-top: 8px;">
+              <div class="weather-main">
+                <div class="weather-icon-large">${getWeatherIcon(weather.code)}</div>
+                <div class="weather-temp-large">${weather.temp}°C</div>
+                <div class="weather-condition">${getWeatherDesc(weather.code)}</div>
+              </div>
+            </div>
+          </div>`;
+      }
+      container.innerHTML = html;
+      startCityCarousel();
+    }
+
+
+
+    let carouselInterval;
+    function startCityCarousel() {
+      if (carouselInterval) clearInterval(carouselInterval);
+      const items = document.querySelectorAll('#city-carousel .carousel-item');
+      if (items.length <= 1) return;
+
+      let current = 0;
+      carouselInterval = setInterval(() => {
+        const currentItem = items[current];
+        currentItem.classList.remove('active');
+        currentItem.classList.add('exit');
+        
+        const prev = current;
+        current = (current + 1) % items.length;
+        
+        items[current].classList.add('active');
+        
+        setTimeout(() => {
+          items[prev].classList.remove('exit');
+        }, 600);
+      }, 7000); // 7 seconds
+
+    }
+    function buildClientesHTML(clientes) {
+      if (clientes.length === 0) {
+        return '<div class="empty">Nenhum contrato encontrado para hoje.</div>';
+      }
+      let html = '';
+      clientes.forEach(cliente => {
+        let badgeClass = 'badge-info';
+        const produtoUp = (cliente.produto || '').toUpperCase();
+        if (produtoUp.includes('SOJA')) {
+          badgeClass = 'badge-success';
+        } else if (produtoUp.includes('MILHO')) {
+          badgeClass = 'badge-warning';
+        }
+        
+        let saldoEntregaAjustado = cliente.saldoEntrega || 0;
+        if (cliente.pesoEmTransitoEmbarque && !isNaN(cliente.pesoEmTransitoEmbarque)) {
+          saldoEntregaAjustado -= cliente.pesoEmTransitoEmbarque;
+        }
+        const saldoEntregaDisplay = !isNaN(saldoEntregaAjustado) ? `${formatNumber(saldoEntregaAjustado)} KG` : '0 KG';
+        const valorMedioFrete = !isNaN(cliente.valorMedioFrete) ? formatCurrencyBRL(cliente.valorMedioFrete) : 'N/A';
+        
+        html += `
+          <div class="client-card glass">
+            <div class="client-header">
+              <div class="client-name">${escapeHtml(cliente.cliente)}</div>
+              <div class="client-destination">${escapeHtml(cliente.destino)}</div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <span class="badge badge-info" style="font-size: 0.7rem;">Contrato: ${escapeHtml(cliente.contrato)}</span>
+              <span class="badge ${badgeClass}">${escapeHtml(cliente.produto)}</span>
+            </div>
+
+            <div class="caminhoes-info" style="border: none; padding: 0; margin-bottom: 1rem;">
+              <span class="badge badge-success">Carregados: ${cliente.totalCaminhoesCarregados}</span>
+              <span class="badge badge-warning">Pendentes: ${cliente.totalCaminhoesPendentes}</span>
+            </div>
+
+            <div class="client-details">
+              <div class="detail-item">
+                <span class="detail-label">Peso Carregado</span>
+                <span class="detail-value">${formatNumber(cliente.totalPesoCarregado)} KG</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Saldo a entregar</span>
+                <span class="detail-value">${escapeHtml(saldoEntregaDisplay)}</span>
+              </div>
+              <div class="detail-item" style="grid-column: span 2; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--border);">
+                <span class="detail-label">Valor Médio Frete</span>
+                <span class="detail-value" style="color: var(--primary);">${valorMedioFrete}</span>
+              </div>
+            </div>
+
+            ${cliente.pesoEmTransitoEmbarque && cliente.pesoEmTransitoEmbarque > 0 ?
+                `<div style="margin-top: 1rem; padding: 0.5rem; background: rgba(239, 68, 68, 0.1); border-radius: 0.5rem;">
+                  <span class="detail-label" style="color: var(--status-transito);">Em Trânsito/Embarque</span>
+                  <span class="detail-value" style="color: var(--status-transito); display: block;">${formatNumber(cliente.pesoEmTransitoEmbarque)} KG</span>
+                </div>` : ''}
+          </div>
+        `;
+      });
+      return html;
+    }
+    function updateClientesSummary(clientes) { }
+    async function groupByContract(rowsProg, destinoColIndex, placaColIndex, statusColIndex, freteColIndex, transportadoraColIndex, includeFutureDates = false) {
+      const grupos = {};
+      let rowsToProcess = rowsProg;
+      if (!includeFutureDates) {
+        const today = new Date();
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+        const dateIndexProg = 0;
+        rowsToProcess = rowsProg.filter(arr => {
+          let dtVal = '';
+          if (arr && arr[dateIndexProg] !== undefined) dtVal = arr[dateIndexProg];
+          const dt = parseDateOnly(dtVal);
+          return dt && dt.getTime() === todayStart;
+        });
+      }
+      rowsToProcess.forEach(arr => {
+        let destinoText = '';
+        if (destinoColIndex !== -1) {
+          if (Array.isArray(arr) && arr[destinoColIndex] !== undefined) {
+            destinoText = arr[destinoColIndex];
+          }
+        }
+        const { contrato, cliente, destino, produto, isValid } = extractContratoInfo(destinoText);
+        if (!isValid || !contrato) return;
+        const key = `contrato_${contrato}`;
+        let pesoRealText = '';
+        if (Array.isArray(arr) && arr[9] !== undefined) {
+          pesoRealText = arr[9];
+        }
+        const pesoReal = parseNumber(pesoRealText) || 0;
+        let placa = '';
+        if (placaColIndex !== -1) {
+          if (Array.isArray(arr) && arr[placaColIndex] !== undefined) {
+            placa = arr[placaColIndex];
+          }
+        }
+        let status = '';
+        if (statusColIndex !== -1) {
+          if (Array.isArray(arr) && arr[statusColIndex] !== undefined) {
+            status = arr[statusColIndex];
+          }
+        }
+        const statusNorm = normalizeText(status);
+        const isCarregado = statusNorm.includes('carregado');
+        const isEmbarque = statusNorm.includes('embarque') || statusNorm.includes('no embarque');
+        const isTransito = statusNorm.includes('transito') || statusNorm.includes('em transito');
+        if (!grupos[key]) {
+          grupos[key] = {
+            contrato: contrato,
+            cliente: cliente,
+            destino: destino,
+            produto: produto,
+            totalPeso: 0,
+            totalPesoCarregado: 0,
+            totalPesoPendente: 0,
+            placas: new Set(),
+            placasCarregadas: new Set(),
+            placasPendentes: new Set(),
+            count: 0,
+            pesoEmTransitoEmbarque: 0,
+            valoresFrete: [],
+            valorMedioFrete: 0
+          };
+        }
+        grupos[key].totalPeso += pesoReal;
+        if (placa && placa.trim() !== '') {
+          grupos[key].placas.add(placa.trim());
+        }
+        if (isCarregado) {
+          grupos[key].totalPesoCarregado += pesoReal;
+          if (placa && placa.trim() !== '') {
+            grupos[key].placasCarregadas.add(placa.trim());
+          }
+        } else {
+          grupos[key].totalPesoPendente += pesoReal;
+          if (placa && placa.trim() !== '') {
+            grupos[key].placasPendentes.add(placa.trim());
+          }
+        }
+        grupos[key].count++;
+        if (isEmbarque || isTransito) {
+          let textoColunaI = '';
+          if (Array.isArray(arr) && arr[8] !== undefined) {
+            textoColunaI = arr[8];
+          }
+          const pesoExtraido = extractWeightFromColumnI(textoColunaI);
+          grupos[key].pesoEmTransitoEmbarque += pesoExtraido;
+        }
+        if (freteColIndex !== -1 && transportadoraColIndex !== -1) {
+          let freteText = '';
+          let transportadoraText = '';
+          if (Array.isArray(arr) && arr[freteColIndex] !== undefined) {
+            freteText = arr[freteColIndex];
+          }
+          if (Array.isArray(arr) && arr[transportadoraColIndex] !== undefined) {
+            transportadoraText = arr[transportadoraColIndex];
+          }
+          const freteValue = parseNumber(freteText);
+          if (!isNaN(freteValue) && freteValue > 0) {
+            let freteReal = freteValue;
+            const isMVK = normalizeText(transportadoraText).includes('mvk');
+            const isTransportadoraEmpty = transportadoraText.trim() === '';
+            if (!isMVK && !isTransportadoraEmpty) {
+              freteReal = freteValue / 0.92;
+            }
+            grupos[key].valoresFrete.push(freteReal);
+          }
+        }
+      });
+      return Object.values(grupos).map(grupo => {
+        let valorMedioFrete = 0;
+        if (grupo.valoresFrete.length > 0) {
+          const somaFrete = grupo.valoresFrete.reduce((acc, val) => acc + val, 0);
+          valorMedioFrete = somaFrete / grupo.valoresFrete.length;
+        }
+        return {
+          ...grupo,
+          totalPeso: Math.round(grupo.totalPeso),
+          totalPesoCarregado: Math.round(grupo.totalPesoCarregado),
+          totalPesoPendente: Math.round(grupo.totalPesoPendente),
+          totalCaminhoes: grupo.placas.size,
+          totalCaminhoesCarregados: grupo.placasCarregadas.size,
+          totalCaminhoesPendentes: grupo.placasPendentes.size,
+          placas: Array.from(grupo.placas),
+          placasCarregadas: Array.from(grupo.placasCarregadas),
+          placasPendentes: Array.from(grupo.placasPendentes),
+          pesoEmTransitoEmbarque: Math.round(grupo.pesoEmTransitoEmbarque),
+          valorMedioFrete: valorMedioFrete
+        };
+      }).sort((a, b) => b.totalPeso - a.totalPeso);
+    }
+    function getSaudacao() {
+      const hora = new Date().getHours();
+      if (hora >= 5 && hora < 12) {
+        return 'Bom dia';
+      } else if (hora >= 12 && hora < 18) {
+        return 'Boa tarde';
+      } else {
+        return 'Boa noite';
+      }
+    }
+    function formatResumoMessage(soja, milho, sorgo, total) {
+      const saudacao = getSaudacao();
+      const sojaKg = formatNumber(soja);
+      const milhoKg = formatNumber(milho);
+      const sorgoKg = formatNumber(sorgo);
+      const totalKg = formatNumber(total);
+      const icones = [];
+      if (soja > 0) icones.push('🌱');
+      if (milho > 0) icones.push('🌽');
+      if (sorgo > 0) icones.push('🌾');
+      const iconesLine = icones.join(' ');
+      const sojaLine = `Soja: ${sojaKg} kg`;
+      const milhoLine = `Milho: ${milhoKg} kg`;
+      const sorgoLine = sorgo > 0 ? `Sorgo: ${sorgoKg} kg` : '';
+      let message = `${saudacao}
+Embarque encerrado ${iconesLine}
+`;
+      message += `${sojaLine}
+`;
+      message += `${milhoLine}
+`;
+      if (sorgoLine) {
+        message += `${sorgoLine}
+`;
+      }
+      message += `Total embarcado: ${totalKg} kg
+Bom descanso a todos 🙌🏻🙏🏻`;
+      return message.trim();
+    }
+    function showToast(message, type = 'info', actionBtn = null) {
+      let container = document.getElementById('toastContainer');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+      }
+      const toast = document.createElement('div');
+      toast.className = `toast ${type === 'whatsapp' ? 'toast-whatsapp' : ''}`;
+      
+      let icon = '<i class="fas fa-info-circle" style="color: var(--primary);"></i>';
+      if (type === 'whatsapp') icon = '<i class="fab fa-whatsapp"></i>';
+      else if (type === 'success') icon = '<i class="fas fa-check-circle" style="color: #10b981;"></i>';
+      else if (type === 'error') icon = '<i class="fas fa-exclamation-circle" style="color: #ef4444;"></i>';
+      
+      let actionHtml = '';
+      if (actionBtn) {
+        actionHtml = `<a href="${actionBtn.url}" target="_blank" rel="noopener noreferrer" class="toast-btn">${actionBtn.text}</a>`;
+      }
+      
+      toast.innerHTML = `${icon} <span>${escapeHtml(message)}</span> ${actionHtml}`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        if (toast.parentElement) toast.remove();
+      }, 5000);
+    }
+
+    function handleTotalCardClick() {
+      const { soja, milho, sorgo, total } = globalProdutosTotais;
+      const message = formatResumoMessage(soja, milho, sorgo, total);
+      const encodedMsg = encodeURIComponent(message);
+      const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMsg}`;
+      
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(message).then(() => {
+          showToast('Resumo copiado para a área de transferência!', 'whatsapp', {
+            text: 'Abrir WhatsApp',
+            url: whatsappUrl
+          });
+        }).catch(err => {
+          console.error('Falha ao copiar:', err);
+          showToast('Resumo gerado! Clique para enviar:', 'whatsapp', {
+            text: 'Abrir WhatsApp',
+            url: whatsappUrl
+          });
+        });
+      } else {
+        showToast('Resumo gerado! Clique para enviar:', 'whatsapp', {
+          text: 'Abrir WhatsApp',
+          url: whatsappUrl
+        });
+      }
+    }
+
+    // ==========================================
+    // 📺 CONTROLE DO MODO TV (FULLSCREEN COMPOSITE)
+    // ==========================================
+    function toggleTvMode() {
+      if (document.body.classList.contains('tv-mode-active')) {
+        exitTvMode();
+      } else {
+        enterTvMode();
+      }
+    }
+
+    function enterTvMode() {
+      document.body.classList.add('tv-mode-active');
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch(() => {});
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+      }
+      showToast('Modo TV ativado. Pressione ESC para sair.', 'info');
+    }
+
+    function exitTvMode() {
+      document.body.classList.remove('tv-mode-active');
+      if (document.fullscreenElement) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.body.classList.contains('tv-mode-active')) {
+        exitTvMode();
+      }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement && document.body.classList.contains('tv-mode-active')) {
+        document.body.classList.remove('tv-mode-active');
+      }
+    });
+    async function loadAll(isAutoUpdate = false) {
+      try {
+        if (isAutoUpdate) {
+          document.getElementById('lastUpdateTop').innerHTML = `
+        <i class="fas fa-hourglass-half" style="color: rgba(255,255,255,0.9);"></i>
+        <span>Atualizando...</span>
+      `;
+          document.body.classList.add('updating');
+        }
+
+        // Wait for auth if not ready
+        const hasAuth = localStorage.getItem('google_has_auth') === 'true';
+        if (!accessToken && !hasAuth) {
+          console.log('Waiting for authentication...');
+          document.getElementById('lastUpdateTop').innerHTML = '<span>Aguardando Login...</span>';
+          document.body.classList.remove('updating');
+          return;
+        }
+        const prog = await fetchSheetByGid(GIDS.programacao);
+        const rowsArrProg = prog.arrays;
+        const headersOrigProg = prog.headersOrig;
+        const headersNormProg = prog.headersNorm;
+        const objsProg = prog.objects;
+        const statusKey = headersNormProg.find(h => h.includes('status') && !h.includes('agendamento')) || null;
+        const statusIndex = headersNormProg.indexOf(statusKey);
+        const freteIndex = 4;
+        const transportadoraIndex = 5;
+        const dateKeyProg = findHeaderKey(headersNormProg, ['data', 'dataprogramacao', 'dataprog', 'dataentrega']) || headersNormProg[0] || null;
+        const dateIndexProg = 0;
+        const today = new Date(); const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+        const rowsArrProgFiltered = [];
+        const rowsObjProgFiltered = [];
+        for (let i = 0; i < rowsArrProg.length; i++) {
+          const arr = rowsArrProg[i];
+          const obj = objsProg[i] || {};
+          let dtVal = '';
+          if (dateKeyProg && obj[dateKeyProg]) dtVal = obj[dateKeyProg];
+          else if (arr[dateIndexProg] !== undefined) dtVal = arr[dateIndexProg];
+          const dt = parseDateOnly(dtVal);
+          if (dt && dt.getTime() === todayStart) {
+            rowsArrProgFiltered.push(arr);
+            rowsObjProgFiltered.push(obj);
+          }
+        }
+        const ent = await fetchSheetByGid(GIDS.entrega);
+        const rowsArrEnt = ent.arrays;
+        const headersOrigEnt = ent.headersOrig;
+        const headersNormEnt = ent.headersNorm;
+        const objsEnt = ent.objects;
+        const infoDestinoKey = headersNormEnt.find(h => h.includes('informacoesdestino') || h.includes('informacaodestino') || h.includes('destino'));
+        const saldoKeyEnt = findHeaderKey(headersNormEnt, ['saldoent', 'saldoentrega', 'saldoentkg']) || null;
+        const saldoIndexEnt = 8;
+        const existingContratoKeys = headersNormEnt.filter(h => h.includes('contrato') || h.includes('ncontrato') || h.includes('numerocontrato'));
+        const saldoPorContrato = {};
+        for (let i = 0; i < rowsArrEnt.length; i++) {
+          const arr = rowsArrEnt[i] || [];
+          const obj = objsEnt[i] || {};
+          let contratoRaw = '';
+          if (infoDestinoKey && obj[infoDestinoKey]) {
+            contratoRaw = String(obj[infoDestinoKey]).split('-')[0].trim();
+          } else if (arr[1] !== undefined && String(arr[1]).trim() !== '') {
+            contratoRaw = String(arr[1]).trim();
+          } else {
+            for (const k of existingContratoKeys) {
+              if (obj[k]) { contratoRaw = String(obj[k]).trim(); break; }
+            }
+          }
+          let contratoNorm = String(contratoRaw || '').replace(/\D/g, '').trim();
+          if (!contratoNorm) {
+            contratoNorm = String(contratoRaw || '').trim();
+          }
+          let saldoVal = '';
+          if (saldoKeyEnt && obj[saldoKeyEnt] !== undefined && obj[saldoKeyEnt] !== '') saldoVal = obj[saldoKeyEnt];
+          else if (arr[saldoIndexEnt] !== undefined) saldoVal = arr[saldoIndexEnt];
+          const n = parseNumber(saldoVal || '0');
+          if (!isNaN(n) && contratoNorm) {
+            saldoPorContrato[contratoNorm] = (saldoPorContrato[contratoNorm] || 0) + n;
+          }
+        }
+        const ret = await fetchSheetByGid(GIDS.retirada);
+        const placaColIndex = 7;
+
+        // Split data into MVK and Others
+        const mvkRowsArr = [];
+        const mvkRowsObj = [];
+        const othersRowsArr = [];
+        const othersRowsObj = [];
+
+        for (let i = 0; i < rowsArrProgFiltered.length; i++) {
+          if (isArmazemMVK(rowsArrProgFiltered[i])) {
+            mvkRowsArr.push(rowsArrProgFiltered[i]);
+            mvkRowsObj.push(rowsObjProgFiltered[i]);
+          } else {
+            othersRowsArr.push(rowsArrProgFiltered[i]);
+            othersRowsObj.push(rowsObjProgFiltered[i]);
+          }
+        }
+
+        const countCarregadoUnico = (rows) => {
+          const placas = new Set();
+          rows.forEach(arr => {
+            const status = (arr[statusIndex] || '').trim();
+            const placa = (arr[placaColIndex] || '').trim();
+            if (placa && normalizeText(status).includes('carregado')) {
+              placas.add(placa);
+            }
+          });
+          return placas.size;
+        };
+
+        const mvkCarregadoUnico = countCarregadoUnico(mvkRowsArr);
+        const othersCarregadoUnico = countCarregadoUnico(othersRowsArr);
+
+        const mvkStatusCounts = countStatusProgramacao(mvkRowsObj, statusKey);
+        const othersStatusCounts = countStatusProgramacao(othersRowsObj, statusKey);
+
+        // Update MVK IDs
+        animateValue('count-mvk-carregado', mvkCarregadoUnico, 2000);
+        animateValue('count-mvk-embarque', mvkStatusCounts.embarque, 2000);
+        animateValue('count-mvk-transito', mvkStatusCounts.transito, 2000);
+        animateValue('count-mvk-contratar', mvkStatusCounts.contratar, 2000);
+
+        // Update Others IDs
+        animateValue('count-others-carregado', othersCarregadoUnico, 2000);
+        animateValue('count-others-embarque', othersStatusCounts.embarque, 2000);
+        animateValue('count-others-transito', othersStatusCounts.transito, 2000);
+        animateValue('count-others-contratar', othersStatusCounts.contratar, 2000);
+
+        const produtosTotais = calculateProdutosTotais(rowsArrProgFiltered, 1, 9, 2);
+        globalProdutosTotais.soja = produtosTotais.soja;
+        globalProdutosTotais.milho = produtosTotais.milho;
+        globalProdutosTotais.sorgo = produtosTotais.sorgo;
+        const totalEmbarcado = produtosTotais.soja + produtosTotais.milho + produtosTotais.sorgo;
+        globalProdutosTotais.total = totalEmbarcado;
+        
+        animateValue('count-soja', produtosTotais.soja, 2000, 'KG');
+        animateValue('count-milho', produtosTotais.milho, 2000, 'KG');
+        animateValue('count-sorgo', produtosTotais.sorgo, 2000, 'KG');
+        animateValue('count-total', totalEmbarcado, 2000, 'KG');
+
+        updateCityHighlights(rowsArrProgFiltered, 2, 9, 1);
+
+        const clientesComPesoFuturo = await groupByContract(rowsArrProg, 2, 7, statusIndex, freteIndex, transportadoraIndex, true);
+        const clientesParaHoje = await groupByContract(rowsArrProgFiltered, 2, 7, statusIndex, freteIndex, transportadoraIndex, false);
+        clientesParaHoje.forEach(c => {
+          const key = String(c.contrato || '').replace(/\D/g, '').trim() || String(c.contrato || '').trim();
+          c.saldoEntrega = saldoPorContrato[key] || 0;
+          const clienteFuturo = clientesComPesoFuturo.find(cf => cf.contrato === c.contrato);
+          if (clienteFuturo) {
+            c.pesoEmTransitoEmbarque = clienteFuturo.pesoEmTransitoEmbarque || 0;
+          }
+        });
+        document.getElementById('clientesContainer').innerHTML = buildClientesHTML(clientesParaHoje);
+        updateClientesSummary(clientesParaHoje);
+        let removedProg = [...REMOVED_COMMON.map(normalizeHeader), ...REMOVED_PROGRAMACAO.map(normalizeHeader)];
+        if (headersNormProg.length > 1) {
+          const visibleCols = headersNormProg.filter(h => !removedProg.includes(h));
+          if (visibleCols.length > 1) {
+            const penultimaCol = visibleCols[visibleCols.length - 2];
+            removedProg.push(penultimaCol);
+          }
+        }
+        const freteEmpresaKey = headersNormProg.find(h => h.includes('freteempresa') || h.includes('frete') && h.includes('empresa')) || null;
+        const tableProgHTML = buildTableHTML(rowsArrProgFiltered, rowsObjProgFiltered, headersOrigProg, headersNormProg, {
+          hiddenNorm: HIDDEN_COLS.map(normalizeHeader),
+          removedNorm: removedProg,
+          numericKey: '',
+          currencyCols: freteEmpresaKey ? [freteEmpresaKey] : [],
+          statusCol: statusKey
+        });
+        updateLastUpdateTime();
+        document.body.classList.remove('updating');
+      }
+      catch (err) {
+        console.error('Erro loadAll:', err);
+        const isOffline = !navigator.onLine;
+        const msg = isOffline ? 'Sem internet - Tentando reconectar...' : 'Erro ao carregar dados dos contratos (ver console).';
+        
+        document.getElementById('clientesContainer').innerHTML = `<div class="empty">${msg}</div>`;
+        document.getElementById('lastUpdateTop').innerHTML = `
+          <i class="fas fa-${isOffline ? 'wifi' : 'exclamation-triangle'}" style="color: rgba(255,255,255,0.9);"></i>
+          <span>${isOffline ? 'Offline' : 'Erro na atualização'}</span>
+        `;
+        document.body.classList.remove('updating');
+      }
+    }
+    function setupToggleHandlers() { }
+    function toggleSection(sectionId) { }
+    // Set the callback for when auth is ready
+    onAuthSuccess = () => {
+      loadAll(true);
+    };
+
+    let autoUpdateInterval;
+    function startAutoUpdate() {
+      // loadAll(true); // Removed initial call, let onAuthSuccess handle it
+      autoUpdateInterval = setInterval(() => {
+        loadAll(true);
+      }, AUTO_UPDATE_INTERVAL);
+    }
+    function stopAutoUpdate() {
+      if (autoUpdateInterval) {
+        clearInterval(autoUpdateInterval);
+        autoUpdateInterval = null;
+      }
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      setupToggleHandlers();
+      document.getElementById('card-total-embarcado').addEventListener('click', handleTotalCardClick);
+      
+      // Regista refresh automático ao voltar a internet
+      registerOnlineRefresh(() => loadAll(true));
+      
+      startAutoUpdate();
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+          console.log('Página oculta - pausando atualizações automáticas');
+        } else {
+          console.log('Página visível - retomando atualizações automáticas');
+          loadAll(true);
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>
