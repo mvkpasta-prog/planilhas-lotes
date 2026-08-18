@@ -822,26 +822,43 @@ tr:hover td {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 0.4rem;
     font-size: 0.68rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
     color: var(--text-muted);
+    white-space: nowrap;
+    width: 100%;
+}
+
+.weather-panel-header span:first-child {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .weather-panel-header i {
     color: var(--primary);
-    margin-right: 0.3rem;
+    margin-right: 0.25rem;
 }
 
 .weather-condition-tag {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-weight: 700;
     color: var(--primary);
     background: rgba(59, 130, 246, 0.1);
-    padding: 0.15rem 0.55rem;
+    padding: 0.15rem 0.5rem;
     border-radius: 1rem;
     text-transform: capitalize;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 55%;
+    flex-shrink: 0;
 }
 
 [data-theme="dark"] .weather-condition-tag {
@@ -1501,49 +1518,61 @@ tr:hover td {
     justify-content: space-between;
 }
 
-/* =========================================================
-   📺 MODO TV / PAINEL DE MONITORAMENTO (FULLSCREEN RESPONSIVO)
-   ========================================================= */
-.tv-controls-group {
-    position: fixed;
-    top: 1.25rem;
-    right: 1.5rem;
-    display: none;
+/* Volumes Header Row com Controles da TV Integrados */
+.volumes-header-row {
+    display: flex;
     align-items: center;
-    gap: 0.75rem;
-    z-index: 10001;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    gap: 1rem;
+}
+
+.tv-controls-group {
+    display: none;
 }
 
 body.tv-mode-active .tv-controls-group {
     display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: static;
+    top: auto;
+    right: auto;
+    z-index: 10;
 }
 
 .btn-tv-ctrl {
     background: rgba(15, 23, 42, 0.85);
     color: white;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    padding: 0.6rem 1.25rem;
-    border-radius: 2rem;
-    font-size: 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.35rem 0.85rem;
+    border-radius: 1.5rem;
+    font-size: 0.78rem;
     font-weight: 700;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    backdrop-filter: blur(10px);
-    box-shadow: var(--shadow-lg);
+    gap: 0.4rem;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     transition: var(--transition);
-    opacity: 0.88;
+    opacity: 0.9;
+    white-space: nowrap;
 }
 
 .btn-tv-ctrl:hover {
     opacity: 1;
-    transform: scale(1.04);
+    transform: scale(1.03);
 }
 
 .btn-tv-ctrl.btn-tv-exit:hover {
     background: rgba(239, 68, 68, 0.95);
     border-color: #ef4444;
+}
+
+[data-theme="dark"] .btn-tv-ctrl {
+    background: rgba(30, 41, 59, 0.85);
+    border-color: rgba(255, 255, 255, 0.15);
 }
 
 /* Quando o Modo TV estiver ativo no Body */
@@ -1809,12 +1838,16 @@ body.tv-mode-active .weather-card {
 }
 
 body.tv-mode-active .weather-panel-header {
-    font-size: clamp(0.7rem, 0.82vw, 0.95rem);
+    font-size: clamp(0.65rem, 0.75vw, 0.88rem);
+    white-space: nowrap;
+    gap: 0.35rem;
 }
 
 body.tv-mode-active .weather-condition-tag {
-    font-size: clamp(0.72rem, 0.85vw, 1rem);
-    padding: clamp(0.18rem, 0.3vh, 0.3rem) clamp(0.5rem, 0.7vw, 0.8rem);
+    font-size: clamp(0.65rem, 0.75vw, 0.88rem);
+    padding: clamp(0.12rem, 0.25vh, 0.25rem) clamp(0.4rem, 0.55vw, 0.7rem);
+    white-space: nowrap;
+    max-width: 55%;
 }
 
 body.tv-mode-active .weather-content-wrapper {

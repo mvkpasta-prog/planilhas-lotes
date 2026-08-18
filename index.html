@@ -12,14 +12,6 @@
 </head>
 
 <body>
-  <div class="tv-controls-group" id="tvControlsGroup">
-    <button type="button" id="btnToggleTvLayout" class="btn-tv-ctrl" onclick="toggleTvLayout()" title="Alternar entre Layout Cockpit e Clássico">
-      <i class="fas fa-layer-group"></i> <span id="tvLayoutText">Layout: Cockpit</span>
-    </button>
-    <button type="button" id="btnExitTv" class="btn-tv-ctrl btn-tv-exit" onclick="exitTvMode()" title="Sair do Modo TV (Esc)">
-      <i class="fas fa-compress"></i> Sair (Esc)
-    </button>
-  </div>
   <header>
     <div class="wrap nav-container">
       <div class="brand">
@@ -62,8 +54,18 @@
   <main class="wrap animate-in">
     <div class="dashboard-composite" id="dashboardComposite">
       <div class="tv-section-group group-volumes">
-        <div class="section-title" style="color: var(--prod-total); display: flex; align-items: center; gap: 8px;">
-          <i class="fas fa-boxes"></i> Volumes Totais
+        <div class="volumes-header-row">
+          <div class="section-title" style="color: var(--prod-total); display: flex; align-items: center; gap: 8px; margin-bottom: 0;">
+            <i class="fas fa-boxes"></i> Volumes Totais
+          </div>
+          <div class="tv-controls-group" id="tvControlsGroup">
+            <button type="button" id="btnToggleTvLayout" class="btn-tv-ctrl" onclick="toggleTvLayout()" title="Alternar entre Layout Cockpit e Clássico">
+              <i class="fas fa-layer-group"></i> <span id="tvLayoutText">Layout: Cockpit</span>
+            </button>
+            <button type="button" id="btnExitTv" class="btn-tv-ctrl btn-tv-exit" onclick="exitTvMode()" title="Sair do Modo TV (Esc)">
+              <i class="fas fa-compress"></i> Sair (Esc)
+            </button>
+          </div>
         </div>
         <div class="stats-grid volumes-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
           <div class="metric-card glass metric-soja">
@@ -631,24 +633,24 @@
       const cityNorm = city.toUpperCase().trim();
       const coords = await getCityCoords(city);
       
-      const cacheKey = `weather_cache_v3_${cityNorm}`;
+      const cacheKey = `weather_cache_v4_${cityNorm}`;
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
         try {
           const decoded = JSON.parse(cached);
           const age = (Date.now() - decoded.timestamp) / (1000 * 60 * 60);
-          if (age < 1) return decoded.weather;
+          if (age < 1 && decoded.weather && decoded.weather.humidity !== null) return decoded.weather;
         } catch (e) {}
       }
 
       try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&current=relative_humidity_2m,wind_speed_10m&timezone=America%2FSao_Paulo`;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&timezone=America%2FSao_Paulo`;
         const resp = await fetch(url);
         const data = await resp.json();
         const weather = {
-          temp: Math.round(data.current_weather?.temperature ?? (data.current?.temperature_2m ?? 0)),
-          code: data.current_weather?.weathercode ?? 0,
-          windSpeed: Math.round(data.current_weather?.windspeed ?? (data.current?.wind_speed_10m ?? 0)),
+          temp: Math.round(data.current?.temperature_2m ?? (data.current_weather?.temperature ?? 0)),
+          code: data.current?.weather_code ?? (data.current_weather?.weathercode ?? 0),
+          windSpeed: Math.round(data.current?.wind_speed_10m ?? (data.current_weather?.windspeed ?? 0)),
           humidity: data.current?.relative_humidity_2m !== undefined ? Math.round(data.current.relative_humidity_2m) : null,
           tempMin: (data.daily && data.daily.temperature_2m_min && data.daily.temperature_2m_min[0] !== undefined) ? Math.round(data.daily.temperature_2m_min[0]) : null,
           tempMax: (data.daily && data.daily.temperature_2m_max && data.daily.temperature_2m_max[0] !== undefined) ? Math.round(data.daily.temperature_2m_max[0]) : null,
