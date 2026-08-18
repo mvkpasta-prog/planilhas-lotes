@@ -845,40 +845,28 @@
                 <span class="weather-condition-tag">${getWeatherDesc(weather.code)}</span>
               </div>
 
-              <div class="weather-main-row">
+              <div class="weather-content-wrapper">
                 <div class="weather-hero">
                   <div class="weather-icon-large">${getWeatherIcon(weather.code)}</div>
                   <div class="weather-temp-large">${weather.temp}°C</div>
                 </div>
 
-                <div class="weather-grid-details">
-                  <div class="weather-detail-pill">
-                    <i class="fas fa-droplet icon-rain"></i>
-                    <div class="weather-detail-text">
-                      <span class="w-label">Chuva</span>
-                      <span class="w-val">${rainString}</span>
-                    </div>
+                <div class="weather-info-list">
+                  <div class="weather-info-row">
+                    <span class="w-item-label"><i class="fas fa-droplet icon-rain"></i> Chuva:</span>
+                    <span class="w-item-val">${rainString}</span>
                   </div>
-                  <div class="weather-detail-pill">
-                    <i class="fas fa-temperature-half icon-temp"></i>
-                    <div class="weather-detail-text">
-                      <span class="w-label">Mín / Máx</span>
-                      <span class="w-val">${tempMinMaxString}</span>
-                    </div>
+                  <div class="weather-info-row">
+                    <span class="w-item-label"><i class="fas fa-temperature-half icon-temp"></i> Mín/Máx:</span>
+                    <span class="w-item-val">${tempMinMaxString}</span>
                   </div>
-                  <div class="weather-detail-pill">
-                    <i class="fas fa-wind icon-wind"></i>
-                    <div class="weather-detail-text">
-                      <span class="w-label">Vento</span>
-                      <span class="w-val">${windString}</span>
-                    </div>
+                  <div class="weather-info-row">
+                    <span class="w-item-label"><i class="fas fa-wind icon-wind"></i> Vento:</span>
+                    <span class="w-item-val">${windString}</span>
                   </div>
-                  <div class="weather-detail-pill">
-                    <i class="fas fa-water icon-humidity"></i>
-                    <div class="weather-detail-text">
-                      <span class="w-label">Umidade</span>
-                      <span class="w-val">${humidityString}</span>
-                    </div>
+                  <div class="weather-info-row">
+                    <span class="w-item-label"><i class="fas fa-water icon-humidity"></i> Umidade:</span>
+                    <span class="w-item-val">${humidityString}</span>
                   </div>
                 </div>
               </div>
