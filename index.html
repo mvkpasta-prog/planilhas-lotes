@@ -67,6 +67,7 @@
         </div>
         <div class="stats-grid volumes-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
           <div class="metric-card glass metric-soja">
+            <div class="card-battery-fill battery-fill-soja" id="fill-soja" style="width: 0%;"></div>
             <div class="metric-header-row">
               <div class="metric-label">Soja</div>
               <span class="metric-pct" id="pct-soja">0%</span>
@@ -77,6 +78,7 @@
             </div>
           </div>
           <div class="metric-card glass metric-milho">
+            <div class="card-battery-fill battery-fill-milho" id="fill-milho" style="width: 0%;"></div>
             <div class="metric-header-row">
               <div class="metric-label">Milho</div>
               <span class="metric-pct" id="pct-milho">0%</span>
@@ -87,6 +89,7 @@
             </div>
           </div>
           <div class="metric-card glass metric-sorgo">
+            <div class="card-battery-fill battery-fill-sorgo" id="fill-sorgo" style="width: 0%;"></div>
             <div class="metric-header-row">
               <div class="metric-label">Sorgo</div>
               <span class="metric-pct" id="pct-sorgo">0%</span>
@@ -97,6 +100,7 @@
             </div>
           </div>
           <div class="metric-card glass metric-total" id="card-total-embarcado">
+            <div class="card-battery-fill battery-fill-total" id="fill-total" style="width: 0%;"></div>
             <div class="metric-header-row">
               <div class="metric-label">Total Embarcado</div>
               <span class="metric-pct" id="pct-total">0%</span>
@@ -627,7 +631,7 @@
       const cityNorm = city.toUpperCase().trim();
       const coords = await getCityCoords(city);
       
-      const cacheKey = `weather_cache_v2_${cityNorm}`;
+      const cacheKey = `weather_cache_v3_${cityNorm}`;
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
         try {
@@ -638,12 +642,14 @@
       }
 
       try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&timezone=America%2FSao_Paulo`;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&current=relative_humidity_2m,wind_speed_10m&timezone=America%2FSao_Paulo`;
         const resp = await fetch(url);
         const data = await resp.json();
         const weather = {
-          temp: Math.round(data.current_weather.temperature),
-          code: data.current_weather.weathercode,
+          temp: Math.round(data.current_weather?.temperature ?? (data.current?.temperature_2m ?? 0)),
+          code: data.current_weather?.weathercode ?? 0,
+          windSpeed: Math.round(data.current_weather?.windspeed ?? (data.current?.wind_speed_10m ?? 0)),
+          humidity: data.current?.relative_humidity_2m !== undefined ? Math.round(data.current.relative_humidity_2m) : null,
           tempMin: (data.daily && data.daily.temperature_2m_min && data.daily.temperature_2m_min[0] !== undefined) ? Math.round(data.daily.temperature_2m_min[0]) : null,
           tempMax: (data.daily && data.daily.temperature_2m_max && data.daily.temperature_2m_max[0] !== undefined) ? Math.round(data.daily.temperature_2m_max[0]) : null,
           rainMm: (data.daily && data.daily.precipitation_sum && data.daily.precipitation_sum[0] !== undefined) ? (Math.round(data.daily.precipitation_sum[0] * 10) / 10) : 0,
@@ -653,7 +659,7 @@
         return weather;
       } catch (e) {
         console.error('Weather Error:', e);
-        return { temp: '--', code: -1, tempMin: null, tempMax: null, rainMm: 0, rainProb: null };
+        return { temp: '--', code: -1, windSpeed: null, humidity: null, tempMin: null, tempMax: null, rainMm: 0, rainProb: null };
       }
     }
 
@@ -676,37 +682,51 @@
           if (pUf.length === 2) uf = pUf;
         }
 
-        const peso = parseNumber(arr[pesoIndex]);
-        const validPeso = isNaN(peso) ? 0 : peso;
+        let pesoReal = 0;
+        if (pesoIndex !== -1 && Array.isArray(arr) && arr[pesoIndex] !== undefined) {
+          pesoReal = parseNumber(arr[pesoIndex]);
+          if (isNaN(pesoReal) || pesoReal < 0) pesoReal = 0;
+        }
+
+        let pesoEstimado = 0;
+        if (Array.isArray(arr) && arr[8] !== undefined) {
+          pesoEstimado = extractWeightFromColumnI(arr[8]);
+        }
+
+        const pesoEfetivo = pesoReal > 0 ? pesoReal : (pesoEstimado > 0 ? pesoEstimado : 37000);
+
         const produtoRaw = extractProduto(arr[produtoIndex] || '');
         const produto = produtoRaw.includes('soja') ? 'SOJA' : (produtoRaw.includes('milho') ? 'MILHO' : (produtoRaw.includes('sorgo') ? 'SORGO' : 'OUTROS'));
 
         const placa = (placaColIndex !== undefined && arr[placaColIndex]) ? String(arr[placaColIndex]).trim().toUpperCase() : '';
         const statusText = (statusIndex !== undefined && arr[statusIndex]) ? normalizeText(String(arr[statusIndex])) : '';
+        const isCarregado = statusText.includes('carregado');
 
         if (!summary[city]) {
           summary[city] = {
             city: city,
             uf: uf,
-            total: 0,
+            totalProg: 0,
             totalCarregado: 0,
-            produtos: {},
+            produtosProg: {},
+            produtosCarregados: {},
             placas: new Set(),
             statusCounts: { carregado: 0, embarque: 0, transito: 0, contratar: 0 },
             rowCount: 0
           };
         }
 
-        summary[city].total += validPeso;
+        summary[city].totalProg += pesoEfetivo;
         summary[city].rowCount++;
-        summary[city].produtos[produto] = (summary[city].produtos[produto] || 0) + validPeso;
+        summary[city].produtosProg[produto] = (summary[city].produtosProg[produto] || 0) + pesoEfetivo;
 
         if (placa) {
           summary[city].placas.add(placa);
         }
 
-        if (statusText.includes('carregado')) {
-          summary[city].totalCarregado += validPeso;
+        if (isCarregado) {
+          summary[city].totalCarregado += (pesoReal > 0 ? pesoReal : pesoEfetivo);
+          summary[city].produtosCarregados[produto] = (summary[city].produtosCarregados[produto] || 0) + (pesoReal > 0 ? pesoReal : pesoEfetivo);
           summary[city].statusCounts.carregado++;
         } else if (statusText.includes('embarque') || statusText.includes('no embarque')) {
           summary[city].statusCounts.embarque++;
@@ -718,7 +738,7 @@
       });
 
       const sortedCities = Object.entries(summary)
-        .sort((a, b) => b[1].total - a[1].total)
+        .sort((a, b) => b[1].totalProg - a[1].totalProg)
         .slice(0, 10);
 
       const container = document.getElementById('city-carousel');
@@ -738,13 +758,13 @@
         const [city, data] = sortedCities[idx];
         const weather = await fetchCityWeather(city);
         
-        const prodKeys = Object.keys(data.produtos);
+        const prodKeys = Object.keys(data.produtosProg);
         let prodSubtitle = '';
         if (prodKeys.length === 1) {
-          prodSubtitle = `(100% ${prodKeys[0]})`;
+          prodSubtitle = `100% ${prodKeys[0]}`;
         } else {
           const parts = prodKeys.map(p => {
-            const pct = data.total > 0 ? Math.round((data.produtos[p] / data.total) * 100) : 0;
+            const pct = data.totalProg > 0 ? Math.round((data.produtosProg[p] / data.totalProg) * 100) : 0;
             return `${pct}% ${p}`;
           });
           prodSubtitle = parts.join(' • ');
@@ -762,9 +782,9 @@
         
         const statusSummaryText = statusParts.length > 0 ? statusParts.join(' • ') : 'Programação em andamento';
 
-        const percentCarregado = data.total > 0 ? Math.min(100, Math.round((data.totalCarregado / data.total) * 100)) : 0;
+        const percentCarregado = data.totalProg > 0 ? Math.min(100, Math.round((data.totalCarregado / data.totalProg) * 100)) : 0;
 
-        // Rain and temp string
+        // Rain string
         let rainString = '0mm';
         if (weather.rainMm > 0) {
           rainString = `${weather.rainMm}mm`;
@@ -773,10 +793,14 @@
           rainString += ` (${weather.rainProb}%)`;
         }
 
-        let tempRange = '';
+        // Temp Min/Max
+        let tempMinMaxString = '-- / --';
         if (weather.tempMin !== null && weather.tempMax !== null) {
-          tempRange = ` • 🌡️ ${weather.tempMin}°C / ${weather.tempMax}°C`;
+          tempMinMaxString = `${weather.tempMin}°C / ${weather.tempMax}°C`;
         }
+
+        const windString = weather.windSpeed !== null ? `${weather.windSpeed} km/h` : '--';
+        const humidityString = weather.humidity !== null ? `${weather.humidity}%` : '--';
 
         const rankingBadge = idx === 0 ? '🏆 #1 NO DIA' : `#${idx + 1} NO DIA`;
         const ufDisplay = data.uf ? ` - ${data.uf}` : '';
@@ -792,15 +816,15 @@
 
             <div class="city-kpi-grid">
               <div class="city-kpi-card">
-                <div class="city-kpi-label"><i class="fas fa-boxes-stacked"></i> Volume Total</div>
-                <div class="city-kpi-value">${formatNumber(data.total)} <span class="city-kpi-unit">KG</span></div>
-                <div class="city-kpi-sub">${prodSubtitle}</div>
+                <div class="city-kpi-label"><i class="fas fa-boxes-stacked"></i> Volume Embarcado</div>
+                <div class="city-kpi-value">${formatNumber(data.totalCarregado)} <span class="city-kpi-unit">KG</span></div>
+                <div class="city-kpi-sub">${percentCarregado}% de ${formatNumber(data.totalProg)} KG (${prodSubtitle})</div>
               </div>
 
               <div class="city-kpi-card">
                 <div class="city-kpi-label"><i class="fas fa-truck"></i> Veículos</div>
                 <div class="city-kpi-value">${caminhoesLabel}</div>
-                <div class="city-kpi-sub">Programados no dia</div>
+                <div class="city-kpi-sub">${data.statusCounts.carregado} carregado${data.statusCounts.carregado !== 1 ? 's' : ''} de ${totalCaminhoes}</div>
               </div>
             </div>
 
@@ -816,16 +840,47 @@
             </div>
 
             <div class="weather-card">
-              <div class="weather-main">
-                <div class="weather-icon-large">${getWeatherIcon(weather.code)}</div>
-                <div class="weather-temp-info">
-                  <div class="weather-temp-large">${weather.temp}°C</div>
-                  <div class="weather-condition">${getWeatherDesc(weather.code)}</div>
-                </div>
+              <div class="weather-panel-header">
+                <span><i class="fas fa-cloud-sun"></i> Clima & Condições</span>
+                <span class="weather-condition-tag">${getWeatherDesc(weather.code)}</span>
               </div>
-              <div class="weather-sub-info">
-                <div class="weather-sub-item"><i class="fas fa-droplet"></i> Chuva: ${rainString}</div>
-                ${tempRange ? `<div class="weather-sub-item">${tempRange.replace(' • ', '')}</div>` : ''}
+
+              <div class="weather-main-row">
+                <div class="weather-hero">
+                  <div class="weather-icon-large">${getWeatherIcon(weather.code)}</div>
+                  <div class="weather-temp-large">${weather.temp}°C</div>
+                </div>
+
+                <div class="weather-grid-details">
+                  <div class="weather-detail-pill">
+                    <i class="fas fa-droplet icon-rain"></i>
+                    <div class="weather-detail-text">
+                      <span class="w-label">Chuva</span>
+                      <span class="w-val">${rainString}</span>
+                    </div>
+                  </div>
+                  <div class="weather-detail-pill">
+                    <i class="fas fa-temperature-half icon-temp"></i>
+                    <div class="weather-detail-text">
+                      <span class="w-label">Mín / Máx</span>
+                      <span class="w-val">${tempMinMaxString}</span>
+                    </div>
+                  </div>
+                  <div class="weather-detail-pill">
+                    <i class="fas fa-wind icon-wind"></i>
+                    <div class="weather-detail-text">
+                      <span class="w-label">Vento</span>
+                      <span class="w-val">${windString}</span>
+                    </div>
+                  </div>
+                  <div class="weather-detail-pill">
+                    <i class="fas fa-water icon-humidity"></i>
+                    <div class="weather-detail-text">
+                      <span class="w-label">Umidade</span>
+                      <span class="w-val">${humidityString}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>`;
@@ -1184,6 +1239,35 @@ Bom descanso a todos 🙌🏻🙏🏻`;
       showToast(`Modo TV: ${next === 'cockpit' ? 'Cockpit' : 'Clássico'} ativado`, 'info');
     }
 
+    function animatePercentage(elementId, targetPct, duration = 1500) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      const currentText = el.textContent || '0%';
+      const startPct = parseInt(currentText.replace(/\D/g, '') || '0', 10);
+      if (startPct === targetPct && el.getAttribute('data-init') === '1') return;
+      el.setAttribute('data-init', '1');
+
+      let startTime = null;
+      const step = (timestamp) => {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const currentVal = Math.round(startPct + (targetPct - startPct) * easeOut);
+        
+        el.textContent = `${currentVal}%`;
+        if (targetPct >= 100) {
+          el.classList.add('pct-complete');
+        } else {
+          el.classList.remove('pct-complete');
+        }
+
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        }
+      };
+      window.requestAnimationFrame(step);
+    }
+
     function updateGrainProgressBars(sojaCarr, sojaProg, milhoCarr, milhoProg, sorgoCarr, sorgoProg, totalCarr, totalProg) {
       const calcPct = (carr, prog) => {
         if (!prog || prog <= 0) return carr > 0 ? 100 : 0;
@@ -1195,6 +1279,18 @@ Bom descanso a todos 🙌🏻🙏🏻`;
       const pctSorgo = calcPct(sorgoCarr, sorgoProg);
       const pctTotal = calcPct(totalCarr, totalProg);
 
+      // Battery backdrop fills
+      const fillSoja = document.getElementById('fill-soja');
+      const fillMilho = document.getElementById('fill-milho');
+      const fillSorgo = document.getElementById('fill-sorgo');
+      const fillTotal = document.getElementById('fill-total');
+
+      if (fillSoja) fillSoja.style.width = `${pctSoja}%`;
+      if (fillMilho) fillMilho.style.width = `${pctMilho}%`;
+      if (fillSorgo) fillSorgo.style.width = `${pctSorgo}%`;
+      if (fillTotal) fillTotal.style.width = `${pctTotal}%`;
+
+      // Progress bars
       const barSoja = document.getElementById('bar-soja');
       const barMilho = document.getElementById('bar-milho');
       const barSorgo = document.getElementById('bar-sorgo');
@@ -1205,15 +1301,11 @@ Bom descanso a todos 🙌🏻🙏🏻`;
       if (barSorgo) barSorgo.style.width = `${pctSorgo}%`;
       if (barTotal) barTotal.style.width = `${pctTotal}%`;
 
-      const pctSojaEl = document.getElementById('pct-soja');
-      const pctMilhoEl = document.getElementById('pct-milho');
-      const pctSorgoEl = document.getElementById('pct-sorgo');
-      const pctTotalEl = document.getElementById('pct-total');
-
-      if (pctSojaEl) pctSojaEl.textContent = `${pctSoja}%`;
-      if (pctMilhoEl) pctMilhoEl.textContent = `${pctMilho}%`;
-      if (pctSorgoEl) pctSorgoEl.textContent = `${pctSorgo}%`;
-      if (pctTotalEl) pctTotalEl.textContent = `${pctTotal}%`;
+      // Animated percentage badges
+      animatePercentage('pct-soja', pctSoja);
+      animatePercentage('pct-milho', pctMilho);
+      animatePercentage('pct-sorgo', pctSorgo);
+      animatePercentage('pct-total', pctTotal);
     }
 
     function toggleTvMode() {

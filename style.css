@@ -795,17 +795,17 @@ tr:hover td {
     font-weight: 800;
 }
 
-/* Weather Display */
+/* Weather Display Enriched */
 .weather-card {
-    margin: auto 0 0 0;
-    padding: 0.75rem 1rem;
+    margin-top: auto;
+    padding: 0.85rem 1rem;
     background: rgba(255, 255, 255, 0.65);
-    border-radius: 0.85rem;
+    border-radius: 0.95rem;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 0.6rem;
     border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 [data-theme="dark"] .weather-card {
@@ -813,63 +813,111 @@ tr:hover td {
     border-color: rgba(255, 255, 255, 0.08);
 }
 
-.weather-header {
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-muted);
-    margin-bottom: 0.25rem;
-    font-weight: 700;
-}
-
-.weather-main {
+.weather-panel-header {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 0.75rem;
-}
-
-.weather-icon-large {
-    font-size: 2.2rem;
-}
-
-.weather-temp-info {
-    display: flex;
-    flex-direction: column;
-}
-
-.weather-temp-large {
-    font-size: 1.6rem;
-    font-weight: 800;
-    font-family: 'Outfit', sans-serif;
-    line-height: 1.1;
-}
-
-.weather-condition {
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     color: var(--text-muted);
+}
+
+.weather-panel-header i {
+    color: var(--primary);
+    margin-right: 0.3rem;
+}
+
+.weather-condition-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--primary);
+    background: rgba(59, 130, 246, 0.1);
+    padding: 0.15rem 0.55rem;
+    border-radius: 1rem;
     text-transform: capitalize;
 }
 
-.weather-sub-info {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.25rem;
-    text-align: right;
+[data-theme="dark"] .weather-condition-tag {
+    background: rgba(59, 130, 246, 0.2);
 }
 
-.weather-sub-item {
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: var(--text-muted);
+.weather-main-row {
     display: flex;
     align-items: center;
-    gap: 0.3rem;
+    justify-content: space-between;
+    gap: 0.75rem;
 }
 
-.weather-sub-item i {
-    color: #3b82f6;
+.weather-hero {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.weather-icon-large {
+    font-size: 2.3rem;
+}
+
+.weather-temp-large {
+    font-size: 1.8rem;
+    font-weight: 900;
+    font-family: 'Outfit', sans-serif;
+    line-height: 1;
+    color: var(--text-main);
+}
+
+.weather-grid-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+    flex: 1;
+}
+
+.weather-detail-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 0.6rem;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] .weather-detail-pill {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+.weather-detail-pill i {
+    font-size: 0.85rem;
+}
+
+.weather-detail-pill i.icon-rain { color: #3b82f6; }
+.weather-detail-pill i.icon-temp { color: #ef4444; }
+.weather-detail-pill i.icon-wind { color: #06b6d4; }
+.weather-detail-pill i.icon-humidity { color: #10b981; }
+
+.weather-detail-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+
+.weather-detail-text .w-label {
+    font-size: 0.58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+}
+
+.weather-detail-text .w-val {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--text-main);
+    white-space: nowrap;
 }
 
 /* Pulse animation on counter updates */
@@ -1173,6 +1221,127 @@ tr:hover td {
 .bar-fill-total {
     background: linear-gradient(90deg, #6366f1, #8b5cf6);
     box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+}
+
+/* =========================================================
+   🔋 EFEITO BATERIA / NÍVEL DE CARGA DINÂMICO NOS CARDS
+   ========================================================= */
+.volumes-grid .metric-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.card-battery-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 0%;
+    z-index: 1;
+    pointer-events: none;
+    transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+/* Garantir que textos, rótulos e barras fiquem acima do preenchimento */
+.volumes-grid .metric-card .metric-header-row,
+.volumes-grid .metric-card .metric-value,
+.volumes-grid .metric-card .grain-bar-track,
+.volumes-grid .metric-card .metric-label {
+    position: relative;
+    z-index: 2;
+}
+
+/* Borda luminosa na ponta da bateria (glowing edge) */
+.card-battery-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 3px;
+    box-shadow: 0 0 10px 1px currentColor;
+    opacity: 0.8;
+    animation: batteryEdgeGlow 2s ease-in-out infinite alternate;
+}
+
+/* Onda de energia/shimmer que corre pela camada de carga */
+.card-battery-fill::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: translateX(-100%);
+    animation: batteryShimmer 3.5s ease-in-out infinite;
+}
+
+@keyframes batteryShimmer {
+    0% { transform: translateX(-100%); }
+    60%, 100% { transform: translateX(100%); }
+}
+
+@keyframes batteryEdgeGlow {
+    0% { opacity: 0.4; filter: brightness(0.9); }
+    100% { opacity: 0.95; filter: brightness(1.3); }
+}
+
+/* Cores de preenchimento da bateria por grão */
+.battery-fill-soja {
+    background: linear-gradient(90deg, rgba(16, 185, 129, 0.03), rgba(16, 185, 129, 0.15));
+    color: #10b981;
+}
+
+.battery-fill-milho {
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.03), rgba(245, 158, 11, 0.15));
+    color: #f59e0b;
+}
+
+.battery-fill-sorgo {
+    background: linear-gradient(90deg, rgba(107, 114, 128, 0.03), rgba(107, 114, 128, 0.15));
+    color: #9ca3af;
+}
+
+.battery-fill-total {
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.04), rgba(139, 92, 246, 0.18));
+    color: #8b5cf6;
+}
+
+/* Dark Mode para o efeito de bateria */
+[data-theme="dark"] .battery-fill-soja {
+    background: linear-gradient(90deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.22));
+}
+
+[data-theme="dark"] .battery-fill-milho {
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.05), rgba(245, 158, 11, 0.22));
+}
+
+[data-theme="dark"] .battery-fill-sorgo {
+    background: linear-gradient(90deg, rgba(156, 163, 175, 0.05), rgba(156, 163, 175, 0.2));
+}
+
+[data-theme="dark"] .battery-fill-total {
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.25));
+}
+
+/* Badge 100% Carga Completa */
+.metric-pct.pct-complete {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.45);
+    animation: completePulse 2.5s infinite ease-in-out;
+}
+
+@keyframes completePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
 }
 
 /* =========================================================
@@ -1627,25 +1796,69 @@ body.tv-mode-active .city-status-badges {
 }
 
 body.tv-mode-active .weather-card {
-    margin-top: auto;
-    padding: clamp(0.65rem, 1.2vh, 1.25rem) clamp(0.85rem, 1.1vw, 1.4rem);
-    border-radius: clamp(0.75rem, 0.9vw, 1.1rem);
+    flex: 1;
+    margin-top: 0;
+    padding: clamp(0.75rem, 1.4vh, 1.4rem) clamp(0.9rem, 1.2vw, 1.5rem);
+    border-radius: clamp(0.85rem, 1vw, 1.2rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: clamp(0.35rem, 0.7vh, 0.75rem);
+}
+
+body.tv-mode-active .weather-panel-header {
+    font-size: clamp(0.7rem, 0.82vw, 0.95rem);
+}
+
+body.tv-mode-active .weather-condition-tag {
+    font-size: clamp(0.72rem, 0.85vw, 1rem);
+    padding: clamp(0.2rem, 0.35vh, 0.35rem) clamp(0.5rem, 0.7vw, 0.8rem);
+}
+
+body.tv-mode-active .weather-main-row {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(0.6rem, 1vw, 1.2rem);
+}
+
+body.tv-mode-active .weather-hero {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.6rem, 1vw, 1.2rem);
 }
 
 body.tv-mode-active .weather-icon-large {
-    font-size: clamp(2rem, 2.5vw, 3.4rem);
+    font-size: clamp(2.4rem, 3.2vw, 4.2rem);
 }
 
 body.tv-mode-active .weather-temp-large {
-    font-size: clamp(1.6rem, 2.1vw, 2.7rem);
+    font-size: clamp(2rem, 2.8vw, 3.6rem);
 }
 
-body.tv-mode-active .weather-condition {
+body.tv-mode-active .weather-grid-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(0.35rem, 0.65vh, 0.65rem);
+}
+
+body.tv-mode-active .weather-detail-pill {
+    padding: clamp(0.4rem, 0.8vh, 0.8rem) clamp(0.55rem, 0.75vw, 0.95rem);
+    border-radius: clamp(0.55rem, 0.7vw, 0.85rem);
+    gap: clamp(0.35rem, 0.5vw, 0.65rem);
+}
+
+body.tv-mode-active .weather-detail-pill i {
+    font-size: clamp(0.9rem, 1.1vw, 1.3rem);
+}
+
+body.tv-mode-active .weather-detail-text .w-label {
+    font-size: clamp(0.6rem, 0.7vw, 0.82rem);
+}
+
+body.tv-mode-active .weather-detail-text .w-val {
     font-size: clamp(0.75rem, 0.88vw, 1.1rem);
-}
-
-body.tv-mode-active .weather-sub-item {
-    font-size: clamp(0.7rem, 0.82vw, 0.95rem);
 }
 
 /* Bolinhas de paginação do carrossel */
